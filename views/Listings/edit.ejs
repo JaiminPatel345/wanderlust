@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderLust</title>
+</head>
+<body>
+    <h2>Edit listing</h2>
+
+    <form method="post" action="/listings/<%= listing.id %>?_method=PUT">
+        <input type="text" name="title" value="<%= listing.title %>"><br><br>
+        <textarea name="description"  cols="30" rows="10" ><%= listing.description  %></textarea><br><br>
+        <input type="text" id="img" name="image" value="<%= listing.image %>">
+        <button><a href="" id="Preview">Preview</a></button>
+        <br><br>
+        <input type="number" name="price" value="<%= listing.price %>"><br><br>
+        <input type="text" name="location" value="<%= listing.location %>"><br>
+        <input type="text" name="country" value="<%= listing.country %>"><br>
+        <br><br>
+        <button>Conform</button>
+    </form>
+</body>
+</html>
+
+<script>
+    let a = document.getElementById("Preview");
+    let url = document.getElementById("img").value;
+    a.addEventListener('click', () => {
+        window.open(url);
+    })
+</script>
