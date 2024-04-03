@@ -1,15 +1,49 @@
 <% layout('/layouts/boilerplate.ejs') %>
-<body>
-    <h2>Add new Hotel</h2>
-    <form method="post" action="/listings">
-        <input type="text" name="title" placeholder="Enter your Title"><br><br>
-        <textarea name="description"  cols="30" rows="10" placeholder="Give brief description  about the hotel"></textarea><br><br>
-        <input type="text" name="image" placeholder="Enter your Image url"><br><br>
-        <input type="number" name="price"><br><br>
-        <input type="text" name="location" placeholder="Enter your location"><br>
-        <input type="text" name="country" placeholder="Enter your country"><br>
-        <button>Add on List</button>
-    </form>
-</body>
+    <div class="row">
+        <div class="col-8 offset-2">
+            <!-- <h2>Add new Hotel</h2> -->
+            <form method="post" action="/listings">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Add a catchy title" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control"
+                        placeholder="Give brief description  about the hotel"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">image</label>
+                    <input type="text" name="image" id="image" class="form-control"
+                        placeholder="Enter your Image url" />
+                </div>
+
+                <div class="row">
+
+                    <div class="mb-3 col-md-4" >
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" name="price" class="form-control" id="price" value="1200"/>
+                    </div>
 
 
+                    <div class="mb-3 col-md-8" >
+                        <label for="country" class="form-label">country</label>
+                        <input type="text" name="country" class="form-control" id="country"
+                            placeholder="India" />
+                    </div>
+                </div>
+
+
+                <div>
+                    <label for="location" class="form-label">location</label>
+                    <input type="text" name="location" class="form-control" id="location"
+                        placeholder="Vadodara , Gujarat" />
+                </div>
+                <br><br>
+
+                <button class="btn btn-dark ">Add on List</button>
+            </form>
+        </div>
+    </div>
