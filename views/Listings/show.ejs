@@ -1,29 +1,47 @@
 <% layout('/layouts/boilerplate.ejs') %>
-<body>
-    <h2><%= listing.title  %></h2>
-    
-    <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
-        <button><a href="/listings/<%= listing.id  %>/edit">Edit</a></button>
-        <button>DELETE</button>
-</form>
+    <br>
+    <div class="row mt-10">
+        <div class="col-8 offset-2">
+            <h3>Listing Details</h3>
+        </div>
+        <div class="col-6 offset-2">
 
-    <ul>
-
-        
-            <div class="container">
-                
-                <img src="<%= listing.image  %>" alt="">
-                <p><%= listing.description  %></p>
-                <p><%= listing.price.toLocaleString("en-IN")  %></p>
-                <p><%= listing.location  %></p>
-                <p><%= listing.country  %></p>
-                
-                
-                
-                
-                
+            <div class="card">
+                <img src="<%= listing.image  %>" class="card-img-top show-img"
+                    alt="Please give your valuable some time to load this image ">
             </div>
-            
-        </ul>
 
-</body>
+            <div class="card-body">
+                <h5 class="card-title">
+                    <%= listing.title %>
+                </h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
+                    card's content.</p>
+
+                <p>
+                    <%= listing.description %>
+                </p>
+                <p>
+                    &#8377; <%= listing.price.toLocaleString("en-IN") %>
+                </p>
+                <p>
+                    <i class="fa-solid fa-location-dot"></i>
+                    <%= listing.location %>
+                </p>
+                <p>
+                    <i class="fa-solid fa-globe"></i>
+                    <%= listing.country %>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="btns offset-2">
+        <a class="btn btn-red" href="/listings/<%= listing.id  %>/edit">Edit</a>
+
+        <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
+            <button class="btn btn-dark btn-delete">DELETE</button>
+        </form> 
+
+    </div>

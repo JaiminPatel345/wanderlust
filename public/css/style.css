@@ -94,12 +94,38 @@ body{
 }
 
 
-.btn{
+
+
+
+/* Show  */
+.show-img{
+    height: 300px;
+    width: 700px;
+}
+
+.btn-red{
     background-color: #FF496A;
+    width: 5rem;
     border: none;
 }
 
-.btn:hover{
+.btn-red:hover{
     background-color: #FF496A;
-    box-shadow: 0 0 5px black;
+    box-shadow: 0 0 3px black;
+}
+
+.btns{
+    display: flex;
+}
+
+.btn-delete{
+    margin-left: 20px;
+}
+
+.btn-delete:hover{
+    box-shadow: 0  0 3px rgb(0, 0, 0) !important;
+}
+
+.btn-save{
+    width: auto;
 }
