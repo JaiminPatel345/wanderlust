@@ -1,0 +1,59 @@
+.navbar{
+    height: 5rem;
+}
+
+.fa-compass{
+    color: #FF496A;
+    font-size: 2rem;
+}
+
+
+/* css button.app */
+.bn3637 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 3rem;
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    backface-visibility: hidden;
+    border: 0.3rem solid transparent;
+    border-radius: 30px;
+  }
+  .bn38 {
+    border-color: transparent;
+    transition: background-color 0.3s ease-in-out;
+  }
+    
+  .bn38:hover {
+    background-color: #eae6e6a3;
+  }
+
+
+  /* Footer */
+  .f-info-links a{
+    text-decoration: none;
+    color: #222222;
+  }
+
+  .f-info-links a:hover{
+    text-decoration: underline;
+  }
+
+  .f-info{
+    height: 8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #ebebeb;
+    font-size: 1.2rem;
+  }
+
+  .f-info-socials i{
+    justify-self: center;
+    margin-left: 1.1rem;
+  }
