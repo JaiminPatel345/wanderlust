@@ -2,44 +2,57 @@
     <div class="row">
         <div class="col-8 offset-2">
             <!-- <h2>Add new Hotel</h2> -->
-            <form method="post" action="/listings">
+            <form method="post" action="/listings" class="needs-validation" novalidate>
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
-                    <input type="text" id="title" name="title" class="form-control" placeholder="Add a catchy title" />
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Add a catchy title"
+                        required />
+                    <div class="valid-feedback">Nice one !</div>
+                    <div class="invalid-feedback">Title name is must</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="description" class="form-label">Description</label>
                     <textarea name="description" id="description" class="form-control"
-                        placeholder="Give brief description  about the hotel"></textarea>
+                        placeholder="Give brief description  about the hotel" required></textarea>
+                    <div class="valid-feedback">Good description !</div>
+                    <div class="invalid-feedback">description is must</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="image" class="form-label">image</label>
                     <input type="text" name="image" id="image" class="form-control"
                         placeholder="Enter your Image url" />
+                    <!-- <div class="valid-feedback">Hope so it is valid image url !!</div> -->
+
                 </div>
 
                 <div class="row">
 
-                    <div class="mb-3 col-md-4" >
+                    <div class="mb-3 col-md-4">
                         <label for="price" class="form-label">Price</label>
-                        <input type="number" name="price" class="form-control" id="price" value="1200"/>
+                        <input type="number" name="price" class="form-control" id="price" value="1200" required />
+                        <div class="valid-feedback">As you wish :) </div>
+                        <div class="invalid-feedback">You want to submit without Price :/ </div>
                     </div>
 
 
-                    <div class="mb-3 col-md-8" >
+                    <div class="mb-3 col-md-8">
                         <label for="country" class="form-label">country</label>
-                        <input type="text" name="country" class="form-control" id="country"
-                            placeholder="India" />
+                        <input type="text" name="country" class="form-control" id="country" placeholder="India"
+                            required />
                     </div>
+                    <div class="valid-feedback">Wow !!</div>
+                    <div class="invalid-feedback">You'r hotel is on Moon ?</div>
                 </div>
 
 
                 <div>
                     <label for="location" class="form-label">location</label>
                     <input type="text" name="location" class="form-control" id="location"
-                        placeholder="Vadodara , Gujarat" />
+                        placeholder="Vadodara , Gujarat" required />
+                    <div class="valid-feedback">Wow !!</div>
+                    <div class="invalid-feedback">You'r hotel is on Moon ?</div>
                 </div>
                 <br><br>
 
