@@ -1,0 +1,19 @@
+<% layout('/layouts/boilerplate.ejs') %>
+
+
+
+
+<script>
+    
+async function sweetalert(){
+
+await  Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "You enter wrong Price" ,
+  footer: '<a href="#">Why do I have this issue?</a>'
+});
+}
+
+sweetalert();
+</script>
