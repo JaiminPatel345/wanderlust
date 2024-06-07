@@ -30,25 +30,36 @@ app.get("/", (req, res) => {
   res.render('./Listings/home.ejs');
 });
 
+//Manage Async errors
+function asyncWrap(fn){
+  return function(req , res , next){
+    fn(req, res, next).catch( (err) => next(err));
+  }
+}
+
+
+//All listing
 app.get("/listings", async (req, res) => {
   let allListings = await Listing.find({});
   res.render("./Listings/index.ejs", { allListings });
 });
 
+//new Listing
 app.get("/listings/new", async (req, res) => {
   res.render("./Listings/new.ejs");
 });
 
-app.get("/listings/:id", async (req, res) => {
+//Show route
+app.get("/listings/:id", asyncWrap(async (req, res) => {
   let { id } = req.params;
   let oneListing = await Listing.findById(id);
   res.render("./Listings/show.ejs", { listing: oneListing });
-});
+}));
 
 //Add route
-app.post("/listings", async (req, res, next) => {
+app.post("/listings", asyncWrap( async (req, res, next) => {
   
-  try {
+  
     let { title, description, image, price, location, country } = req.body;
     // if(!title || !description || !price || !location || !country) {
     //   res.status(400).send("Enter all details")
@@ -68,31 +79,39 @@ app.post("/listings", async (req, res, next) => {
 
     await newListing.save();
     res.redirect("/listings");
-  } catch (err){ 
-    next(err);
-  }
-});
+  
+})
+);
 
-app.get("/listings/:id/edit", async (req, res) => {
+
+//edit route 
+app.get("/listings/:id/edit", asyncWrap( async (req, res) => {
   let { id } = req.params;
   let oneListing = await Listing.findById(id);
   res.render("./Listings/edit.ejs", { listing: oneListing });
-});
+})
+);
+
+
 
 //update route
-app.put("/listings/:id", async (req, res) => {
+app.put("/listings/:id", asyncWrap( async (req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndUpdate(id, req.body);
 
   res.redirect(`/listings/${id}`);
-});
+})
+);
+
+
 
 //delete route
-app.delete("/listings/:id", async (req, res) => {
+app.delete("/listings/:id", asyncWrap( async (req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndDelete(id);
   res.redirect("/listings");
-});
+})
+);
 
 
 // Error handling middleware
