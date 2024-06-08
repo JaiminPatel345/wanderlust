@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const default_img = 'https://img.freepik.com/free-vector/wanderlust-explore-adventure-landscape_24908-55313.jpg?w=740&t=st=1711876159~exp=1711876759~hmac=b91c9ca5ccaf8ba289e930b3c62030b97c46e70ad36177b312e199938db1c47c';
+const Review = require('./review.js');
 
 const listingSchema = new mongoose.Schema({
     title : {
@@ -31,9 +32,18 @@ const listingSchema = new mongoose.Schema({
     country : {
         type : String ,
         set: (v) => v.toUpperCase()
-        
-    }
+    },
+    reviews: [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Review"
+    }]
 });
+
+listingSchema.post('findOneAndDelete' , async (listing) => {
+    if(listing){
+        await Review.deleteMany({_id : {$in : listing.reviews}})
+    }
+})
 
 const Listing = mongoose.model("Listing",listingSchema);
 module.exports=Listing;

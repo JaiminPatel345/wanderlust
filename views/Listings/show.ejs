@@ -38,10 +38,57 @@
     </div>
 
     <div class="btns offset-2">
-        <a class="btn btn-red" href="/listings/<%= listing.id  %>/edit">Edit</a>
+        <a class="btn btn-red" href="/listings/<%= listing._id  %>/edit">Edit</a>
 
         <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
             <button class="btn btn-dark">DELETE</button>
-        </form> 
+        </form>
 
+    </div>
+    <hr>
+    <div class="col-8 offset-2">
+        <h3>Leave a review</h3>
+        <form action="/listings/<%= listing.id  %>/review" method="post" class="needs-validation" novalidate>
+            <div class="Rating form-element ">
+                <p class="form-label ">Rate :</p>
+                <input type="radio" id="star5" name="rating" value="5" /><label for="star5"></label>
+                <input type="radio" id="star4" name="rating" value="4" /><label for="star4"></label>
+                <input type="radio" id="star3" name="rating" value="3" /><label for="star3"></label>
+                <input type="radio" id="star2" name="rating" value="2" /><label for="star2"></label>
+                <input type="radio" id="star1" name="rating" value="1" checked /><label for="star1"></label>
+            </div>
+            <br> <br> <br>
+            <div class="form-group">
+                <label for="content" class="form-label">Content :</label>
+                <textarea class="form-control" name="content" id="content" rows="3" placeholder="Such a nice view &#9829;" required></textarea>
+                <div class="valid-feedback">Thanks for this value able feedback</div>
+                <div class="invalid-feedback">I suppose that you should write something </div>
+            </div>
+            <br>
+            <button class="btn btn-red">Submit</button>
+
+        </form>
+    </div>
+
+    <hr>
+    <div class="col-8 offset-2">
+        <h3>Reviews</h3>
+        <div class="row">
+            <% for (let review of listing.reviews) { %>
+                <div class="card col-5 ms-3 mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Jaimin Detroja</h5>
+                        <p class="card-text"><%=  review.content %></p>
+                        <p class="card-text"><%=  review.rating %> <i class="fa-solid fa-star"></i> </p>
+
+                        <form action="/listings/<%= listing._id  %>/reviews/<%= review._id %>?_method=DELETE" method="post" class="mb-2">
+                            <button type="submit" class="btn btn-dark">Delete</button>
+                        </form>
+
+                    </div>
+
+                </div>
+                
+            <% } %>
+        </div>
     </div>
