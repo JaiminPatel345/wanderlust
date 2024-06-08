@@ -78,24 +78,31 @@ body{
 
   /* card */
   .card{
-    margin-bottom: 2rem;
-    border: none;
-  }
-
-  .card-img-top{
-    height: 300px;
+    margin: 1rem 0;
     width: 300px;
-    border-radius: 1rem;
-    object-fit: cover;
+    border: none;
   }
 
 
   .listing-link{
+    width: 100%;
     text-decoration: none;   
 }
 
+.card-img-top{
+  height: 300px;
+  width: 100%;
+  border-radius: 1rem;
+  object-fit: cover;
+}
 
+.listing-link:hover{
+  opacity: 0.8;
+}
 
+.card-body{
+  padding-left: 0;
+}
 
 
 /* Show  */
@@ -103,6 +110,10 @@ body{
     height: 300px;
     width: 700px;
 }
+
+
+
+/* buttons */
 
 .btn-red{
     background-color: #FF496A;
