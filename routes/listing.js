@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const {listingsSchema } = require('../schema.js')
 const Listing = require('../models/listing.js')
+const flash = require('connect-flash')
 
 
 //Manage Async errors
@@ -47,6 +48,10 @@ router.get("", async (req, res) => {
   router.get("/:id", asyncWrap(async (req, res) => {
     let { id } = req.params;
     let listing = await Listing.findById(id).populate('reviews');
+    if (!listing) {
+      req.flash('delete' , 'Listing not found')
+      res.redirect('/listings')
+    }
     res.render("./Listings/show.ejs", { listing });
   }));
   
@@ -56,12 +61,6 @@ router.get("", async (req, res) => {
     
     
       let { title, description, image, price, location, country } = req.body;
-      // if(!title || !description || !price || !location || !country) {
-      //   res.status(400).send("Enter all details")
-      // }
-  
-      // let result = listingsSchema.validate(req.body);
-      // console.log(result);
       
       const newListing = new Listing({
         title: title,
@@ -73,6 +72,7 @@ router.get("", async (req, res) => {
       });
   
       await newListing.save();
+      req.flash('success' , 'New Listing Added !')
       res.redirect("/listings");
     
   })
@@ -93,7 +93,7 @@ router.get("", async (req, res) => {
   router.put("/:id", asyncWrap( async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndUpdate(id, req.body);
-  
+    req.flash('success' , 'Listing Updated !')
     res.redirect(`/listings/${id}`);
   })
   );
@@ -104,6 +104,7 @@ router.get("", async (req, res) => {
   router.delete("/:id", asyncWrap( async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndDelete(id);
+    req.flash('delete' , 'Listing Deleted ')
     res.redirect("/listings");
   })
   );

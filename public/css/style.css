@@ -18,7 +18,6 @@ body{
     font-size: 2rem;
 }
 
-
 /* css button.app */
 .bn3637 {
     display: inline-flex;
@@ -77,9 +76,15 @@ body{
 
 
   /* card */
+
+.row{
+  width: 100% !important;
+  margin-right: 0 !important;
+}
+
   .listing-card{
     margin: 1rem 0;
-    width: 300px;
+    /* width: 350px; */
     border: none;
   }
 
