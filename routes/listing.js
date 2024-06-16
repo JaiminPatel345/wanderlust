@@ -40,7 +40,11 @@ router.get("", async (req, res) => {
   
   //new Listing
   router.get("/new" , async (req, res) => {
-    res.render("./Listings/new.ejs");
+    if(!req.isAuthenticated){
+      req.flash('success' , 'you must be logged in ')
+      req.redirect('/login')
+    }
+    res.render("./Listings/new.ejs")
   });
   
   
@@ -49,7 +53,7 @@ router.get("", async (req, res) => {
     let { id } = req.params;
     let listing = await Listing.findById(id).populate('reviews');
     if (!listing) {
-      req.flash('delete' , 'Listing not found')
+      req.flash('error' , 'Listing not found')
       res.redirect('/listings')
     }
     res.render("./Listings/show.ejs", { listing });
@@ -104,7 +108,7 @@ router.get("", async (req, res) => {
   router.delete("/:id", asyncWrap( async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndDelete(id);
-    req.flash('delete' , 'Listing Deleted ')
+    req.flash('warning' , 'Listing Deleted ')
     res.redirect("/listings");
   })
   );

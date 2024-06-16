@@ -54,6 +54,8 @@ body{
   }
 
   .f-info{
+    position: sticky;
+    bottom: 20px;
     width: 100%;
     height: 8rem;
     display: flex;
@@ -180,4 +182,10 @@ body{
 }
 .Rating input:checked ~ label:before, .Rating:not(:checked) > label:hover:before, .Rating:not(:checked) > label:hover ~ label:before {
   color: #ffb703;
+}
+
+
+
+.signup , .login{
+  height: 100vh;
 }

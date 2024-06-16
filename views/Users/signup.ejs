@@ -1,0 +1,48 @@
+<% layout('/layouts/boilerplate.ejs') %>
+    <h2>SignUp </h2>
+
+    <div class="row signup>
+        <div class="col-8 offset-2">
+
+
+
+            <form method="post" action="/signup" class="needs-validation" novalidate>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" id="name" name="name" class="form-control" required />
+                    <div class="valid-feedback">Nice Name bro !</div>
+                    <div class="invalid-feedback">I think your mother should give you name !</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required />
+                    <!-- <div class="valid-feedback">Nice one !</div>
+                    <div class="invalid-feedback">Title name is must</div> -->
+                </div>
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control""
+                        required />
+                    <!-- <div class=" valid-feedback">Nice one !
+                </div>
+                <div class="invalid-feedback">Title name is must</div> -->
+
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" name="password" class="form-control" required />
+            <!-- <div class="valid-feedback">Nice one !</div>
+                     <div class="invalid-feedback">Title name is must</div> -->
+        </div>
+
+
+
+
+        <button class="btn btn-red">Submit</button>
+        
+    </form>
+    <p>Already Register ? <a href="/login" >Click  here to log in</a></p>
+    </div>
