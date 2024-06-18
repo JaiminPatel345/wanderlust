@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const {listingsSchema } = require('../schema.js')
 const Listing = require('../models/listing.js')
-const {isLoggedIn} = require('../middleware.js')
+const {isLoggedIn , saveOriginalUrl} = require('../middleware.js')
 
 
 //Manage Async errors
@@ -39,15 +39,13 @@ router.get("/", async (req, res) => {
   });
   
   //new Listing
-  router.get("/new" ,isLoggedIn ,  async (req, res) => {
-    console.log('came');
-    console.log(req.user);
+  router.get("/new" , saveOriginalUrl , isLoggedIn ,  async (req, res) => {
     res.render("./Listings/new.ejs")
   });
   
   
   //Show route
-  router.get("/:id", asyncWrap(async (req, res) => {
+  router.get("/:id",saveOriginalUrl ,  asyncWrap(async (req, res) => {
     let { id } = req.params;
     let listing = await Listing.findById(id).populate('reviews');
     if (!listing) {
@@ -82,7 +80,7 @@ router.get("/", async (req, res) => {
   
   
   //edit route 
-  router.get("/:id/edit",isLoggedIn , asyncWrap( async (req, res) => {
+  router.get("/:id/edit",saveOriginalUrl , isLoggedIn , asyncWrap( async (req, res) => {
     let { id } = req.params;
     let oneListing = await Listing.findById(id);
     res.render("./Listings/edit.ejs", { listing: oneListing });
