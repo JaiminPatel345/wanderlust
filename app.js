@@ -54,20 +54,23 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.get("/", (req, res) => {
-  res.render('./Listings/home.ejs');
-});
-
 app.use( (req , res , next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.warning = req.flash('warning');
+  res.locals.currUser = req.user;
   next();
 })
+
+app.get("/", async (req, res) => {
+  res.redirect('/listings');
+});
 
 app.use('/listings/:id/reviews' , reviewsRoutes);  
 app.use('/listings' , listingsRoutes);
 app.use('/' , usersRoutes);
+
+
 
 // Error handling middleware
 app.use(async (err, req, res, next) => {

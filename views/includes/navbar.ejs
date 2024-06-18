@@ -8,9 +8,14 @@
         <div class="navbar-nav">
           <a class="nav-link bn3637 bn38" href="/listings">Home</a>
           <a class="nav-link bn3637 bn38" href="/listings/new">Add new List</a>
-          <a class="nav-link bn3637 bn38" href="/signup">Sign Up</a>
-          <a class="nav-link bn3637 bn38" href="/login">Log In</a>
-          
+        </div>
+        <div class="navbar-nav ms-auto">
+          <% if(!currUser) { %>
+             <a class="nav-link " href="/signup">Sign Up</a>
+            <a class="nav-link " href="/login">Log In</a>
+           <% } %> <% if(currUser) { %>
+            <a class="nav-link " href="/logout">Log In</a>
+          <% } %>
         </div>
       </div>
     </div>

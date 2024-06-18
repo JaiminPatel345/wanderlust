@@ -33,8 +33,8 @@ function asyncWrap(fn){
 //Add review
 router.post("/" , validateReview ,  asyncWrap( async (req , res ) => {
     if(!req.isAuthenticated){
-      req.flash('success' , 'you must be logged in ')
-      req.redirect('/login')
+      req.flash('warning' , 'you must be logged in ')
+      return res.redirect('/login')
     }
     let listing = await Listing.findById(req.params.id);
     let { rating , content} = req.body;

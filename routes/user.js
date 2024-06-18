@@ -35,8 +35,11 @@ router.post('/signup', asyncWrap(async (req, res, next) => {
         });
         const registerUser = await User.register(newUser, password)
         console.log(registerUser);
-        req.flash('success', `Welcome to Wanderlust ${name}`);
-        res.redirect('/listings')
+        req.login(registerUser, (err) => {
+            if (err) { return  next(err) }
+            req.flash('success', `Welcome to Wanderlust ${name}`);
+            res.redirect('/listings')
+          });
 
     } catch (e) {
         console.log(e);
@@ -54,11 +57,19 @@ router.get('/login', asyncWrap(async (req, res, next) => {
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }), asyncWrap(async (req, res, next) => {
     const user = await User.findOne({'username' : req.body.username});
-    console.log(user);
     req.flash('success', `Welcome to Wanderlust  ${user.name}`);
     res.redirect('/listings')
 
 }))
+
+  //log out
+  router.get('/logout', (req, res, next) => {
+    req.logout((err) => {
+        if (err) return next(err);
+        req.flash('success', 'Logged out successfully'); // Add this line to set the flash message
+        res.redirect('/listings');
+    });
+});
 
 
 module.exports = router

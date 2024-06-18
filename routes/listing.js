@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const {listingsSchema } = require('../schema.js')
 const Listing = require('../models/listing.js')
-const flash = require('connect-flash')
+const {isLoggedIn} = require('../middleware.js')
 
 
 //Manage Async errors
@@ -33,17 +33,15 @@ function asyncWrap(fn){
   
 
 //All listing
-router.get("", async (req, res) => {
+router.get("/", async (req, res) => {
     let allListings = await Listing.find({});
     res.render("./Listings/index.ejs", { allListings });
   });
   
   //new Listing
-  router.get("/new" , async (req, res) => {
-    if(!req.isAuthenticated){
-      req.flash('success' , 'you must be logged in ')
-      req.redirect('/login')
-    }
+  router.get("/new" ,isLoggedIn ,  async (req, res) => {
+    console.log('came');
+    console.log(req.user);
     res.render("./Listings/new.ejs")
   });
   
@@ -84,7 +82,7 @@ router.get("", async (req, res) => {
   
   
   //edit route 
-  router.get("/:id/edit", asyncWrap( async (req, res) => {
+  router.get("/:id/edit",isLoggedIn , asyncWrap( async (req, res) => {
     let { id } = req.params;
     let oneListing = await Listing.findById(id);
     res.render("./Listings/edit.ejs", { listing: oneListing });
@@ -105,13 +103,16 @@ router.get("", async (req, res) => {
   
   
   //delete route
-  router.delete("/:id", asyncWrap( async (req, res) => {
+  router.delete("/:id", isLoggedIn , asyncWrap( async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndDelete(id);
     req.flash('warning' , 'Listing Deleted ')
     res.redirect("/listings");
   })
   );
+
+
+
   
 
   module.exports = router;
