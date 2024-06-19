@@ -80,7 +80,7 @@ body{
   /* card */
 
 .row{
-  width: 100% !important;
+  width: 100% ;
   margin-right: 0 !important;
 }
 
@@ -94,6 +94,11 @@ body{
   .listing-link{
     width: 100%;
     text-decoration: none;   
+}
+
+.card{
+  border-radius: 1rem;
+  /* border: none; */
 }
 
 .card-img-top{
@@ -115,7 +120,7 @@ body{
 /* Show  */
 .show-img{
     height: 300px;
-    width: 700px;
+    width: 100%;
 }
 
 

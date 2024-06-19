@@ -13,6 +13,10 @@ const reviewSchema = new Schema({
         type : Date ,
         default : Date.now ,
         immutable: true
+    },
+    owner : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "User"
     }
 });
 

@@ -3,7 +3,7 @@ const router = express.Router({ mergeParams: true })
 // const { reviewsSchema} = require('../schema.js')
 const User = require('../models/user.js')
 const passport = require('passport')
-const {  saveRedirectUrl } = require('../middleware.js')
+const {  saveRedirectUrl , saveOriginalUrl} = require('../middleware.js')
 
 
 //Manage Async errors
@@ -64,11 +64,11 @@ router.post('/login', saveRedirectUrl , passport.authenticate('local', { failure
 }))
 
   //log out
-  router.get('/logout', (req, res, next) => {
+  router.get('/logout', saveRedirectUrl , (req, res, next) => {
     req.logout((err) => {
         if (err) return next(err);
-        req.flash('success', 'Logged out successfully'); // Add this line to set the flash message
-        res.redirect('/listings');
+        req.flash('warning', 'Logged out successfully'); // Add this line to set the flash message
+        res.redirect(res.locals.redirectUrl);
     });
 });
 

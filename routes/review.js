@@ -3,6 +3,7 @@ const router = express.Router({ mergeParams : true})
 const { reviewsSchema} = require('../schema.js')
 const Review = require('../models/review.js')
 const Listing = require('../models/listing.js')
+const {isLoggedIn ,saveRedirectUrl , isReviewOwner , saveOriginalUrl , isListingOwner} = require('../middleware.js')
 
 
 //Manage Async errors
@@ -31,7 +32,7 @@ function asyncWrap(fn){
 
 
 //Add review
-router.post("/" , validateReview ,  asyncWrap( async (req , res ) => {
+router.post("/" ,isLoggedIn , saveRedirectUrl , validateReview ,  asyncWrap( async (req , res ) => {
     if(!req.isAuthenticated){
       req.flash('warning' , 'you must be logged in ')
       return res.redirect('/login')
@@ -40,7 +41,8 @@ router.post("/" , validateReview ,  asyncWrap( async (req , res ) => {
     let { rating , content} = req.body;
     let newReview = new Review({
       content : content,
-      rating : parseInt(rating)
+      rating : parseInt(rating) ,
+      owner : req.user._id
     });
     listing.reviews.push(newReview);
     await newReview.save();
@@ -52,7 +54,7 @@ router.post("/" , validateReview ,  asyncWrap( async (req , res ) => {
   
   
   //delete review
-  router.delete("/:reviewId" , asyncWrap ( async (req , res) => {
+  router.delete("/:reviewId" , isReviewOwner , asyncWrap ( async (req , res) => {
     let { id , reviewId } = req.params;
     let listing = await Listing.findById(id);
     await Review.findByIdAndDelete(reviewId);

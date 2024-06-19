@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const {listingsSchema } = require('../schema.js')
 const Listing = require('../models/listing.js')
-const {isLoggedIn , saveOriginalUrl} = require('../middleware.js')
+const {isLoggedIn , saveOriginalUrl , isListingOwner} = require('../middleware.js')
 
 
 //Manage Async errors
@@ -48,7 +48,7 @@ router.get("/", saveOriginalUrl ,  async (req, res) => {
   router.get("/:id",saveOriginalUrl ,  asyncWrap(async (req, res) => {
     let { id } = req.params;
     let listing = await Listing.findById(id).populate('reviews').populate('owner');
-    console.log(listing);
+    // console.log(listing);
     if (!listing) {
       req.flash('error' , 'Listing not found')
       res.redirect('/listings')
@@ -82,7 +82,7 @@ router.get("/", saveOriginalUrl ,  async (req, res) => {
   
   
   //edit route 
-  router.get("/:id/edit",saveOriginalUrl , isLoggedIn , asyncWrap( async (req, res) => {
+  router.get("/:id/edit",saveOriginalUrl , isLoggedIn , isListingOwner ,  asyncWrap( async (req, res) => {
     let { id } = req.params;
     let oneListing = await Listing.findById(id);
     res.render("./Listings/edit.ejs", { listing: oneListing });
@@ -103,7 +103,7 @@ router.get("/", saveOriginalUrl ,  async (req, res) => {
   
   
   //delete route
-  router.delete("/:id", isLoggedIn , asyncWrap( async (req, res) => {
+  router.delete("/:id", isLoggedIn , isListingOwner , asyncWrap( async (req, res) => {
     let { id } = req.params;
     await Listing.findByIdAndDelete(id);
     req.flash('warning' , 'Listing Deleted ')
