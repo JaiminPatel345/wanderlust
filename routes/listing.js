@@ -33,7 +33,7 @@ function asyncWrap(fn){
   
 
 //All listing
-router.get("/", async (req, res) => {
+router.get("/", saveOriginalUrl ,  async (req, res) => {
     let allListings = await Listing.find({});
     res.render("./Listings/index.ejs", { allListings });
   });
@@ -47,7 +47,8 @@ router.get("/", async (req, res) => {
   //Show route
   router.get("/:id",saveOriginalUrl ,  asyncWrap(async (req, res) => {
     let { id } = req.params;
-    let listing = await Listing.findById(id).populate('reviews');
+    let listing = await Listing.findById(id).populate('reviews').populate('owner');
+    console.log(listing);
     if (!listing) {
       req.flash('error' , 'Listing not found')
       res.redirect('/listings')
@@ -69,6 +70,7 @@ router.get("/", async (req, res) => {
         price: price,
         location: location,
         country: country,
+        owner : req.user._id
       });
   
       await newListing.save();

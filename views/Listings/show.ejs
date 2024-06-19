@@ -18,6 +18,9 @@
                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
                     card's content.</p>
 
+                <p> By <i>
+                        <%= listing.owner.name %>
+                    </i></p>
                 <p>
                     <%= listing.description %>
                 </p>
@@ -38,12 +41,15 @@
     </div>
 
     <div class="btns offset-2">
-        <a class="btn btn-red" href="/listings/<%= listing._id  %>/edit">Edit</a>
+        <% if(currUser && listing.owner.id==currUser._id ) {%>
+            <a class="btn btn-red" href="/listings/<%= listing._id  %>/edit">Edit</a>
 
-        <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
-            <button class="btn btn-dark">DELETE</button>
-        </form>
-
+            <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
+                <button class="btn btn-dark">DELETE</button>
+            </form>
+            <% } else { %>
+                <a class="btn btn-red" href="/listings/<%= listing._id  %>/book">Book</a>
+                <% } %>
     </div>
     <hr>
     <div class="col-8 offset-2">
@@ -60,7 +66,8 @@
             <br> <br> <br>
             <div class="form-group">
                 <label for="content" class="form-label">Content :</label>
-                <textarea class="form-control" name="content" id="content" rows="3" placeholder="Such a nice view &#9829;" required></textarea>
+                <textarea class="form-control" name="content" id="content" rows="3"
+                    placeholder="Such a nice view &#9829;" required></textarea>
                 <div class="valid-feedback">Thanks for this value able feedback</div>
                 <div class="invalid-feedback">I suppose that you should write something </div>
             </div>
@@ -78,17 +85,22 @@
                 <div class="card col-5 ms-3 mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Jaimin Detroja</h5>
-                        <p class="card-text"><%=  review.content %></p>
-                        <p class="card-text"><%=  review.rating %> <i class="fa-solid fa-star"></i> </p>
+                        <p class="card-text">
+                            <%= review.content %>
+                        </p>
+                        <p class="card-text">
+                            <%= review.rating %> <i class="fa-solid fa-star"></i>
+                        </p>
 
-                        <form action="/listings/<%= listing._id  %>/reviews/<%= review._id %>?_method=DELETE" method="post" class="mb-2">
+                        <form action="/listings/<%= listing._id  %>/reviews/<%= review._id %>?_method=DELETE"
+                            method="post" class="mb-2">
                             <button type="submit" class="btn btn-dark">Delete</button>
                         </form>
 
                     </div>
 
                 </div>
-                
-            <% } %>
+
+                <% } %>
         </div>
     </div>

@@ -15,7 +15,7 @@ app.use(require('cookie-parser')())
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
-
+const {saveOriginalUrl} = require('./middleware.js')
 const User = require('./models/user.js');
 
 app.use(express.urlencoded({ extended: true }));
@@ -62,7 +62,7 @@ app.use( (req , res , next) => {
   next();
 })
 
-app.get("/", async (req, res) => {
+app.get("/",saveOriginalUrl,  async (req, res) => {
   res.redirect('/listings');
 });
 
