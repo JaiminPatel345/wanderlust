@@ -18,7 +18,7 @@
                 <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
                     card's content.</p>
 
-                <p> own by  <i>
+                <p> own by <i>
                         <%= listing.owner.name %>
                     </i></p>
                 <p>
@@ -84,7 +84,9 @@
             <% for (let review of listing.reviews) { %>
                 <div class="card col-5 ms-3 mb-3">
                     <div class="card-body">
-                        <h5 class="card-title"> hi<%= review.owner.name  %></h5>
+                        <h5 class="card-title">
+                            <%= review.owner.name %>
+                        </h5>
                         <p class="card-text">
                             <%= review.content %>
                         </p>
@@ -92,14 +94,12 @@
                             <%= review.rating %> <i class="fa-solid fa-star"></i>
                         </p>
                         <% if(currUser && review.owner.equals(currUser._id)) { %>
-                        <form action="/listings/<%= listing._id  %>/reviews/<%= review._id %>?_method=DELETE"
-                            method="post" class="mb-2">
-                            <button type="submit" class="btn btn-dark">Delete</button>
-                        </form>
-                        <% } %>
-
+                            <form action="/listings/<%= listing._id  %>/reviews/<%= review._id %>?_method=DELETE"
+                                method="post" class="mb-2">
+                                <button type="submit" class="btn btn-dark">Delete</button>
+                            </form>
+                            <% } %>
                     </div>
-
                 </div>
 
                 <% } %>

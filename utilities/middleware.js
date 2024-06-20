@@ -1,5 +1,6 @@
-const Listing = require('./models/listing.js')
-const Review = require('./models/review.js')
+const Listing = require('../models/listing.js')
+const { listingsSchema, reviewsSchema } = require('./schema.js')
+const Review = require('../models/review.js')
 
 module.exports.isLoggedIn = async (req, res, next) => {
   if (!req.isAuthenticated()) {
@@ -34,7 +35,7 @@ module.exports.isListingOwner = async (req, res, next) => {
 
 //check for delete review
 module.exports.isReviewOwner = async (req, res, next) => {
-  let { id , reviewId } = req.params;
+  let { id, reviewId } = req.params;
   let review = await Review.findById(reviewId);
   if (review.owner.equals(req.user._id)) {
     next();
@@ -43,3 +44,25 @@ module.exports.isReviewOwner = async (req, res, next) => {
     res.redirect(`/listings/${id}`)
   }
 }
+
+module.exports.validateListing = (req, res, next) => {
+  let { error } = listingsSchema.validate(req.body);
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(",");
+    res.status(err.statusCode).render("./Listings/error.ejs", { Swal, err });
+  } else {
+    next();
+  }
+}
+
+module.exports.validateReview = (req, res, next) => {
+  let { error } = reviewsSchema.validate(req.body);
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(400, errMsg);
+  } else {
+    next();
+  }
+}
+
+

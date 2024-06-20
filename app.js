@@ -15,7 +15,7 @@ app.use(require('cookie-parser')())
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
-const {saveOriginalUrl} = require('./middleware.js')
+const { saveOriginalUrl } = require('./utilities/middleware.js')
 const User = require('./models/user.js');
 
 app.use(express.urlencoded({ extended: true }));
@@ -39,11 +39,11 @@ app.use(session({
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: true,
-  cookie: { 
-    expires : Date.now() + 1000*3600*24 ,
-    maxAge : 1000*3600*24*3
+  cookie: {
+    expires: Date.now() + 1000 * 3600 * 24,
+    maxAge: 1000 * 3600 * 24 * 3
 
-   }
+  }
 }))
 app.use(flash())
 
@@ -54,7 +54,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use( (req , res , next) => {
+app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.warning = req.flash('warning');
@@ -62,21 +62,21 @@ app.use( (req , res , next) => {
   next();
 })
 
-app.get("/",saveOriginalUrl,  async (req, res) => {
+app.get("/", saveOriginalUrl, async (req, res) => {
   res.redirect('/listings');
 });
 
-app.use('/listings/:id/reviews' , reviewsRoutes);  
-app.use('/listings' , listingsRoutes);
-app.use('/' , usersRoutes);
+app.use('/listings/:id/reviews', reviewsRoutes);
+app.use('/listings', listingsRoutes);
+app.use('/', usersRoutes);
 
 
 
 // Error handling middleware
 app.use(async (err, req, res, next) => {
   console.log(err);
-  
-  res.status(err.statusCode).render("./Listings/error.ejs", { Swal, msg : err.message });
+
+  res.status(err.statusCode).render("./Listings/error.ejs", { Swal, msg: err.message });
 });
 
 app.listen(port, () => console.log(`listen on port ${port}`));
