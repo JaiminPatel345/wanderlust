@@ -1,196 +1,165 @@
-body{
+body {
   font-family: "Plus Jakarta Sans", sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-.container{
-    flex: 1;
+.container {
+  flex: 1;
 }
 
-.navbar{
-    height: 5rem;
+.navbar {
+  height: 5rem;
 }
 
-.fa-compass{
-    color: #FF496A;
-    font-size: 2rem;
+.fa-compass {
+  color: #FF496A;
+  font-size: 2rem;
 }
 
 /* css button.app */
 .bn3637 {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.7rem 3rem;
-    font-weight: 700;
-    font-size: 15px;
-    text-align: center;
-    text-decoration: none;
-    color: #fff;
-    backface-visibility: hidden;
-    border: 0.3rem solid transparent;
-    border-radius: 30px;
-  }
-  .bn38 {
-    border-color: transparent;
-    transition: background-color 0.3s ease-in-out;
-  }
-    
-  /* .bn38:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 3rem;
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  backface-visibility: hidden;
+  border: 0.3rem solid transparent;
+  border-radius: 30px;
+}
+
+.bn38 {
+  border-color: transparent;
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* .bn38:hover {
     background-color: #eae6e6a3;
   } */
 
 
-  /* Footer */
-  .f-info-links a{
-    text-decoration: none;
-    color: #222222;
-  }
+/* Footer */
+.f-info-links a {
+  text-decoration: none;
+  color: #222222;
+}
 
-  .f-info-links a:hover{
-    text-decoration: underline;
-  }
+.f-info-links a:hover {
+  text-decoration: underline;
+}
 
-  .f-info{
-    position: sticky;
-    bottom: 20px;
-    width: 100%;
-    height: 8rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: #ebebeb;
-    font-size: 1.2rem;
-  }
+.f-info {
+  position: sticky;
+  bottom: 20px;
+  width: 100%;
+  height: 8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #ebebeb;
+  font-size: 1.2rem;
+}
 
-  .f-info-socials i{
-    justify-self: center;
-    margin-left: 1.1rem;
-  }
-
-
-  .btn-primary{
-    background-color: #FF496A !important; 
-  }
+.f-info-socials i {
+  justify-self: center;
+  margin-left: 1.1rem;
+}
 
 
-  /* card */
+.btn-primary {
+  background-color: #FF496A !important;
+}
 
-.row{
-  width: 100% ;
+
+/* card */
+
+.row {
+  width: 100%;
   margin-right: 0 !important;
 }
 
-  .listing-card{
-    margin: 1rem 0;
-    /* width: 350px; */
-    border: none;
-  }
-
-
-  .listing-link{
-    width: 100%;
-    text-decoration: none;   
+.listing-card {
+  margin: 1rem 0;
+  /* width: 350px; */
+  border: none;
 }
 
-.card{
+
+.listing-link {
+  width: 100%;
+  text-decoration: none;
+}
+
+.card {
   border-radius: 1rem;
   /* border: none; */
 }
 
-.card-img-top{
+.card-img-top {
   height: 300px;
   width: 100%;
   border-radius: 1rem;
   object-fit: cover;
 }
 
-.listing-link:hover{
+.listing-link:hover {
   opacity: 0.8;
 }
 
-.card-body{
+.card-body {
   padding-left: 0;
 }
 
 
 /* Show  */
-.show-img{
-    height: 300px;
-    width: 100%;
+.show-img {
+  height: 300px;
+  width: 100%;
 }
 
 
 
 /* buttons */
 
-.btn-red{
-    background-color: #FF496A;
-    /* width: 5rem; */
-    border: none;
+.btn-red {
+  background-color: #FF496A;
+  /* width: 5rem; */
+  border: none;
 }
 
-.btn-red:hover{
-    background-color: #FF496A;
-    box-shadow: 0 0 3px black;
+.btn-red:hover {
+  background-color: #FF496A;
+  box-shadow: 0 0 3px black;
 }
 
-.btns{
-    display: flex;
+.btns {
+  display: flex;
 }
 
-.btn-dark{
-    margin-left: 20px;
+.btn-dark {
+  margin-left: 20px;
 }
 
-.btn-dark:hover{
-    box-shadow: 0  0 3px rgb(0, 0, 0) !important;
+.btn-dark:hover {
+  box-shadow: 0 0 3px rgb(0, 0, 0) !important;
 }
 
 
 /* Icons */
-.f-info-socials i:hover{
+.f-info-socials i:hover {
   color: #FF496A;
 }
 
 
 
-/* rating */
-.Rating{
-  width: 220px;
-  height: 20px;
-  margin: 0 0 0 0; 
-}
-
-.Rating p{
-  margin-bottom: 0;
-}
-
-.Rating label {
-  float: right;
-  width: 40px;
-  height: 30px;
-  cursor: pointer;
-  
-}
-.Rating label:before {
-  content: "\2605";
-  font-size: 35px;
-  color: #ccc;
-  /* line-height: 1; */
-}
-.Rating input{
-  display: none;
-}
-.Rating input:checked ~ label:before, .Rating:not(:checked) > label:hover:before, .Rating:not(:checked) > label:hover ~ label:before {
-  color: #ffb703;
-}
-
-
-
-.signup , .login{
+/* User  */
+.signup, .login {
   height: 100vh;
 }

@@ -55,15 +55,22 @@
     <div class="col-8 offset-2">
         <h3>Leave a review</h3>
         <form action="/listings/<%= listing.id  %>/reviews" method="post" class="needs-validation" novalidate>
-            <div class="Rating form-element ">
-                <p class="form-label ">Rate :</p>
-                <input type="radio" id="star5" name="rating" value="5" /><label for="star5"></label>
-                <input type="radio" id="star4" name="rating" value="4" /><label for="star4"></label>
-                <input type="radio" id="star3" name="rating" value="3" /><label for="star3"></label>
-                <input type="radio" id="star2" name="rating" value="2" /><label for="star2"></label>
-                <input type="radio" id="star1" name="rating" value="1" checked /><label for="star1"></label>
-            </div>
-            <br> <br> <br>
+            <fieldset class="starability-slot            ">
+                <legend>First rating:</legend>
+                <input type="radio" id="no-rate" class="input-no-rate" name="rating" value="1" checked
+                    aria-label="No rating." />
+                <input type="radio" id="first-rate1" name="rating" value="1" />
+                <label for="first-rate1" title="Terrible">1 star</label>
+                <input type="radio" id="first-rate2" name="rating" value="2" />
+                <label for="first-rate2" title="Not good">2 stars</label>
+                <input type="radio" id="first-rate3" name="rating" value="3" />
+                <label for="first-rate3" title="Average">3 stars</label>
+                <input type="radio" id="first-rate4" name="rating" value="4" />
+                <label for="first-rate4" title="Very good">4 stars</label>
+                <input type="radio" id="first-rate5" name="rating" value="5" />
+                <label for="first-rate5" title="Amazing">5 stars</label>
+            </fieldset>
+            <br>
             <div class="form-group">
                 <label for="content" class="form-label">Content :</label>
                 <textarea class="form-control" name="content" id="content" rows="3"
