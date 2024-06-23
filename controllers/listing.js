@@ -30,13 +30,17 @@ module.exports.showListing = async (req, res) => {
 //Add 
 module.exports.createListing = async (req, res, next) => {
 
-
-  let { title, description, image, price, location, country } = req.body;
+  const { path, filename } = req.file
+  const { title, description, image, price, location, country } = req.body;
+  console.log(filename, ' ', path);
 
   const newListing = new Listing({
     title: title,
     description: description,
-    image: image,
+    image: {
+      url: path,
+      filename: filename,
+    },
     price: price,
     location: location,
     country: country,

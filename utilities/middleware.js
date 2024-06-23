@@ -49,7 +49,8 @@ module.exports.validateListing = (req, res, next) => {
   let { error } = listingsSchema.validate(req.body);
   if (error) {
     let errMsg = error.details.map((el) => el.message).join(",");
-    res.status(err.statusCode).render("./Listings/error.ejs", { Swal, err });
+    // res.status(error.statusCode).render("./Listings/error.ejs", { Swal, error });
+    throw error
   } else {
     next();
   }

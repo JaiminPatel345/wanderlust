@@ -3,54 +3,57 @@ const default_img = 'https://img.freepik.com/free-vector/wanderlust-explore-adve
 const Review = require('./review.js');
 
 const listingSchema = new mongoose.Schema({
-    title : {
-        type : String ,
-        required : true,
-        
+    title: {
+        type: String,
+        required: true,
+
     },
-    description : {
-        type : String ,
-        
-        
+    description: {
+        type: String,
+
+
     },
-    image : {
-        type : String ,
-        default : default_img,
-        set : (v) => v==="" ? default_img : v 
+    image: {
+        url: {
+            type: String,
+            default: default_img,
+            set: (v) => v === "" ? default_img : v
+        },
+        filename: String
+
     },
-    price : {
-        type : Number ,
-        required : true,
-        
+    price: {
+        type: Number,
+        required: true,
+
     },
-    location : {
-        type : String ,
-        required : true,
+    location: {
+        type: String,
+        required: true,
         set: (v) => v.toUpperCase()
-        
+
     },
-    country : {
-        type : String ,
+    country: {
+        type: String,
         set: (v) => v.toUpperCase()
     },
     reviews: [{
-        type : mongoose.Schema.Types.ObjectId,
-        ref : "Review"
-    }] ,
-    owner : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : "User"
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review"
+    }],
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
     }
 });
 
-listingSchema.post('findOneAndDelete' , async (listing) => {
-    if(listing){
-        await Review.deleteMany({_id : {$in : listing.reviews}})
+listingSchema.post('findOneAndDelete', async (listing) => {
+    if (listing) {
+        await Review.deleteMany({ _id: { $in: listing.reviews } })
     }
 })
 
-const Listing = mongoose.model("Listing",listingSchema);
-module.exports=Listing;
+const Listing = mongoose.model("Listing", listingSchema);
+module.exports = Listing;
 
 
-     

@@ -41,6 +41,11 @@ module.exports.login = async (req, res, next) => {
 }
 
 module.exports.logout = async (req, res, next) => {
+    if (!req.user) {
+        req.flash('warning', 'You are not logged in'); // Add this line to set the flash message
+        res.redirect(res.locals.redirectUrl);
+        return
+    }
     req.logout((err) => {
         if (err) return next(err);
         req.flash('warning', 'Logged out successfully'); // Add this line to set the flash message
