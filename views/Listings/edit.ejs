@@ -3,7 +3,8 @@
 
     <div class="row">
         <div class="col-8 offset-2">
-            <form method="post" action="/listings/<%= listing.id %>?_method=PUT" class="needs-validation" novalidate>
+            <form method="post" action="/listings/<%= listing.id %>?_method=PUT" class="needs-validation" novalidate
+                enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
                     <input type="text" id="title" name="title" class="form-control" value="<%= listing.title %>"
@@ -22,7 +23,8 @@
 
                 <div class="mb-3">
                     <label for="image" class="form-label">image</label>
-                    <input type="text" name="image" id="image" class="form-control" value="<%= listing.image %>" />
+                    <input type="file" name="image" id="image" class="form-control" value="<%= listing.image.url %>" />
+                    <div class="invalid-feedback">I think your hostel is not invisible</div>
                 </div>
 
                 <div class="row">

@@ -32,7 +32,6 @@ module.exports.createListing = async (req, res, next) => {
 
   const { path, filename } = req.file
   const { title, description, image, price, location, country } = req.body;
-  console.log(filename, ' ', path);
 
   const newListing = new Listing({
     title: title,
@@ -62,8 +61,16 @@ module.exports.renderEditListing = async (req, res) => {
 
 //Update
 module.exports.updateListing = async (req, res) => {
-  let { id } = req.params;
-  await Listing.findByIdAndUpdate(id, req.body);
+  const { id } = req.params;
+
+
+  const listing = await Listing.findByIdAndUpdate(id, req.body);
+  if (req.file) {
+    const { path, filename } = req.file
+    listing.image.url = path,
+      listing.image.filename = filename,
+      await listing.save()
+  }
   req.flash('success', 'Listing Updated !')
   res.redirect(`/listings/${id}`);
 }
