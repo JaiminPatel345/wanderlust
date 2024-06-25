@@ -55,8 +55,10 @@ module.exports.createListing = async (req, res, next) => {
 //Edit 
 module.exports.renderEditListing = async (req, res) => {
   let { id } = req.params;
-  let oneListing = await Listing.findById(id);
-  res.render("./Listings/edit.ejs", { listing: oneListing });
+  let listing = await Listing.findById(id);
+  let originalUrl = listing.image.url;
+  originalUrl = originalUrl.replace("/uploads", "/uploads/h_300")
+  res.render("./Listings/edit.ejs", { listing, newListingImageUrl: originalUrl });
 }
 
 //Update

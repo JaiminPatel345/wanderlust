@@ -1,22 +1,24 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/"><i class="fa-regular fa-compass"></i></a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <div class="navbar-nav">
-          <a class="nav-link bn3637 bn38" href="/listings">Home</a>
-          <a class="nav-link bn3637 bn38" href="/listings/new">Add new List</a>
-        </div>
-        <div class="navbar-nav ms-auto">
-          <% if(!currUser) { %>
-             <a class="nav-link " href="/signup">Sign Up</a>
-            <a class="nav-link " href="/login">Log In</a>
-           <% } %> <% if(currUser) { %>
-            <a class="nav-link " href="/logout">Log out</a>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/"><i class="fa-regular fa-compass"></i></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link bn3637 bn38" href="/listings">Explore</a>
+      </div>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link bn3637 bn38" href="/listings/new">Airbnb your property</a>
+        <% if(!currUser) { %>
+          <a class="nav-link bn3637  " href="/signup">Sign Up</a>
+          <a class="nav-link bn3637 " href="/login">Log In</a>
           <% } %>
-        </div>
+            <% if(currUser) { %>
+              <a class="nav-link " href="/logout">Log out</a>
+              <% } %>
       </div>
     </div>
-  </nav> 
+  </div>
+</nav>

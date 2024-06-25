@@ -22,6 +22,12 @@
                 </div>
 
                 <div class="mb-3">
+
+                    <label for="" class="form-label">Original Image Preview </label> <br>
+                    <img src="<%= newListingImageUrl %>" style="height: 300px; width: 300px;" alt="Image preview ">
+                </div>
+
+                <div class="mb-3">
                     <label for="image" class="form-label">image</label>
                     <input type="file" name="image" id="image" class="form-control" value="<%= listing.image.url %>" />
                     <div class="invalid-feedback">I think your hostel is not invisible</div>
