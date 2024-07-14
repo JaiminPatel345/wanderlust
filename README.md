@@ -50,13 +50,12 @@ Wanderlust is a web application inspired by Airbnb, built using JavaScript (JS),
 5. Paste the copied Cloudinary credentials into the `.env` file, following this format:
 
 ```bash
-npm install
 CLOUD_NAME=your_cloud_name
 CLOUD_API_KEY=your_api_key
 CLOUD_API_SECRET=your_api_secret
 ```
 
-Running the Project
+<h2> Running the Project </h2>
 
 1. Open a terminal window in your project's root directory.
 2. Install the project's dependencies:
@@ -69,12 +68,15 @@ node ./init/index.js
 After the message, press CTRL + C and run this command:
 
 ```bash
-node app.js
+node start
 ```
 
-This will typically start the server on http://localhost:3000 (the port may vary). You can access the application in your web browser.
+Want to see all Scree Shorts of Website ?
+<a href="https://drive.google.com/drive/folders/1GgmXRSLgizaxdOXIntsplsSrQabSUgN9?usp=sharing"> Drive Link </a>
+
+This will typically start the server on http://localhost:3000 . You can access the application in your web browser.
 
 **Contributing**
 
-We welcome contributions to Wanderlust! Please refer to the CONTRIBUTING.md file (if present) for guidelines and procedures.
+We welcome contributions to Wanderlust! 
 ```
