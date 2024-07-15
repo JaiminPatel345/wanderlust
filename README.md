@@ -71,7 +71,7 @@ After the message, press CTRL + C and run this command:
 node start
 ```
 
-Want to see all Scree Shorts of Website ?
+Want to see all Screen Shorts of Website ?
 <a href="https://drive.google.com/drive/folders/1GgmXRSLgizaxdOXIntsplsSrQabSUgN9?usp=sharing"> Drive Link </a>
 
 This will typically start the server on http://localhost:3000 . You can access the application in your web browser.
