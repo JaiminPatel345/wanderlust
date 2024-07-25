@@ -1,26 +1,74 @@
 <% layout('/layouts/boilerplate.ejs') %>
 
-    <div class="row row-cols-lg-4 row-cols-md-2 row-cols-sm-1">
-        <% for( let listing of allListings) { %>
+    <div id="filters">
+        <div class="filter">
+            <div><i class="fa-solid fa-fire"></i></div>
+            <p>Trending</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-bed"></i></div>
+            <p>Rooms</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-mountain-city"></i></div>
+            <p>Iconic cities</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-mountain"></i></div>
+            <p>Mountains</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-brands fa-fort-awesome"></i></div>
+            <p>Castles</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-person-swimming"></i></div>
+            <p>Amazing pools</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-campground"></i></div>
+            <p>Camping</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-solid fa-tractor"></i></div>
+            <p>Farms</p>
+        </div>
+        <div class="filter">
+            <div><i class="fa-regular fa-snowflake"></i></div>
+            <p>Arctic</p>
+        </div>
+
+        <div class="tax-toggle">
+            <div class="form-check-reverse form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Price with Tax</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-lg-4 row-cols-md-2 row-cols-sm-1 mt-3">
+        <% for (let listing of allListings) { %>
             <div class="card listing-card col">
-                <a href="/listings/<%= listing._id  %>" class="listing-link">
-                    <img src="<%= listing.image.url  %>" class="card-img-top" alt="Image is processing" />
+                <a href="/listings/<%= listing._id %>" class="listing-link">
+                    <img src="<%= listing.image.url %>" class="card-img-top" alt="Image is processing" />
                     <div class="card-body">
                         <h5 class="card-title">
                             <%= listing.title %>
                         </h5>
                         <p class="card-text">
-                            &#8377; <%= listing.price.toLocaleString("en-IN") %> <br />
-                                <i class="fa-solid fa-location-dot"></i>
-                                <%= listing.location %>
-                                    <br />
-                                    <i class="fa-solid fa-globe"></i>
-                                    <%= listing.country %> <br />
+                            &#8377;
+                            <span id="price-<%= listing._id %>" data-original-price="<%= listing.price %>">
+                                <%= listing.price.toLocaleString("en-IN") %>
+                            </span>
+                            <i class="tax-info"> &nbsp; &nbsp;(Excluding GST)</i> <br />
+                            <i class="fa-solid fa-location-dot"></i>
+                            <%= listing.location %>
+                                <br />
+                                <i class="fa-solid fa-globe"></i>
+                                <%= listing.country %> <br />
                         </p>
-
                     </div>
                 </a>
             </div>
-
             <% } %>
     </div>
