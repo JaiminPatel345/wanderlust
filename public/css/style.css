@@ -39,11 +39,6 @@ body {
   transition: background-color 0.3s ease-in-out;
 }
 
-/* .bn38:hover {
-    background-color: #eae6e6a3;
-  } */
-
-
 /* Footer */
 .f-info-links a {
   text-decoration: none;
@@ -75,46 +70,6 @@ body {
 
 .btn-primary {
   background-color: #FF496A !important;
-}
-
-
-/* card */
-
-.row {
-  width: 100%;
-  margin-right: 0 !important;
-}
-
-.listing-card {
-  margin: 1rem 0;
-  /* width: 350px; */
-  border: none;
-}
-
-
-.listing-link {
-  width: 100%;
-  text-decoration: none;
-}
-
-.card {
-  border-radius: 1rem;
-  /* border: none; */
-}
-
-.card-img-top {
-  height: 300px;
-  width: 100%;
-  border-radius: 1rem;
-  object-fit: cover;
-}
-
-.listing-link:hover {
-  opacity: 0.8;
-}
-
-.card-body {
-  padding-left: 0;
 }
 
 
