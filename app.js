@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const RedisStore = require("connect-redis").default
 const path = require('path');
 const methodOverride = require('method-override');
 const ejsMate = require('ejs-mate');
@@ -11,6 +12,7 @@ const app = express();
 const passport = require('passport')
 const LocalStrategy = require('passport-local')
 app.use(require('cookie-parser')())
+const { createClient } = require("redis")
 
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
@@ -28,15 +30,15 @@ app.set("view engine", "ejs");
 app.engine('ejs', ejsMate);
 
 main()
-  .then(() => console.log("connection successfully"))
+  .then(() => console.log("connection successfully \nYou can view project on http://localhost:3000"))
   .catch((err) => console.log(err));
 
 async function main() {
-  await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+  await mongoose.connect(process.env.MONGO_URL);
 }
 
 app.use(session({
-  secret: 'keyboard cat',
+  secret: 'o8907ioh*&8YhF',
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -45,6 +47,42 @@ app.use(session({
 
   }
 }))
+
+// Initialize client.
+const redisClient = createClient({
+  password: process.env.REDIS_PASS,
+  socket: {
+    host: 'redis-11634.c330.asia-south1-1.gce.redns.redis-cloud.com',
+    port: 11634
+  }
+});
+
+redisClient.connect()
+  .then(() => {
+    redisClient.ping(); // No arguments needed
+  })
+  .catch(console.error);
+
+
+
+// Initialize store.
+let redisStore = new RedisStore({
+  client: redisClient,
+  prefix: "session:",
+})
+
+// Initialize session storage.
+app.use(
+  session({
+    store: redisStore,
+    resave: false, // required: force lightweight session keep alive (touch)
+    saveUninitialized: true, // recommended: only save session when data exists
+    secret: "o8907ioh*&8YhF",
+  }),
+)
+
+
+
 app.use(flash())
 
 app.use(passport.initialize());
