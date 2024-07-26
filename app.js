@@ -7,7 +7,7 @@ const ejsMate = require('ejs-mate');
 const Swal = require('sweetalert2');
 const session = require('express-session')
 const flash = require('connect-flash')
-const port = 3000;
+const port = 3003;
 const app = express();
 const passport = require('passport')
 const LocalStrategy = require('passport-local')
@@ -30,7 +30,7 @@ app.set("view engine", "ejs");
 app.engine('ejs', ejsMate);
 
 main()
-  .then(() => console.log("connection successfully \nYou can view project on http://localhost:3000"))
+  .then(() => console.log(`connection successfully \nYou can view project on http://localhost:${port}`))
   .catch((err) => console.log(err));
 
 async function main() {
