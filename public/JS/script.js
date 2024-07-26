@@ -1,5 +1,19 @@
+console.log("I will add backend for Filters and for search bar");
 
-(function () {
+const searchButton = document.querySelector(".btn-outline-success");
+searchButton.addEventListener('click', (event) => {
+  // alert("I will add backend for Filters and for search bar very soon , thank you ")
+  Swal.fire({
+    icon: "error",
+    title: "Sorry",
+    text: "I will add backend for Filters and for search bar very soon",
+    footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+  });
+  event.preventDefault()
+  event.stopPropagation()
+});
+
+(() => {
   'use strict'
 
   // Fetch all the forms we want to apply custom Bootstrap validation styles to

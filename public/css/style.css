@@ -13,6 +13,17 @@ body {
   height: 5rem;
 }
 
+.btn-outline-success{
+  border-radius: 30px;
+  color: black;
+  padding: 0 1.2rem;
+}
+
+.btn-outline-success:hover{
+  background-color:#FF496A;
+}
+
+
 .fa-compass {
   color: #FF496A;
   font-size: 2rem;
@@ -105,6 +116,25 @@ body {
 .btn-dark:hover {
   box-shadow: 0 0 3px rgb(0, 0, 0) !important;
 }
+
+.btn:hover{
+  color : white;
+}
+
+input[type=text]:focus ,
+input[type=password]:focus ,  
+input[type=range]:focus , 
+input[type=email]:focus ,  
+input[type=search]:focus
+{
+  box-shadow: 0 0 4px  #FF496A;
+  border: 1px solid #FF496A;
+}
+
+#flexSwitchCheckDefault{
+  box-shadow: none;
+}
+
 
 
 /* Icons */
