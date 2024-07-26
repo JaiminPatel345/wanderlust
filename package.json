@@ -1,8 +1,11 @@
 {
-  "name": "major-project-1",
+  "engines": {
+    "node": "20.16.0"
+  },
+  "name": "Wanderlust",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js"

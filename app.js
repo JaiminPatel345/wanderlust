@@ -38,7 +38,7 @@ async function main() {
 }
 
 app.use(session({
-  secret: 'o8907ioh*&8YhF',
+  secret: process.env.SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -77,7 +77,7 @@ app.use(
     store: redisStore,
     resave: false, // required: force lightweight session keep alive (touch)
     saveUninitialized: true, // recommended: only save session when data exists
-    secret: "o8907ioh*&8YhF",
+    secret: process.env.SECRET,
   }),
 )
 
