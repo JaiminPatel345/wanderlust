@@ -72,6 +72,10 @@ maintainability.
 CLOUD_NAME=your_cloud_name
 CLOUD_API_KEY=your_api_key
 CLOUD_API_SECRET=your_api_secret
+MONGO_URL=mongodb://localhost:27017/wanderlust
+REDIS_URL="redis-cli -h redis15.localnet.org -p 6390"
+REDIS_PASS=YOUR_PASSWORD
+SECRET=KEYBOARD_KAT
 ```
 
 <h2> Running the Project </h2>
@@ -81,10 +85,15 @@ CLOUD_API_SECRET=your_api_secret
 
 ```bash
 yarn install
+```
+
+<h3> If you want to init default database then
+
+```
 node ./init/index.js
 ```
 
-After the message, press CTRL + C and run this command:
+After the completion message, press CTRL + C and run this command:
 
 ```bash
 yarn start
@@ -93,6 +102,4 @@ yarn start
 This will typically start the server on http://localhost:3000 . You can access
 the application in your web browser.
 
-**Contributing**
-
-We welcome contributions to Wanderlust!
+**Contributing** We welcome contributions to Wanderlust!
