@@ -66,3 +66,37 @@
             </form>
         </div>
     </div>
+    <script>
+        const fileUpload = document.getElementById("fileImage");
+        const urlUpload = document.getElementById("urlImage");
+
+        fileUpload.addEventListener('change', (event) => {
+            if (urlUpload.value) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Sorry",
+                    text: "You already give url and upload image ,  so url removed",
+                    // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                });
+                urlUpload.value = ""
+                event.preventDefault()
+                event.stopPropagation()
+            }
+        })
+
+        urlUpload.addEventListener('change', (event) => {
+            console.log(fileUpload.files)
+            if (fileUpload.files.length != 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Sorry",
+                    text: "You already upload image ,  so we removed uploaded image",
+                    // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                });
+                fileUpload.value = ''
+                event.preventDefault()
+                event.stopPropagation()
+            }
+        })
+
+    </script>
