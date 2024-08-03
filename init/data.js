@@ -351,7 +351,7 @@ const sampleListings = [
 
 const updatedListings = sampleListings.map(listing => ({
   ...listing,
-  image: listing.image.url // Replace image object with just the URL string
+  // image: listing.image.url // Replace image object with just the URL string
 }));
 
 module.exports = { data: updatedListings };

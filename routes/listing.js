@@ -27,6 +27,9 @@ router.route('/:id')
 //edit route 
 router.get("/:id/edit", saveOriginalUrl, isLoggedIn, isListingOwner, asyncWrap(listingController.renderEditListing));
 
+router.route('/:id/book')
+    .get((req, res) => { res.send("Very soon build book facility") }) // for book  
+
 
 
 
