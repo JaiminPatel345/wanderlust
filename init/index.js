@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
-
-const MONGO_URL = "mongodb+srv://jaiminDetroja345:oiwzizcpxXLYKufb@cluster0.oehzpww.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/wanderlust";
+require('dotenv').config();
 
 main()
   .then(() => {
@@ -13,7 +12,7 @@ main()
   });
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(process.env.MONGO_URL);
 }
 
 const initDB = async () => {

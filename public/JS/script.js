@@ -33,27 +33,62 @@ searchButton.addEventListener('click', (event) => {
     })
 })()
 
+const fileUpload = document.getElementById("fileImage");
+const urlUpload = document.getElementById("urlImage");
+
+fileUpload.addEventListener('change', (event) => {
+  if (urlUpload.value) {
+    Swal.fire({
+      icon: "error",
+      title: "Sorry",
+      text: "You already give url and upload image ,  so url removed",
+      // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+    });
+    urlUpload.value = ""
+    event.preventDefault()
+    event.stopPropagation()
+  }
+})
+
+urlUpload.addEventListener('change', (event) => {
+  console.log(fileUpload.files)
+  if (fileUpload.files.length != 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Sorry",
+      text: "You already upload image ,  so we removed uploaded image",
+      // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+    });
+    fileUpload.value = ''
+    event.preventDefault()
+    event.stopPropagation()
+  }
+})
+
+
 //For tax switch 
 const taxSwitch = document.getElementById("flexSwitchCheckDefault");
 const taxRate = 0.18; // 18% GST
 
-taxSwitch.addEventListener("click", () => {
-  const priceElements = document.querySelectorAll('.card-text span[id^="price-"]');
+if (taxSwitch)
+  taxSwitch.addEventListener("click", () => {
+    const priceElements = document.querySelectorAll('.card-text span[id^="price-"]');
 
-  for (const priceElement of priceElements) {
-    const originalPrice = parseFloat(priceElement.dataset.originalPrice);
-    const taxAmount = originalPrice * taxRate;
-    const displayedPrice = taxSwitch.checked ? (originalPrice + taxAmount).toLocaleString("en-IN") : originalPrice.toLocaleString("en-IN");
+    for (const priceElement of priceElements) {
+      const originalPrice = parseFloat(priceElement.dataset.originalPrice);
+      const taxAmount = originalPrice * taxRate;
+      const displayedPrice = taxSwitch.checked ? (originalPrice + taxAmount).toLocaleString("en-IN") : originalPrice.toLocaleString("en-IN");
 
-    priceElement.textContent = displayedPrice;
+      priceElement.textContent = displayedPrice;
 
-  }
-  let taxInfo = document.getElementsByClassName("tax-info");
-  for (info of taxInfo) {
-    if (info.textContent.includes("Including")) {
-      info.textContent = ` (Excluding GST)`;
-    } else {
-      info.textContent = ` (Including GST)`;
     }
-  }
-});
+    let taxInfo = document.getElementsByClassName("tax-info");
+    for (info of taxInfo) {
+      if (info.textContent.includes("Including")) {
+        info.textContent = ` (Excluding GST)`;
+      } else {
+        info.textContent = ` (Including GST)`;
+      }
+    }
+  });
+
