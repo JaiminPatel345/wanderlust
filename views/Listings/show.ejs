@@ -36,12 +36,12 @@
                     <%= listing.country %>
                 </p>
                 <span>
-                    <% for(let tag of listing.tags ) {%>
+                    <% for(let tag of listing.tags ) { if(tag !="null" ) {%>
                         <span class="show-tags">
                             <i class="fa-light fa-hashtag"></i>
                             <%= tag %>
                         </span>
-                        <% } %>
+                        <%} } %>
                 </span>
                 <br>
                 <br>

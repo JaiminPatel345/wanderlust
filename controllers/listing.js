@@ -32,8 +32,6 @@ module.exports.createListing = async (req, res, next) => {
 
   const { title, description, price, location, country } = req.body;
   let { tagsArray } = req.body;
-  console.log(tagsArray);
-  console.log(tagsArray);
   if (typeof tagsArray === 'string') {
     tagsArray = JSON.parse(tagsArray);
   }
@@ -82,9 +80,15 @@ module.exports.renderEditListing = async (req, res) => {
 //Update
 module.exports.updateListing = async (req, res) => {
   const { id } = req.params;
-
-
-  const listing = await Listing.findByIdAndUpdate(id, req.body);
+  let { tagsArray } = req.body;
+  if (typeof tagsArray === 'string') {
+    tagsArray = JSON.parse(tagsArray);
+  }
+  const body = {
+    ...req.body,
+    tags: tagsArray
+  }
+  const listing = await Listing.findByIdAndUpdate(id, body);
   if (req.file) {
     const { path, filename } = req.file
     listing.image.url = path,

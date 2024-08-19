@@ -3,8 +3,8 @@
 
     <div class="row">
         <div class="col-8 offset-2">
-            <form method="post" action="/listings/<%= listing.id %>?_method=PUT" class="needs-validation" novalidate
-                enctype="multipart/form-data">
+            <form method="post" action="/listings/<%= listing.id %>?_method=PUT" id="new-listing-form"
+                class="needs-validation" novalidate enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
                     <input type="text" id="title" name="title" class="form-control" value="<%= listing.title %>"
@@ -82,8 +82,6 @@
 
                     </select>
                     <div id="selected-tags"></div>
-                    <div class="valid-feedback">Wow !!</div>
-                    <div class="invalid-feedback">More tags more visitors </div>
                 </div>
                 <br><br>
 
@@ -95,6 +93,7 @@
         <script>
 
             // Tags
+
             document.getElementById('tags').addEventListener('change', function () {
                 let selectedTag = this.value;
                 if (selectedTag !== "null") {
@@ -146,6 +145,40 @@
                 option.textContent = tag;
                 select.appendChild(option);
             }
+
+
+            function getSelectedTags() {
+                const tagElements = document.querySelectorAll('#selected-tags .tag-item');
+                return Array.from(tagElements).map(tagElement => tagElement.textContent.trim());
+            }
+            document.getElementById('new-listing-form').addEventListener('submit', function (event) {
+                // Prevent the form from submitting immediately
+                event.preventDefault();
+                const form = event.target;
+                if (!form.checkValidity()) {
+                    //form.reportValidity(); // Shows validation messages
+                    return; // Stop the form from submitting
+                }
+
+                // Get the form element
+
+
+                // Get the selected tags
+                const tags = getSelectedTags();
+
+                // Create a hidden input field to store the tags array as a JSON string
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'tagsArray';
+                hiddenInput.value = JSON.stringify(tags);
+
+                console.log(hiddenInput.value)
+
+                // Append the hidden input to the form
+                form.appendChild(hiddenInput);
+                form.submit();
+            });
+
 
             //File upload
             const fileUpload = document.getElementById("fileImage");
