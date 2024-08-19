@@ -66,6 +66,15 @@
                                 <br />
                                 <i class="fa-solid fa-globe"></i>
                                 <%= listing.country %> <br />
+                                    <br>
+                                    <span>
+                                        <% for(let tag of listing.tags ) {%>
+                                            <span class="show-tags">
+                                                <i class="fa-light fa-hashtag"></i>
+                                                <%= tag %>
+                                            </span>
+                                            <% } %>
+                                    </span>
                         </p>
                     </div>
                 </a>

@@ -52,6 +52,7 @@
                         <div class="invalid-feedback">Do you from Antarctica ?</div>
                     </div>
                 </div>
+                <br>
 
 
                 <div>
@@ -61,9 +62,122 @@
                     <div class="valid-feedback">Wow !!</div>
                     <div class="invalid-feedback">You'r hotel is on Moon ?</div>
                 </div>
+
+                <!-- Tags -->
+                <div>
+                    <label for="tags" class="form-label">Tags</label>
+                    <select class="form-control" name="tags" id="tags">
+
+                        <option value="null">--Select Tags--</option>
+                        <option value="Trending">Trending </option>
+                        <option value="Rooms">Rooms </option>
+                        <option value="Iconic cities">Iconic cities </option>
+                        <option value="Mountains">Mountains </option>
+                        <option value="Castles">Castles </option>
+                        <option value="Amazing pools">Amazing pools </option>
+                        <option value="Camping">Camping </option>
+                        <option value="Farms">Farms </option>
+                        <option value="Arctic">Arctic </option>
+
+
+                    </select>
+                    <div id="selected-tags"></div>
+                    <div class="valid-feedback">Wow !!</div>
+                    <div class="invalid-feedback">More tags more visitors </div>
+                </div>
                 <br><br>
 
 
                 <button class="btn btn-red">Save Changes</button>
             </form>
         </div>
+
+        <script>
+
+            // Tags
+            document.getElementById('tags').addEventListener('change', function () {
+                let selectedTag = this.value;
+                if (selectedTag !== "null") {
+                    removeOption(selectedTag)
+                    selectedTag += " "
+                    addTag(selectedTag)
+                }
+                this.value = "null";
+            });
+
+            function addTag(tag) {
+                const selectedTagsContainer = document.getElementById('selected-tags');
+
+                // Create a new tag element
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag-item';
+                tagElement.textContent = tag;
+
+                // Create a close button for the tag
+                const closeButton = document.createElement('i');
+                closeButton.className = 'fa-solid fa-circle-xmark';
+                closeButton.innerHTML = '&nbsp; &nbsp;';
+                closeButton.onclick = function () {
+                    selectedTagsContainer.removeChild(tagElement);
+                    addOption(tag);
+                };
+
+                // Append the close button to the tag element
+                tagElement.appendChild(closeButton);
+
+                // Add the tag element to the selected tags container
+                selectedTagsContainer.appendChild(tagElement);
+            }
+
+            function removeOption(tag) {
+                const select = document.getElementById('tags');
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === tag) {
+                        select.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            function addOption(tag) {
+                const select = document.getElementById('tags');
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag;
+                select.appendChild(option);
+            }
+
+            //File upload
+            const fileUpload = document.getElementById("fileImage");
+            const urlUpload = document.getElementById("urlImage");
+
+            fileUpload.addEventListener('change', (event) => {
+                if (urlUpload.value) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Sorry",
+                        text: "You already give url and upload image ,  so url removed",
+                        // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                    });
+                    urlUpload.value = ""
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+            })
+
+            urlUpload.addEventListener('change', (event) => {
+                console.log(fileUpload.files)
+                if (fileUpload.files.length != 0) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Sorry",
+                        text: "You already upload image ,  so we removed uploaded image",
+                        // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                    });
+                    fileUpload.value = ''
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+            })
+
+        </script>

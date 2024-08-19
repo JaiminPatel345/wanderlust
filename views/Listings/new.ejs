@@ -2,7 +2,8 @@
     <div class="row">
         <div class="col-8 offset-2">
             <!-- <h2>Add new Hotel</h2> -->
-            <form method="post" action="/listings" class="needs-validation" novalidate enctype="multipart/form-data">
+            <form method="post" action="/listings" class="needs-validation" id="new-listing-form" novalidate
+                enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title</label>
                     <input type="text" id="title" name="title" class="form-control" placeholder="Add a catchy title"
@@ -60,6 +61,29 @@
                     <div class="valid-feedback">Wow !!</div>
                     <div class="invalid-feedback">You'r hotel is on Moon ?</div>
                 </div>
+                <br>
+
+                <!-- Tags -->
+                <div>
+                    <label for="tags" class="form-label">Tags</label>
+                    <select class="form-control" name="tags" id="tags">
+
+                        <option value="null">--Select Tags--</option>
+                        <option value="Trending">Trending </option>
+                        <option value="Rooms">Rooms </option>
+                        <option value="Iconic cities">Iconic cities </option>
+                        <option value="Mountains">Mountains </option>
+                        <option value="Castles">Castles </option>
+                        <option value="Amazing pools">Amazing pools </option>
+                        <option value="Camping">Camping </option>
+                        <option value="Farms">Farms </option>
+                        <option value="Arctic">Arctic </option>
+
+
+                    </select>
+                    <div id="selected-tags"></div>
+                </div>
+
                 <br><br>
 
                 <button class="btn btn-red ">Add on List</button>
@@ -67,6 +91,95 @@
         </div>
     </div>
     <script>
+
+        // Tags
+        document.getElementById('tags').addEventListener('change', function () {
+            let selectedTag = this.value;
+            if (selectedTag !== "null") {
+                removeOption(selectedTag)
+                selectedTag += " "
+                addTag(selectedTag)
+            }
+            this.value = "null";
+        });
+
+        function addTag(tag) {
+            const selectedTagsContainer = document.getElementById('selected-tags');
+
+            // Create a new tag element
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag-item';
+            tagElement.textContent = tag;
+
+            // Create a close button for the tag
+            const closeButton = document.createElement('i');
+            closeButton.className = 'fa-solid fa-circle-xmark';
+            closeButton.innerHTML = '&nbsp; &nbsp;';
+            closeButton.onclick = function () {
+                selectedTagsContainer.removeChild(tagElement);
+                addOption(tag);
+            };
+
+            // Append the close button to the tag element
+            tagElement.appendChild(closeButton);
+
+            // Add the tag element to the selected tags container
+            selectedTagsContainer.appendChild(tagElement);
+        }
+
+        function removeOption(tag) {
+            const select = document.getElementById('tags');
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === tag) {
+                    select.remove(i);
+                    break;
+                }
+            }
+        }
+
+        function addOption(tag) {
+            const select = document.getElementById('tags');
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag;
+            select.appendChild(option);
+        }
+
+
+        function getSelectedTags() {
+            const tagElements = document.querySelectorAll('#selected-tags .tag-item');
+            return Array.from(tagElements).map(tagElement => tagElement.textContent.trim());
+        }
+        document.getElementById('new-listing-form').addEventListener('submit', function (event) {
+            // Prevent the form from submitting immediately
+            event.preventDefault();
+            const form = event.target;
+            if (!form.checkValidity()) {
+                //form.reportValidity(); // Shows validation messages
+                return; // Stop the form from submitting
+            }
+
+            // Get the form element
+
+
+            // Get the selected tags
+            const tags = getSelectedTags();
+
+            // Create a hidden input field to store the tags array as a JSON string
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'tagsArray';
+            hiddenInput.value = JSON.stringify(tags);
+
+            console.log(hiddenInput.value)
+
+            // Append the hidden input to the form
+            form.appendChild(hiddenInput);
+            form.submit();
+        });
+
+
+        //File upload
         const fileUpload = document.getElementById("fileImage");
         const urlUpload = document.getElementById("urlImage");
 

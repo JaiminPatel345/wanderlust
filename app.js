@@ -113,7 +113,7 @@ app.use('/', usersRoutes);
 // Error handling middleware
 app.use(async (err, req, res, next) => {
   console.log(err);
-
+  if (!err.statusCode) res.status(500).render("./Listings/error.ejs", { Swal, msg: err.message });
   res.status(err.statusCode).render("./Listings/error.ejs", { Swal, msg: err.message });
 });
 

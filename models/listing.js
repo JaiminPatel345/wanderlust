@@ -41,6 +41,10 @@ const listingSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Review"
     }],
+    tags: [{
+        type: String,
+        // enum: ["Trending", "Rooms", "Iconic cities", "Mountains", "Castles", "Amazing pools", "Camping", "Farms", "Arctic"]
+    }],
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

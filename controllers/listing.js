@@ -31,6 +31,14 @@ module.exports.showListing = async (req, res) => {
 module.exports.createListing = async (req, res, next) => {
 
   const { title, description, price, location, country } = req.body;
+  let { tagsArray } = req.body;
+  console.log(tagsArray);
+  console.log(tagsArray);
+  if (typeof tagsArray === 'string') {
+    tagsArray = JSON.parse(tagsArray);
+  }
+  //console.log(tagsArray);
+
   let image;
   if (req.file) {
     const { path, filename } = req.file
@@ -52,6 +60,7 @@ module.exports.createListing = async (req, res, next) => {
     price: price,
     location: location,
     country: country,
+    tags: tagsArray,
     owner: req.user._id
   });
 
