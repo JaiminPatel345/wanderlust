@@ -138,6 +138,42 @@ body {
   margin: 3px;
   background: rgba(0, 0, 0, 0.116);
   border-radius: 10px;
+  overflow: hidden;
+}
+
+span.tags{
+  white-space: nowrap; 
+}
+
+/* Filters */
+#filters .filter {
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#filters .filter i{
+  color: rgb(119, 118, 118);
+}
+
+#filters .filter:hover i{
+  color: black;
+}
+
+
+#filters .filter.active {
+  border: 1px solid black;
+  border-radius: 10px;
+  color: black;
+}
+
+#filters .filter.active p  {
+  color: black;
+  font-weight: bold;
+}
+
+#filters .filter.active i  {
+  color: black;
+  font-weight: 900;
 }
 
 

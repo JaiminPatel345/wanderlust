@@ -48,8 +48,8 @@
 
     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
         <% for (let listing of allListings) { %>
-            <div class="card listing-card col">
-                <a href="/listings/<%= listing._id %>" class="listing-link">
+            <div class="card listing-card col" data-tags="<%= listing.tags.join(',').toLowerCase()%>">
+                <a href=" /listings/<%=listing._id %>" class="listing-link">
                     <img src="<%= listing.image.url %>" class="card-img-top" alt="Image is processing" />
                     <div class="card-body">
                         <h5 class="card-title">
@@ -67,7 +67,7 @@
                                 <i class="fa-solid fa-globe"></i>
                                 <%= listing.country %> <br />
                                     <br>
-                                    <span>
+                                    <span class="tags">
                                         <% for(let tag of listing.tags ) { if(tag !="null" ) {%>
                                             <span class="show-tags">
                                                 <i class="fa-light fa-hashtag"></i>
@@ -107,6 +107,50 @@
                 }
             }
         });
+
+
+        //For filters
+        const filters = document.querySelectorAll(".filter");
+        const listings = document.querySelectorAll(".listing-card");
+
+        filters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                // Toggle the active class on the clicked filter
+
+                if (filter.classList.contains("active")) {
+                    filters.forEach(f => {
+                        f.classList.remove("active");
+                    })
+                } else {
+                    filters.forEach(f => {
+                        f.classList.remove("active");
+                    })
+                    filter.classList.add("active");
+
+                }
+
+                // Get the text of the clicked filter (e.g., "Trending", "Rooms")
+                const filterText = filter.querySelector("p").textContent.toLowerCase();
+
+                // Show or hide listings based on the active filter
+                listings.forEach(listing => {
+                    const listingTags = listing.dataset.tags.toLowerCase().split(",");
+
+                    if (filter.classList.contains("active")) {
+                        // If the filter is active, show listings that have a matching tag
+                        if (listingTags.includes(filterText)) {
+                            listing.style.display = "block";
+                        } else {
+                            listing.style.display = "none";
+                        }
+                    } else {
+                        // If no filter is active, show all listings
+                        listing.style.display = "block";
+                    }
+                });
+            });
+        });
+
 
 
     </script>
