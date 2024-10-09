@@ -14,6 +14,12 @@ const LocalStrategy = require('passport-local')
 app.use(require('cookie-parser')())
 const { createClient } = require("redis")
 
+// Chat 
+const { Server } = require("socket.io");
+const http = require('http');
+const server = http.createServer(app);
+const io = new Server(server);
+
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
@@ -37,16 +43,6 @@ async function main() {
   await mongoose.connect(process.env.MONGO_URL);
 }
 
-app.use(session({
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    expires: Date.now() + 1000 * 3600 * 24,
-    maxAge: 1000 * 3600 * 24 * 3
-
-  }
-}))
 
 // Initialize client.
 const redisClient = createClient({
@@ -75,11 +71,16 @@ let redisStore = new RedisStore({
 app.use(
   session({
     store: redisStore,
-    resave: false, // required: force lightweight session keep alive (touch)
-    saveUninitialized: true, // recommended: only save session when data exists
+    resave: false, // force lightweight session keep alive (touch)
+    saveUninitialized: false, // only save session when data exists
     secret: process.env.SECRET,
+    cookie: {
+      // Optional: Customize cookie settings as needed
+      // secure: true, // use true if using HTTPS
+      maxAge: 1000 * 3600 * 24 * 3, // 3 days
+    },
   }),
-)
+);
 
 
 
@@ -109,6 +110,12 @@ app.use('/listings', listingsRoutes);
 app.use('/', usersRoutes);
 
 
+io.on('connection', (socket) => {
+  socket.on('chat message', (msg) => {
+    console.log('message: ' + msg);
+    io.emit('chat message', msg);
+  });
+});
 
 // Error handling middleware
 app.use(async (err, req, res, next) => {
@@ -117,4 +124,4 @@ app.use(async (err, req, res, next) => {
   res.status(err.statusCode).render("./Listings/error.ejs", { Swal, msg: err.message });
 });
 
-app.listen(port, () => console.log(`listen on port ${port}`));
+server.listen(port, () => console.log(`listen on port ${port}`));

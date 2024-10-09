@@ -1,4 +1,3 @@
-["Trending", "Rooms", "Iconic cities", "Mountains", "Castles", "Amazing pools", "Camping", "Farms", "Arctic"]
 const sampleListings = [
   {
     title: "Cozy Beachfront Cottage",

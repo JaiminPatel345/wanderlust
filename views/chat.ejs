@@ -1,0 +1,32 @@
+<% layout('/layouts/boilerplate.ejs') %>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<div>
+    <!-- //form -->
+    <form id="form">
+        <input type="text" id="input" placeholder="Type here..." />
+        <button type="submit">Send</button>
+    </form>
+
+    <div id="chat-box"></div>
+
+    <script>
+        const socket = io()
+        const form = document.getElementById("form")
+        const input = document.getElementById("input")
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault()
+            if (input.value) {
+                socket.emit("chat message", input.value)
+                input.value = ""
+            }
+        })
+
+        socket.on("chat message", (msg) => {
+            let p = document.createElement("p")
+            p.innerText = msg
+            document.getElementById("chat-box").appendChild(p)
+        })
+    </script>
+</div>

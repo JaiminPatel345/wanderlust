@@ -10,8 +10,6 @@ const listingController = require('../controllers/listing.js')
 const multer = require('multer')
 const { storage } = require('../cloudConfig.js')
 const upload = multer({ storage })
-
-
 router.route('/')
     .get(saveOriginalUrl, asyncWrap(listingController.index)) //All listing
     .post(isLoggedIn, upload.single('image'), asyncWrap(listingController.createListing)); // add route
@@ -29,6 +27,9 @@ router.get("/:id/edit", saveOriginalUrl, isLoggedIn, isListingOwner, asyncWrap(l
 
 router.route('/:id/book')
     .get((req, res) => { res.send("Very soon build book facility") }) // for book  
+
+router.route('/:id/chat')
+    .get((req, res) => { res.render('./chat.ejs') })
 
 
 
