@@ -6,3 +6,11 @@
 .invalid-feedback {
   display: none;
 }
+
+.filter{
+  color: rgb(114, 114, 114);
+}
+
+.filter:hover , .active {
+  color: rgb(0, 0, 0);
+}

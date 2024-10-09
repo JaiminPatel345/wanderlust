@@ -1,6 +1,6 @@
 <% layout('/layouts/boilerplate.ejs') %>
 
-    <div id="filters" class="flex justify-around">
+    <div id="filters" class="flex justify-around gap-2 flex-wrap mt-14 mb-8">
         <div class="filter flex flex-col items-center">
             <div><i class="fa-solid fa-fire"></i></div>
             <p>Trending</p>
@@ -91,7 +91,7 @@
         const taxRate = 0.18; // 18% GST
 
         taxSwitch.addEventListener("click", () => {
-            const priceElements = document.querySelectorAll('.card-text span[id^="price-"]');
+            const priceElements = document.querySelectorAll('span[id^="price-"]');
 
             for (const priceElement of priceElements) {
                 const originalPrice = parseFloat(priceElement.dataset.originalPrice);
@@ -111,43 +111,13 @@
         });
 
         // For filters
-        const filters = document.querySelectorAll(".filter");
-        const listings = document.querySelectorAll(".bg-white"); // Updated selector
+        const filters = document.querySelectorAll('.filter');
 
         filters.forEach(filter => {
-            filter.addEventListener('click', () => {
-                // Toggle the active class on the clicked filter
-
-                if (filter.classList.contains("active")) {
-                    filters.forEach(f => {
-                        f.classList.remove("active", "bg-gray-200", "text-black");
-                    })
-                } else {
-                    filters.forEach(f => {
-                        f.classList.remove("active", "bg-gray-200", "text-black");
-                    })
-                    filter.classList.add("active", "bg-gray-200", "text-black");
-                }
-
-                // Get the text of the clicked filter (e.g., "Trending", "Rooms")
-                const filterText = filter.querySelector("p").textContent.toLowerCase();
-
-                // Show or hide listings based on the active filter
-                listings.forEach(listing => {
-                    const listingTags = listing.dataset.tags.toLowerCase().split(",");
-
-                    if (filter.classList.contains("active")) {
-                        // If the filter is active, show listings that have a matching tag
-                        if (listingTags.includes(filterText)) {
-                            listing.style.display = "block";
-                        } else {
-                            listing.style.display = "none";
-                        }
-                    } else {
-                        // If no filter is active, show all listings
-                        listing.style.display = "block";
-                    }
-                });
+            filter.addEventListener('click', function () {
+                filters.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
             });
         });
+
     </script>
