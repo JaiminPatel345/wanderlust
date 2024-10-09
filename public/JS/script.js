@@ -1,6 +1,6 @@
 console.log("I will add backend for Filters and for search bar");
 
-const searchButton = document.querySelector(".btn-outline-success");
+const searchButton = document.querySelector("#search-btn");
 searchButton.addEventListener('click', (event) => {
   // alert("I will add backend for Filters and for search bar very soon , thank you ")
   Swal.fire({

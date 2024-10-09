@@ -1,98 +1,109 @@
 <% layout('/layouts/boilerplate.ejs') %>
-    <div class="row">
-        <div class="col-8 offset-2">
-            <!-- <h2>Add new Hotel</h2> -->
-            <form method="post" action="/listings" class="needs-validation" id="new-listing-form" novalidate
-                enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title</label>
-                    <input type="text" id="title" name="title" class="form-control" placeholder="Add a catchy title"
-                        required />
-                    <div class="valid-feedback">Nice one !</div>
-                    <div class="invalid-feedback">Title name is must</div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea name="description" id="description" class="form-control"
-                        placeholder="Give brief description  about the hotel" required></textarea>
-                    <div class="valid-feedback">Good description !</div>
-                    <div class="invalid-feedback">description is must</div>
-                </div>
-
-                <!-- Image link -->
-                <div class="mb-3">
-                    <label for="urlImage" class="form-label">image</label>
-                    <input type="text" name="image" id="urlImage" class="form-control"
-                        placeholder="Enter your Image url" />
-                </div>
-
-                <!-- upload file -->
-                <div class="mb-3">
-                    <label for="fileImage" class="form-label">image</label>
-                    <input type="file" name="image" id="fileImage" class="form-control"
-                        placeholder="Enter your Image url" />
-                </div>
-
-                <div class="row">
-
-                    <div class="mb-3 col-md-4">
-                        <label for="price" class="form-label">Price</label>
-                        <input type="number" name="price" class="form-control" id="price" value="1200" required />
-                        <div class="valid-feedback">As you wish :) </div>
-                        <div class="invalid-feedback">You want to submit without Price :/ </div>
-                    </div>
-
-
-                    <div class="mb-3 col-md-8">
-                        <label for="country" class="form-label">country</label>
-                        <input type="text" name="country" class="form-control" id="country" placeholder="India"
-                            required />
-                        <div class="valid-feedback">Wow !!</div>
-                        <div class="invalid-feedback">Do you from Antarctica ?</div>
-                    </div>
-                </div>
-
-
+    <h2 class="text-2xl font-bold mb-6">New Listing</h2>
+    <div class="flex justify-center items-center min-h-screen bg-gray-50">
+        <div class="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
+            <!-- <h2 class="text-2xl font-semibold mb-6">Add New Listing</h2> -->
+            <form method="post" action="/listings" id="new-listing-form" enctype="multipart/form-data"
+                class="space-y-6">
+                <!-- Title -->
                 <div>
-                    <label for="location" class="form-label">location</label>
-                    <input type="text" name="location" class="form-control" id="location"
-                        placeholder="Vadodara , Gujarat" required />
-                    <div class="valid-feedback">Wow !!</div>
-                    <div class="invalid-feedback">You'r hotel is on Moon ?</div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                    <input type="text" id="title" name="title" placeholder="Add a catchy title"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                        required />
+                    <p class="mt-2 text-sm text-green-600 valid-feedback">Nice one!</p>
+                    <p class="mt-2 text-sm text-red-600 invalid-feedback">Title name is must.</p>
                 </div>
-                <br>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea name="description" id="description" placeholder="Give a brief description about the hotel"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                        required></textarea>
+                    <p class="mt-2 text-sm text-green-600 valid-feedback">Good description!</p>
+                    <p class="mt-2 text-sm text-red-600 invalid-feedback">Description is must.</p>
+                </div>
+
+                <!-- Image URL -->
+                <div>
+                    <label for="urlImage" class="block text-sm font-medium text-gray-700">Image URL</label>
+                    <input type="text" name="image" id="urlImage" placeholder="Enter your Image URL"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" />
+                </div>
+
+                <!-- Image Upload -->
+                <div>
+                    <label for="fileImage" class="block text-sm font-medium text-gray-700">Upload Image</label>
+                    <input type="file" name="image" id="fileImage"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" />
+                </div>
+
+                <!-- Price and Country -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Price -->
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+                        <input type="number" name="price" id="price" value="1200" required
+                            class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" />
+                        <p class="mt-2 text-sm text-green-600 valid-feedback">As you wish :)</p>
+                        <p class="mt-2 text-sm text-red-600 invalid-feedback">You want to submit without Price :/</p>
+                    </div>
+
+                    <!-- Country -->
+                    <div>
+                        <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
+                        <input type="text" name="country" id="country" placeholder="India" required
+                            class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" />
+                        <p class="mt-2 text-sm text-green-600 valid-feedback">Wow!!</p>
+                        <p class="mt-2 text-sm text-red-600 invalid-feedback">Do you from Antarctica?</p>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <input type="text" name="location" id="location" placeholder="Vadodara, Gujarat" required
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" />
+                    <p class="mt-2 text-sm text-green-600 valid-feedback">Wow!!</p>
+                    <p class="mt-2 text-sm text-red-600 invalid-feedback">Your hotel is on Moon?</p>
+                </div>
 
                 <!-- Tags -->
                 <div>
-                    <label for="tags" class="form-label">Tags</label>
-                    <select class="form-control" name="tags" id="tags">
-
+                    <label for="tags" class="block text-sm font-medium text-gray-700">Tags</label>
+                    <select name="tags" id="tags"
+                        class="mt-1 block w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500">
                         <option value="null">--Select Tags--</option>
-                        <option value="Trending">Trending </option>
-                        <option value="Rooms">Rooms </option>
-                        <option value="Iconic cities">Iconic cities </option>
-                        <option value="Mountains">Mountains </option>
-                        <option value="Castles">Castles </option>
-                        <option value="Amazing pools">Amazing pools </option>
-                        <option value="Camping">Camping </option>
-                        <option value="Farms">Farms </option>
-                        <option value="Arctic">Arctic </option>
-
-
+                        <option value="Trending">Trending</option>
+                        <option value="Rooms">Rooms</option>
+                        <option value="Iconic cities">Iconic cities</option>
+                        <option value="Mountains">Mountains</option>
+                        <option value="Castles">Castles</option>
+                        <option value="Amazing pools">Amazing pools</option>
+                        <option value="Camping">Camping</option>
+                        <option value="Farms">Farms</option>
+                        <option value="Arctic">Arctic</option>
                     </select>
-                    <div id="selected-tags"></div>
+                    <div id="selected-tags" class="mt-2 flex flex-wrap gap-2"></div>
                 </div>
 
-                <br><br>
-
-                <button class="btn btn-red ">Add on List</button>
+                <button type="submit"
+                    class="w-full bg-rose-500 text-white py-3 rounded-md hover:bg-rose-600 transition-colors">
+                    Add to List
+                </button>
             </form>
         </div>
     </div>
+
     <script>
 
-        // Tags
+
+
+
+
+
+        // Tags Handling
         document.getElementById('tags').addEventListener('change', function () {
             let selectedTag = this.value;
             if (selectedTag !== "null") {
@@ -108,16 +119,15 @@
 
             // Create a new tag element
             const tagElement = document.createElement('span');
-            tagElement.className = 'tag-item';
-            tagElement.textContent = tag;
+            tagElement.className = 'bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1';
+            tagElement.textContent = tag.trim();
 
             // Create a close button for the tag
             const closeButton = document.createElement('i');
-            closeButton.className = 'fa-solid fa-circle-xmark';
-            closeButton.innerHTML = '&nbsp; &nbsp;';
+            closeButton.className = 'fa-solid fa-circle-xmark cursor-pointer text-red-500';
             closeButton.onclick = function () {
                 selectedTagsContainer.removeChild(tagElement);
-                addOption(tag);
+                addOption(tag.trim());
             };
 
             // Append the close button to the tag element
@@ -145,11 +155,11 @@
             select.appendChild(option);
         }
 
-
         function getSelectedTags() {
             const tagElements = document.querySelectorAll('#selected-tags .tag-item');
             return Array.from(tagElements).map(tagElement => tagElement.textContent.trim());
         }
+
         document.getElementById('new-listing-form').addEventListener('submit', function (event) {
             // Prevent the form from submitting immediately
             event.preventDefault();
@@ -159,11 +169,9 @@
                 return; // Stop the form from submitting
             }
 
-            // Get the form element
-
-
             // Get the selected tags
-            const tags = getSelectedTags();
+            const tags = Array.from(document.querySelectorAll('#selected-tags span'))
+                .map(span => span.textContent.trim());
 
             // Create a hidden input field to store the tags array as a JSON string
             const hiddenInput = document.createElement('input');
@@ -178,8 +186,7 @@
             form.submit();
         });
 
-
-        //File upload
+        // File upload handling
         const fileUpload = document.getElementById("fileImage");
         const urlUpload = document.getElementById("urlImage");
 
@@ -188,8 +195,7 @@
                 Swal.fire({
                     icon: "error",
                     title: "Sorry",
-                    text: "You already give url and upload image ,  so url removed",
-                    // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                    text: "You already provided a URL and uploaded an image, so the URL has been removed.",
                 });
                 urlUpload.value = ""
                 event.preventDefault()
@@ -203,13 +209,11 @@
                 Swal.fire({
                     icon: "error",
                     title: "Sorry",
-                    text: "You already upload image ,  so we removed uploaded image",
-                    // footer: '<a href="https://jaiminpatel345.github.io/Portfolio/#Feedback">Want to give feedback on this ?</a>'
+                    text: "You already uploaded an image, so the uploaded image has been removed.",
                 });
                 fileUpload.value = ''
                 event.preventDefault()
                 event.stopPropagation()
             }
         })
-
     </script>

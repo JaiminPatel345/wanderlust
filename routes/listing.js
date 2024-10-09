@@ -26,11 +26,7 @@ router.route('/:id')
 router.get("/:id/edit", saveOriginalUrl, isLoggedIn, isListingOwner, asyncWrap(listingController.renderEditListing));
 
 router.route('/:id/book')
-    .get((req, res) => { res.send("Very soon build book facility") }) // for book  
-
-router.route('/:id/chat')
-    .get((req, res) => { saveOriginalUrl, isLoggedIn, res.render('./chat.ejs') })
-
+    .get((req, res) => { res.send("Very soon build book facility") })
 
 
 

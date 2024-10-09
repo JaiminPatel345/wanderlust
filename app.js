@@ -23,6 +23,7 @@ const io = new Server(server);
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
+const chatsRoutes = require('./routes/chat.js');
 const { saveOriginalUrl } = require('./utilities/middleware.js')
 const User = require('./models/user.js');
 
@@ -107,6 +108,7 @@ app.get("/", saveOriginalUrl, async (req, res) => {
 
 app.use('/listings/:id/reviews', reviewsRoutes);
 app.use('/listings', listingsRoutes);
+app.use('/chats', chatsRoutes);
 app.use('/', usersRoutes);
 
 
