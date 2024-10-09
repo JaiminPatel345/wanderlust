@@ -111,9 +111,9 @@ app.use('/', usersRoutes);
 
 
 io.on('connection', (socket) => {
-  socket.on('chat message', (msg) => {
-    console.log('message: ' + msg);
-    io.emit('chat message', msg);
+  socket.on('NewMsg', (data) => {
+    console.log('message: ' + data);
+    io.emit('chat message', data);
   });
 });
 

@@ -18,7 +18,12 @@
         form.addEventListener("submit", (e) => {
             e.preventDefault()
             if (input.value) {
-                socket.emit("chat message", input.value)
+                socket.emit("NewMsg", {
+                    msg: input.value,
+                    sender: "<%- currUser._id %>",
+
+                    timestamp: new Date(),
+                })
                 input.value = ""
             }
         })

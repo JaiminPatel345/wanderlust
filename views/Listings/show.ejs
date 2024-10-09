@@ -1,31 +1,31 @@
 <% layout('/layouts/boilerplate.ejs') %>
-    <br>
+    <br />
     <div class="row mt-10">
         <div class="col-8 offset-2">
             <h3>Listing Details</h3>
         </div>
         <div class="col-8 offset-2">
-
             <div class="card">
                 <img src="<%= listing.image.url  %>" class="card-img-top show-img"
-                    alt="Please give your valuable some time to load this image ">
+                    alt="Please give your valuable some time to load this image " />
             </div>
 
             <div class="card-body">
                 <h5 class="card-title">
                     <%= listing.title %>
                 </h5>
-                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
-                    card's content.</p>
+                <p class="card-text">
+                    Some quick example text to build on the card title and make up
+                    the bulk of the card's content.
+                </p>
 
-                <p> own by <i>
+                <p>own by <i>
                         <%= listing.owner.name %>
                     </i></p>
                 <p>
                     <%= listing.description %>
                 </p>
-                <p>
-                    &#8377; <%= listing.price.toLocaleString("en-IN") %>
+                <p>&#8377; <%= listing.price.toLocaleString("en-IN") %>
                 </p>
                 <p>
                     <i class="fa-solid fa-location-dot"></i>
@@ -43,26 +43,30 @@
                         </span>
                         <%} } %>
                 </span>
-                <br>
-                <br>
+                <br />
+                <br />
             </div>
         </div>
-
     </div>
 
     <div class="btns offset-2">
         <% if(currUser && ( listing.owner.id===currUser._id || currUser.username==="jaimin345" ) ) {%>
             <a class="btn btn-red" href="/listings/<%= listing._id  %>/edit">Edit</a>
+            <a class="btn btn-red mx-3" href="/listings/<%= listing._id  %>/chat">
+                Chat
+            </a>
 
             <form action="/listings/<%= listing.id  %>?_method=DELETE" method="post">
                 <button class="btn btn-dark">DELETE</button>
             </form>
             <% } else { %>
-                <a class="btn btn-red " href="/listings/<%= listing._id  %>/book"> Book </a>
-                <a class="btn btn-red mx-3" href="/listings/<%= listing._id  %>/chat"> Chat </a>
+                <a class="btn btn-red" href="/listings/<%= listing._id  %>/book"> Book </a>
+                <a class="btn btn-red mx-3" href="/listings/<%= listing._id  %>/chat">
+                    Chat
+                </a>
                 <% } %>
     </div>
-    <hr>
+    <hr />
     <div class="col-8 offset-2">
         <h3>Leave a review</h3>
         <form action="/listings/<%= listing.id  %>/reviews" method="post" class="needs-validation" novalidate>
@@ -81,21 +85,24 @@
                 <input type="radio" id="first-rate5" name="rating" value="5" />
                 <label for="first-rate5" title="Amazing">5 stars</label>
             </fieldset>
-            <br>
+            <br />
             <div class="form-group">
                 <label for="content" class="form-label">Content :</label>
                 <textarea class="form-control" name="content" id="content" rows="3"
                     placeholder="Such a nice view &#9829;" required></textarea>
-                <div class="valid-feedback">Thanks for this value able feedback</div>
-                <div class="invalid-feedback">I suppose that you should write something </div>
+                <div class="valid-feedback">
+                    Thanks for this value able feedback
+                </div>
+                <div class="invalid-feedback">
+                    I suppose that you should write something
+                </div>
             </div>
-            <br>
+            <br />
             <button class="btn btn-red">Submit</button>
-
         </form>
     </div>
 
-    <hr>
+    <hr />
     <div class="col-8 offset-2">
         <h3>Reviews</h3>
         <div class="row">
