@@ -72,7 +72,7 @@
                         <option value="Farms">Farms</option>
                         <option value="Arctic">Arctic</option>
                     </select>
-                    <div id="selected-tags" class="mt-2 space-x-2"></div>
+                    <div id="selected-tags" class="mt-2 space-x-2 flex"></div>
                 </div>
 
                 <button type="submit"
@@ -83,19 +83,63 @@
     </div>
 
     <script>
-        // JavaScript code for tag selection and form submission
-        const tagsSelect = document.getElementById("tags");
-        const selectedTagsContainer = document.getElementById("selected-tags");
 
-        tagsSelect.addEventListener("change", function () {
-            if (this.value !== "null") {
-                const tag = document.createElement("span");
-                tag.className = "inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700";
-                tag.textContent = this.value;
-                selectedTagsContainer.appendChild(tag);
-                this.value = "null"; // Reset the select
+        // Tags Handling
+        document.getElementById('tags').addEventListener('change', function () {
+            let selectedTag = this.value;
+            if (selectedTag !== "null") {
+                removeOption(selectedTag)
+                selectedTag += " "
+                addTag(selectedTag)
             }
+            this.value = "null";
         });
+
+        function addTag(tag) {
+            const selectedTagsContainer = document.getElementById('selected-tags');
+
+            // Create a new tag element
+            const tagElement = document.createElement('span');
+            tagElement.className = 'bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1';
+            tagElement.textContent = tag.trim();
+
+            // Create a close button for the tag
+            const closeButton = document.createElement('i');
+            closeButton.className = 'fa-solid fa-circle-xmark cursor-pointer text-gray-500';
+            closeButton.onclick = function () {
+                selectedTagsContainer.removeChild(tagElement);
+                addOption(tag.trim());
+            };
+
+            // Append the close button to the tag element
+            tagElement.appendChild(closeButton);
+
+            // Add the tag element to the selected tags container
+            selectedTagsContainer.appendChild(tagElement);
+        }
+
+        function removeOption(tag) {
+            const select = document.getElementById('tags');
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value === tag) {
+                    select.remove(i);
+                    break;
+                }
+            }
+        }
+
+        function addOption(tag) {
+            const select = document.getElementById('tags');
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag;
+            select.appendChild(option);
+        }
+
+        function getSelectedTags() {
+            const tagElements = document.querySelectorAll('#selected-tags .tag-item');
+            return Array.from(tagElements).map(tagElement => tagElement.textContent.trim());
+        }
 
         document.getElementById("edit-listing-form").addEventListener("submit", function () {
             const title = document.getElementById("title").value;

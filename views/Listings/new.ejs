@@ -99,10 +99,6 @@
     <script>
 
 
-
-
-
-
         // Tags Handling
         document.getElementById('tags').addEventListener('change', function () {
             let selectedTag = this.value;
@@ -124,7 +120,7 @@
 
             // Create a close button for the tag
             const closeButton = document.createElement('i');
-            closeButton.className = 'fa-solid fa-circle-xmark cursor-pointer text-red-500';
+            closeButton.className = 'fa-solid fa-circle-xmark cursor-pointer text-gray-500';
             closeButton.onclick = function () {
                 selectedTagsContainer.removeChild(tagElement);
                 addOption(tag.trim());
