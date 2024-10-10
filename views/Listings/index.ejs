@@ -37,7 +37,15 @@
             <div><i class="fa-regular fa-snowflake"></i></div>
             <p>Arctic</p>
         </div>
+        <div class="tax-toggle">
+            <div class="form-check-reverse form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Price with Tax</label>
+            </div>
+        </div>
     </div>
+
+
 
     <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3 px-4">
         <% for (let listing of allListings) { %>
@@ -77,6 +85,32 @@
     </div>
 
     <script>
+
+        // For tax switch 
+        const taxSwitch = document.getElementById("flexSwitchCheckDefault");
+        const taxRate = 0.18; // 18% GST
+
+        taxSwitch.addEventListener("click", () => {
+            const priceElements = document.querySelectorAll('span[id^="price-"]');
+
+            for (const priceElement of priceElements) {
+                const originalPrice = parseFloat(priceElement.dataset.originalPrice);
+                const taxAmount = originalPrice * taxRate;
+                const displayedPrice = taxSwitch.checked ? (originalPrice + taxAmount).toLocaleString("en-IN") : originalPrice.toLocaleString("en-IN");
+
+                priceElement.textContent = displayedPrice;
+            }
+            let taxInfo = document.getElementsByClassName("tax-info");
+            for (info of taxInfo) {
+                if (info.textContent.includes("Including")) {
+                    info.textContent = ` (Excluding GST)`;
+                } else {
+                    info.textContent = ` (Including GST)`;
+                }
+            }
+        });
+
+
         const filters = document.querySelectorAll('.filter');
         const listings = document.querySelectorAll('.bg-white.rounded-lg.shadow-md');
         let activeTags = [];

@@ -14,3 +14,7 @@
 .filter:hover , .active {
   color: rgb(0, 0, 0);
 }
+
+.maxHight{
+  max-height: 600px;
+}

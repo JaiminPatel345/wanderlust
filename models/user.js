@@ -13,9 +13,9 @@ const userSchema = new Schema({
     },
     chats: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Chat"
+        ref: "Chat",
+        require: true,
     }]
-
 });
 userSchema.plugin(passportLocalMongoose)
 module.exports = mongoose.model('User', userSchema)

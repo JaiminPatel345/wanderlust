@@ -113,9 +113,11 @@ app.use('/', usersRoutes);
 
 
 io.on('connection', (socket) => {
-  socket.on('NewMsg', (data) => {
-    console.log('message: ' + data);
-    io.emit('chat message', data);
+  // console.log(`New connection to ${socket.id}`);
+
+  socket.on('chat message', (data) => {
+
+    socket.broadcast.emit("chat message", `${data.username}  : ${data.msg}`);
   });
 });
 
