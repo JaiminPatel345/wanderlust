@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.valid-feedback, 
+.invalid-feedback {
+  display: none;
+}
+
+.filter{
+  color: rgb(134, 134, 134);
+}
+
+.filter:hover , .active {
+  color: rgb(0, 0, 0);
+}
+
+.maxHight{
+  max-height: 600px;
+}
