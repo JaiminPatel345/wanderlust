@@ -13,7 +13,8 @@ router.route('/')
     .post(isLoggedIn, upload.single('image'), asyncWrap(listingController.createListing)); // Add listing
 
 // New Listing form
-router.get("/new", isLoggedIn, asyncWrap(listingController.renderNewListingForm));
+router.route('/new')
+    .get(isLoggedIn, asyncWrap(listingController.renderNewListingForm));
 
 // Routes for a specific listing
 router.route('/:id')

@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const path = require('path');
 const cors = require('cors');
 const { Server } = require("socket.io");
 const http = require('http');
@@ -12,8 +11,7 @@ const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
 const chatsRoutes = require('./routes/chat.js');
-const { saveOriginalUrl } = require('./utilities/middleware.js');
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Database connection
 main()
@@ -31,6 +29,12 @@ app.use(cors({
 }));
 
 // API routes
+app.use((req, res, next) => {
+  if (req.path === '/') {
+    req.url = '/listings';
+  }
+  next();
+});
 app.use('/listings/:id/reviews', reviewsRoutes);
 app.use('/listings', listingsRoutes);
 app.use('/chats', chatsRoutes);
