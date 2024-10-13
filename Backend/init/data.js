@@ -93,7 +93,7 @@ const sampleListings = [
   {
     title: "Historic Canal House",
     description:
-      "Stay in a piece of history in this beautifully preserved canal house in Amsterdam's iconic district.",
+      "Stay in a piece of navigate in this beautifully preserved canal house in Amsterdam's iconic district.",
     image: {
       filename: "listingimage",
       url: "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Y2FtcGluZ3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",

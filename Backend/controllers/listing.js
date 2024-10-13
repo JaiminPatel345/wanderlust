@@ -6,13 +6,8 @@ module.exports.index = async (req, res) => {
   res.json(allListings); // Send data in JSON format
 };
 
-// Render New Listing Form
-module.exports.renderNewListingForm = async (req, res) => {
-  res.json({ message: "Render new listing form" }); // Placeholder response
-};
-
 // Show a specific listing
-module.exports.showListing = async (req, res) => {
+module.exports.singleListing = async (req, res) => {
   const { id } = req.params;
   const listing = await Listing.findById(id)
     .populate({
@@ -24,7 +19,7 @@ module.exports.showListing = async (req, res) => {
   if (!listing) {
     return res.status(404).json({ error: 'Listing not found' });
   }
-  res.json(listing); // Send listing data in JSON format
+  res.json(listing);
 };
 
 // Create a new listing
@@ -51,19 +46,6 @@ module.exports.createListing = async (req, res) => {
 
   const result = await newListing.save();
   res.status(201).json({ message: 'New Listing Added!', listing: result }); // Send success message and created listing
-};
-
-// Render Edit Listing Form
-module.exports.renderEditListing = async (req, res) => {
-  const { id } = req.params;
-  const listing = await Listing.findById(id);
-
-  if (!listing) {
-    return res.status(404).json({ error: 'Listing not found' });
-  }
-
-  let originalUrl = listing.image.url.replace("/uploads", "/uploads/h_300");
-  res.json({ listing, newListingImageUrl: originalUrl }); // Send listing data in JSON format
 };
 
 // Update a listing

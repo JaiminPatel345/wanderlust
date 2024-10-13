@@ -1,48 +1,73 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import checkUserSession from "../utils/auth"
 
 const Login = () => {
     const [formData, setFormData] = useState({
         username: "",
         password: "",
     })
+    const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
+    const navigate = useNavigate()
 
-    const history = useNavigate() // For redirecting after login
+    // Check if the user is logged in on component mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const userData = await checkUserSession(navigate)
+            if (userData) {
+                // User is logged in, you can process user data here if needed
+                console.log("User is already logged in:", userData)
+                navigate(-1)
+            }
+        }
+
+        fetchUserData()
+    }, [navigate])
 
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault()
-        // Submit the login form
-        try {
-            // Replace with your login API endpoint
-            const response = await fetch("/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            })
 
-            if (response.ok) {
-                // Redirect or update state
-                history.push("/dashboard") // Redirect to dashboard after login
-            } else {
-                // Handle error (display error message)
-                console.error("Login failed")
-            }
-        } catch (error) {
-            console.error("An error occurred during login:", error)
-        }
+        fetch("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+            credentials: "include", // Ensure cookies are sent with the request
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Login failed")
+                }
+                return response.json()
+            })
+            .then((data) => {
+                console.log("User logged in:", data)
+                navigate("/listings") // Redirect after successful login
+            })
+            .catch((error) => {
+                setFlashMessage(error.message) // Display error message
+                console.error("Login error:", error)
+            })
     }
 
     return (
         <div className="flex justify-center min-h-screen bg-gray-50">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Login</h2>
+                {flashMessage && (
+                    <div
+                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                        role="alert"
+                    >
+                        <span className="block sm:inline">{flashMessage}</span>
+                    </div>
+                )}
                 <form
                     onSubmit={handleSubmit}
                     className="needs-validation"
@@ -65,7 +90,6 @@ const Login = () => {
                             onChange={handleChange}
                         />
                     </div>
-
                     <div className="mb-4">
                         <label
                             htmlFor="password"
@@ -83,12 +107,10 @@ const Login = () => {
                             onChange={handleChange}
                         />
                     </div>
-
                     <button className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
                         Submit
                     </button>
                 </form>
-
                 <p className="mt-4 text-center">
                     New user?{" "}
                     <a

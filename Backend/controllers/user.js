@@ -1,45 +1,90 @@
 const User = require('../models/user.js');
-
-// Render Signup Form
-module.exports.renderSignupForm = async (req, res) => {
-    res.json({ message: "Render signup form" }); // Placeholder response
-};
+const { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } = require("firebase/auth");
+const { auth } = require('../utilities/firebase.js');
 
 // User signup
-module.exports.signup = async (req, res) => {
-    try {
-        const { username, name, email, password } = req.body;
-        const newUser = new User({ username, email, name });
-        const registerUser = await User.register(newUser, password);
+module.exports.signup = (req, res) => {
+    const newUser = new User({
+        email: req.body.email,
+        name: req.body.name,
+    });
 
-        req.login(registerUser, (err) => {
-            if (err) return res.status(500).json({ error: 'Error logging in after signup' });
-            res.status(201).json({ message: `Welcome to Wanderlust ${name}` }); // Send success message
+    // Firebase + mongoose
+    createUserWithEmailAndPassword(auth, req.body.email, req.body.password)
+        .then((userCredential) => {
+            const firebaseUser = userCredential.user;
+
+            return updateProfile(firebaseUser, {
+                displayName: req.body.name,
+            });
+        })
+        .then(() => newUser.save())
+        .then(savedUser => {
+            req.session.userId = savedUser._id; // Store MongoDB _id in session
+            const data = {
+                uid: savedUser._id, // Use MongoDB _id
+                email: newUser.email,
+                name: newUser.name,
+            };
+            res.status(201).json({ success: true, user: data });
+        })
+        .catch(err => {
+            console.log('Jaimin : ' + err);
+            res.status(500).json({ success: false, message: err.message });
         });
-    } catch (e) {
-        res.status(400).json({ error: e.message }); // Send error message
-    }
-};
-
-// Render Login Form
-module.exports.renderLoginForm = async (req, res) => {
-    res.json({ message: "Render login form" }); // Placeholder response
 };
 
 // User login
-module.exports.login = async (req, res) => {
-    const user = await User.findOne({ 'username': req.body.username });
-    if (user) {
-        res.json({ message: `Welcome to Wanderlust ${user.name}` }); // Send success message
-    } else {
-        res.status(400).json({ error: 'Invalid username' }); // Send error message
-    }
+module.exports.login = (req, res) => {
+    const { email, password } = req.body;
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            const firebaseUser = userCredential.user;
+
+            // Find user in MongoDB
+            return User.findOne({ email }).then(mongoUser => {
+                if (!mongoUser) {
+                    throw new Error('User not found in database');
+                }
+                const data = {
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    name: mongoUser.name, // Get name from MongoDB
+                    _id: mongoUser._id,
+                };
+                req.session.userId = mongoUser._id; // Store MongoDB _id in session
+                res.status(200).json({ success: true, user: data });
+            });
+        })
+        .catch((error) => {
+            console.log('Jaimin : ' + error);
+            res.status(401).json({
+                success: false, message: error.message
+            });
+        });
 };
 
 // User logout
 module.exports.logout = (req, res) => {
-    req.logout((err) => {
-        if (err) return res.status(500).json({ error: 'Error logging out' });
-        res.json({ message: 'Logged out successfully' }); // Send success message
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ message: 'Logout failed' });
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
+        return res.status(200).json({ message: 'Logged out successfully' });
     });
+};
+
+// Check if user is logged in
+module.exports.isLogin = (req, res) => {
+
+    if (req.session.userId) {
+        // console.log("Yes");
+
+        return res.status(200).json({ loggedIn: true, userId: req.session.userId });
+    } else {
+        // console.log("No");
+        return res.status(401).json({ loggedIn: false, message: 'User not logged in' });
+    }
 };

@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'wanderlust',
         allowedFormats: ['jpg', 'png', 'jpeg'],
-        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+        transformation: [{ width: 800, height: 500, crop: 'limit' }]
     }
 });
 

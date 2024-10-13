@@ -1,11 +1,27 @@
 // src/components/Navbar.js
 // eslint-disable-next-line no-unused-vars
-import React from "react"
+import React, { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass } from "@fortawesome/free-solid-svg-icons"
+import checkUserSession from "../utils/auth"
 
 // eslint-disable-next-line react/prop-types
-const Navbar = ({ currUser }) => {
+const Navbar = () => {
+    const navigate = useNavigate()
+    const [currUser, setCurrUser] = useState(null)
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            const userData = await checkUserSession(navigate)
+            if (userData) {
+                // User is logged in, you can process user data here if needed
+                setCurrUser(userData)
+            }
+        }
+
+        fetchUserData()
+    }, [navigate])
     return (
         <nav className="bg-gray-100 border-b sticky top-0 z-50 py-4">
             <div className="container mx-auto flex items-center justify-between">
