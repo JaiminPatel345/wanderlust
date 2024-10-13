@@ -1,6 +1,6 @@
 
 
-const checkUserSession = async (navigate) => {
+const checkUserSession = async () => {
     try {
         const response = await fetch("/api/islogin", {
             method: "GET",
@@ -10,7 +10,6 @@ const checkUserSession = async (navigate) => {
         if (response.ok) {
             const data = await response.json();
             if (data.loggedIn) {
-                console.log("User is logged in:", data.userId); // You can log the user ID or other data
                 return data; // Return the user data if needed
             }
         } else {
