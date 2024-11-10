@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import "../../rating.css"
 
-const ShowListing = () => {
+const OneListing = () => {
     const { id } = useParams()
     const [listing, setListing] = useState(null)
-    const [currUser, setCurrUser] = useState(null)
     const [reviewContent, setReviewContent] = useState("")
-    const [rating, setRating] = useState(1)
+    const [rating, setRating] = useState(4)
+
+    const currUser = localStorage.getItem("user")
 
     useEffect(() => {
         fetch(`/api/listings/${id}`)
@@ -96,8 +97,8 @@ const ShowListing = () => {
 
                 <div className="mt-6 flex space-x-4">
                     {currUser &&
-                        (listing.owner?.id === currUser.id ||
-                            currUser.username === "jaimin345") && (
+                        (listing.owner?.id === currUser.userId ||
+                            currUser.userId === "66a343a50ff99cdefc1a4657") && (
                             <>
                                 <a
                                     href={`/listings/${listing._id}/edit`}
@@ -116,7 +117,7 @@ const ShowListing = () => {
                             </>
                         )}
                     {!currUser ||
-                    (currUser && listing.owner?.id !== currUser.id) ? (
+                    (currUser && listing.owner?.id !== currUser.userId) ? (
                         <>
                             <a
                                 href={`/listings/${listing._id}/book`}
@@ -244,4 +245,4 @@ const ShowListing = () => {
     )
 }
 
-export default ShowListing
+export default OneListing

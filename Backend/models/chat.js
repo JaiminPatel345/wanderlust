@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 
 
-//chat is array of msg
+//chat is array of message
 const chatSchema = new mongoose.Schema({
     listing: {
         type: mongoose.Schema.Types.ObjectId,

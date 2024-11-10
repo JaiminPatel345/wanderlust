@@ -43,13 +43,20 @@ const Login = () => {
         })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error("Login failed")
+                    throw new Error("Login failed", response.json().message)
                 }
                 return response.json()
             })
             .then((data) => {
-                console.log("User logged in:", data)
-                navigate("/listings") // Redirect after successful login
+                localStorage.setItem(
+                    "user",
+                    JSON.stringify({
+                        userId: data.user.userId,
+                        email: data.user.email,
+                        name: data.user.name,
+                    })
+                )
+                navigate(-1) // Redirect after successful login
             })
             .catch((error) => {
                 setFlashMessage(error.message) // Display error message

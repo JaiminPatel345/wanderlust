@@ -22,7 +22,7 @@ const port = process.env.PORT || 3000;
 
 // Database connection
 main()
-  .then(() => console.log(`Connection successful. You can view project on http://localhost:${port}`))
+  .then(() => console.log(`Connection successful. port : ${port}`))
   .catch((err) => console.log(err));
 
 async function main() {
@@ -66,15 +66,18 @@ app.use('/', usersRoutes);
 // Socket.io for chat
 io.on('connection', (socket) => {
   socket.on('chat message', (data) => {
-    socket.broadcast.emit("chat message", `${data.username}  : ${data.msg}`);
+    socket.broadcast.emit("chat message", `${data.username}  : ${data.message}`);
   });
 });
 
-// Error handling middleware
-app.use(async (err, req, res, next) => {
+app.use((err, req, res, next) => {
   console.log(err);
+  if (res.headersSent) {
+    return next(err); // If headers are already sent, delegate to the default error handler
+  }
   res.status(err.statusCode || 500).json({ message: err.message });
 });
+
 
 // Start server
 server.listen(port, () => console.log(`Listening on port ${port}`));

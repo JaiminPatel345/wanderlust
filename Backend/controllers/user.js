@@ -28,12 +28,14 @@ module.exports.signup = (req, res) => {
         })
         .then(() => newUser.save())
         .then(savedUser => {
-            req.session.userId = savedUser._id; // Store MongoDB _id in session
+
+
             const data = {
                 userId: savedUser._id, // Use MongoDB _id
                 email: newUser.email,
                 name: newUser.name,
             };
+            req.session.user = { ...data };
             res.status(201).json({ success: true, user: data });
         })
         .catch(err => {
@@ -56,13 +58,18 @@ module.exports.login = (req, res) => {
         .signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             const firebaseUser = userCredential.user;
-            const data = {
-                userId: firebaseUser.userId,
-                email: firebaseUser.email,
-                name: firebaseUser.displayName,
-            };
-            req.session.userId = firebaseUser.userId;
-            res.status(200).json({ success: true, user: data });
+            User.findOne({ email }).then((mongoUser) => {
+                const data = {
+                    firebaseId: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    name: firebaseUser.displayName,
+                    userId: mongoUser._id
+
+                };
+                req.session.user = { ...data };
+                res.status(200).json({ user: data });
+            })
+
         })
         .catch((error) => {
             console.log('Jaimin : ' + error);
@@ -94,12 +101,5 @@ module.exports.logout = (req, res) => {
 // Check if user is logged in
 module.exports.isLogin = (req, res) => {
 
-    if (req.session.userId) {
-        // console.log("Yes");
-
-        return res.status(200).json({ loggedIn: true, userId: req.session.userId });
-    } else {
-        // console.log("No");
-        return res.status(401).json({ loggedIn: false, message: 'User not logged in' });
-    }
+    res.send(req.session.user)
 };

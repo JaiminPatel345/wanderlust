@@ -1,9 +1,9 @@
 import EditListing from "./EditListing";
 import Listings from './Listings';
 import NewListing from './NewListing';
-import ShowListing from './ShowListing';
+import OneListing from './OneListing';
 
 
 
 
-export { Listings, EditListing, NewListing, ShowListing }
+export { Listings, EditListing, NewListing, OneListing }

@@ -23,32 +23,43 @@ module.exports.singleListing = async (req, res) => {
 };
 
 // Create a new listing
-module.exports.createListing = async (req, res) => {
-  const { title, description, price, location, country, tagsArray } = req.body;
-  let image;
-  if (req.file) {
-    const { path, filename } = req.file;
-    image = { url: path, filename: filename };
-  } else {
-    image = { url: req.body.image, filename: 'listingimage' };
+module.exports.createListing = async (req, res, next) => {
+  try {
+    const { title, description, price, location, country, tagsArray } = req.body;
+    let image;
+    if (req.file) {
+      const { path, filename } = req.file;
+      image = { url: path, filename: filename };
+    } else {
+      image = { url: req.body.image, filename: 'listingimage' };
+    }
+
+    const newListing = new Listing({
+      title,
+      description,
+      image,
+      price,
+      location,
+      country,
+      tags: tagsArray || '[]',
+      owner: req.session.userId
+    });
+
+    newListing.save()
+      .then((result) => {
+        res.status(201).json({ message: 'New Listing Added!', listing: result }); // Response sent here=
+      })
+      .catch((error) => {
+        console.log(error);
+
+        res.status(500).json({ message: error.message }); // Response sent here
+
+      })
+  } catch (err) {
+    next(err); // Pass the error to the error-handling middleware
   }
-
-
-
-  const newListing = new Listing({
-    title,
-    description,
-    image,
-    price,
-    location,
-    country,
-    tags: tagsArray || '[]',
-    owner: req.user._id || req.user.userId
-  });
-
-  const result = await newListing.save();
-  res.status(201).json({ message: 'New Listing Added!', listing: result }); // Send success message and created listing
 };
+
 
 // Update a listing
 module.exports.updateListing = async (req, res) => {

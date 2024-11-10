@@ -5,22 +5,23 @@ const { listingsSchema } = require('./schema.js');
 
 module.exports.isLoggedIn = async (req, res, next) => {
 
-  if (req.session && req.session.userId) {
+  if (req.session && req.session.user) {
     try {
-      const user = await User.findById(req.session.userId)
+      const user = await User.findById(req.session.user.userId)
       if (user) {
         req.user = user;
+        next();
+
       } else {
-        res.status(401).send({ msg: "No your found" })
+        res.status(401).send({ message: "No your found" })
       }
     } catch (err) {
-      res.status(401).send({ msg: "No your found" })
+      res.status(401).send({ message: "No your found" })
 
     }
   } else {
-    res.status(401).send({ msg: "No your found" })
+    res.status(401).send({ message: "No your found" })
   }
-  next();
 }
 
 module.exports.saveOriginalUrl = (req, res, next) => {

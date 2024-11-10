@@ -87,7 +87,7 @@ const NewListing = () => {
 
             if (!response.ok) {
                 const data = await response.json()
-                throw new Error(data.msg)
+                throw new Error(data.message)
             }
             return response.json()
         } catch (error) {

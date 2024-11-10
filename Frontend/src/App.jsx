@@ -5,12 +5,7 @@ import Footer from "./components/common/Footer"
 import FlashMessages from "./components/common/FlashMessages"
 import Login from "./components/auth/Login"
 import Signup from "./components/auth/Signup"
-import {
-    Listings,
-    EditListing,
-    NewListing,
-    ShowListing,
-} from "./pages/Listing/"
+import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
 
 function App() {
     return (
@@ -26,7 +21,7 @@ function App() {
                         <Route
                             path="/listings/:id"
                             exact
-                            element={<ShowListing />}
+                            element={<OneListing />}
                         />
                         <Route
                             path="/listings/new"
