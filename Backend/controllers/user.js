@@ -30,7 +30,7 @@ module.exports.signup = (req, res) => {
         .then(savedUser => {
             req.session.userId = savedUser._id; // Store MongoDB _id in session
             const data = {
-                uid: savedUser._id, // Use MongoDB _id
+                userId: savedUser._id, // Use MongoDB _id
                 email: newUser.email,
                 name: newUser.name,
             };
@@ -57,11 +57,11 @@ module.exports.login = (req, res) => {
         .then((userCredential) => {
             const firebaseUser = userCredential.user;
             const data = {
-                uid: firebaseUser.uid,
+                userId: firebaseUser.userId,
                 email: firebaseUser.email,
                 name: firebaseUser.displayName,
             };
-            req.session.userId = firebaseUser.uid;
+            req.session.userId = firebaseUser.userId;
             res.status(200).json({ success: true, user: data });
         })
         .catch((error) => {
@@ -70,36 +70,18 @@ module.exports.login = (req, res) => {
         });
 };
 
-
-//     firebase.auth().signInWithEmailAndPassword(email, password)
-//         .then((userCredential) => {
-//             const firebaseUser = userCredential.user;
-
-//             // Find user in MongoDB
-//             return User.findOne({ email }).then(mongoUser => {
-//                 if (!mongoUser) {
-//                     throw new Error('User not found in database');
-//                 }
-//                 const data = {
-//                     uid: firebaseUser.uid,
-//                     email: firebaseUser.email,
-//                     name: mongoUser.name, // Get name from MongoDB
-//                     _id: mongoUser._id,
-//                 };
-//                 req.session.userId = mongoUser._id; // Store MongoDB _id in session
-//                 res.status(200).json({ success: true, user: data });
-//             });
-//         })
-//         .catch((error) => {
-//             console.log('Jaimin : ' + error);
-//             res.status(401).json({
-//                 success: false, message: error.message
-//             });
-//         });
-// };
-
 // User logout
 module.exports.logout = (req, res) => {
+
+    firebase.auth().signOut().then(() => {
+        // Sign-out successful.
+        console.log(`user logout `);
+
+    }).catch((error) => {
+        // An error happened.
+        res.status(500).send(error)
+    });
+
     req.session.destroy((err) => {
         if (err) {
             return res.status(500).json({ message: 'Logout failed' });
@@ -118,6 +100,6 @@ module.exports.isLogin = (req, res) => {
         return res.status(200).json({ loggedIn: true, userId: req.session.userId });
     } else {
         // console.log("No");
-        return res.json({ loggedIn: false, message: 'User not logged in' });
+        return res.status(401).json({ loggedIn: false, message: 'User not logged in' });
     }
 };

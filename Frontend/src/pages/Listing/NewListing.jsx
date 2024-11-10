@@ -13,7 +13,6 @@ const NewListing = () => {
         country: "",
         location: "",
         tags: [],
-        tagsArray: [],
     })
 
     const handleChange = (e) => {
@@ -63,6 +62,7 @@ const NewListing = () => {
             ...formData,
             tagsArray: formData.tags,
         }
+        console.log(data)
 
         sendData(data)
             .then((response) => {
@@ -84,9 +84,14 @@ const NewListing = () => {
                 body: JSON.stringify(data),
                 credentials: "include",
             })
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.msg)
+            }
             return response.json()
         } catch (error) {
-            console.error("Error submitting form:", error)
+            throw new Error("Error submitting form:", error)
         }
     }
 
@@ -148,15 +153,15 @@ const NewListing = () => {
 
                     <div>
                         <label
-                            htmlFor="urlImage"
+                            htmlFor="image"
                             className="block text-sm font-medium text-gray-700"
                         >
                             Image URL
                         </label>
                         <input
                             type="text"
-                            name="urlImage"
-                            id="urlImage"
+                            name="image"
+                            id="image"
                             placeholder="Enter your Image URL"
                             className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
                             value={formData.image}

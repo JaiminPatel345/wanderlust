@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass } from "@fortawesome/free-solid-svg-icons"
 import checkUserSession from "../../utils/auth"
+import Logout from "../../utils/logout"
 
 // eslint-disable-next-line react/prop-types
 const Navbar = () => {
@@ -22,6 +23,13 @@ const Navbar = () => {
 
         fetchUserData()
     }, [navigate])
+
+    const handelLogout = () => {
+        Logout()
+        setCurrUser(null)
+        localStorage.removeItem("user")
+        navigate("/listings")
+    }
     return (
         <nav className="bg-gray-100 border-b sticky top-0 z-50 py-4">
             <div className="container mx-auto flex items-center justify-between">
@@ -79,7 +87,11 @@ const Navbar = () => {
                             </a>
                         </>
                     ) : (
-                        <a className="rounded-md py-2 px-4" href="/logout">
+                        <a
+                            className="rounded-md py-2 px-4"
+                            href=""
+                            onClick={handelLogout}
+                        >
                             Log Out
                         </a>
                     )}

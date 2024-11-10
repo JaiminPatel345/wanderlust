@@ -4,20 +4,21 @@ const User = require('../models/user.js');
 const { listingsSchema } = require('./schema.js');
 
 module.exports.isLoggedIn = async (req, res, next) => {
-  if (req.session && req.session.uid) {
+
+  if (req.session && req.session.userId) {
     try {
-      const user = await User.findById(req.session.uid)
+      const user = await User.findById(req.session.userId)
       if (user) {
         req.user = user;
       } else {
         res.status(401).send({ msg: "No your found" })
       }
     } catch (err) {
-      console.error('Error fetching user:', err);
-      req.user = null;
+      res.status(401).send({ msg: "No your found" })
+
     }
   } else {
-    req.user = null;
+    res.status(401).send({ msg: "No your found" })
   }
   next();
 }

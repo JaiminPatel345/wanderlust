@@ -9,6 +9,9 @@ router.route('/signup')
 router.route('/login')
     .post(asyncWrap(userController.login));
 
+router.route('/logout')
+    .post(asyncWrap(userController.logout));
+
 router.route('/islogin')
     .get(asyncWrap(userController.isLogin))
 // // Log out

@@ -33,6 +33,8 @@ module.exports.createListing = async (req, res) => {
     image = { url: req.body.image, filename: 'listingimage' };
   }
 
+
+
   const newListing = new Listing({
     title,
     description,
@@ -40,8 +42,8 @@ module.exports.createListing = async (req, res) => {
     price,
     location,
     country,
-    tags: JSON.parse(tagsArray || '[]'),
-    owner: req.user._id
+    tags: tagsArray || '[]',
+    owner: req.user._id || req.user.userId
   });
 
   const result = await newListing.save();

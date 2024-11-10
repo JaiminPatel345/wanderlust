@@ -87,7 +87,7 @@ const Signup = () => {
                     localStorage.setItem(
                         "user",
                         JSON.stringify({
-                            uid: data.user.uid,
+                            userId: data.user.userId,
                             email: data.user.email,
                             name: data.user.name,
                             mongoose_id: data.user._id,
