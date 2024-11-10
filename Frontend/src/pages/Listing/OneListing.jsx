@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import DeleteListing from "../../utils/deleteListing"
 import "../../rating.css"
 
 const OneListing = () => {
+    const navigate = useNavigate()
     const { id } = useParams()
     const [listing, setListing] = useState(null)
     const [reviewContent, setReviewContent] = useState("")
@@ -20,6 +22,11 @@ const OneListing = () => {
                 console.log("Error:", e)
             })
     }, [id])
+
+    const deleteListing = () => {
+        DeleteListing(listing._id)
+        navigate("/listings")
+    }
 
     const handleSubmitReview = (e) => {
         e.preventDefault()
@@ -41,7 +48,11 @@ const OneListing = () => {
     }
 
     if (!listing) {
-        return <div>Loading...</div>
+        return (
+            <div>
+                Loading... fetch from backend takes time , sorry for that{" "}
+            </div>
+        )
     }
 
     return (
@@ -97,34 +108,32 @@ const OneListing = () => {
 
                 <div className="mt-6 flex space-x-4">
                     {currUser &&
-                        (listing.owner?.id === currUser.userId ||
-                            currUser.userId === "66a343a50ff99cdefc1a4657") && (
-                            <>
-                                <a
-                                    href={`/listings/${listing._id}/edit`}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600"
-                                >
-                                    Edit
-                                </a>
-                                <form
-                                    action={`/listings/${listing._id}`}
-                                    method="post"
-                                >
-                                    <button className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600">
-                                        Delete
-                                    </button>
-                                </form>
-                            </>
-                        )}
-                    {!currUser ||
-                    (currUser && listing.owner?.id !== currUser.userId) ? (
+                    listing.owner &&
+                    (listing.owner.id === currUser.userId ||
+                        currUser.userId === "66a343a50ff99cdefc1a4657") ? (
                         <>
                             <a
+                                href={`/listings/${listing._id}/edit`}
+                                className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600"
+                            >
+                                Edit
+                            </a>
+
+                            <button
+                                className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600"
+                                onClick={deleteListing}
+                            >
+                                Delete
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            {/* <a
                                 href={`/listings/${listing._id}/book`}
                                 className="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600"
                             >
                                 Book
-                            </a>
+                            </a> */}
                             <a
                                 href={`/chats/${listing.owner?._id}`}
                                 className="bg-purple-500 text-white px-4 py-2 rounded-md shadow hover:bg-purple-600"
@@ -132,7 +141,7 @@ const OneListing = () => {
                                 Chat with {listing.owner?.name}
                             </a>
                         </>
-                    ) : null}
+                    )}
                 </div>
             </div>
 

@@ -42,8 +42,10 @@ module.exports.createListing = async (req, res, next) => {
       location,
       country,
       tags: tagsArray || '[]',
-      owner: req.session.userId
+      owner: req.session.user.userId,
     });
+    console.log(newListing);
+
 
     newListing.save()
       .then((result) => {
@@ -83,6 +85,8 @@ module.exports.updateListing = async (req, res) => {
 // Delete a listing
 module.exports.destroyListing = async (req, res) => {
   const { id } = req.params;
+  console.log(id);
+
   const result = await Listing.findByIdAndDelete(id);
 
   if (!result) {

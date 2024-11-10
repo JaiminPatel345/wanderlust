@@ -31,9 +31,9 @@ module.exports.saveOriginalUrl = (req, res, next) => {
 
 module.exports.isListingOwner = async (req, res, next) => {
   const { id } = req.params;
-  const listing = await Listing.findById(id);
+  const listing = await Listing.findById(id).populate("owner");
 
-  if (!listing || !(req.user.username === "jaimin345" || listing.owner.equals(req.user._id))) {
+  if (!listing || !(req.session.user.userId === "66a343a50ff99cdefc1a4657" || listing.owner._id.equals(req.session.user.userId))) {
     return res.status(403).json({ error: 'You are not the owner of this listing' });
   }
 
