@@ -1,15 +1,16 @@
-// src/App.js
-// eslint-disable-next-line no-unused-vars
 import React from "react"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import Navbar from "./components/common/Navbar"
 import Footer from "./components/common/Footer"
 import FlashMessages from "./components/common/FlashMessages"
-import Listings from "./components/Listing/Listings"
-import NewListing from "./components/Listing/NewListing"
-import SingleListing from "./components/Listing/ShowListing"
 import Login from "./components/auth/Login"
 import Signup from "./components/auth/Signup"
+import {
+    Listings,
+    EditListing,
+    NewListing,
+    ShowListing,
+} from "./pages/Listing/"
 
 function App() {
     return (
@@ -25,7 +26,7 @@ function App() {
                         <Route
                             path="/listings/:id"
                             exact
-                            element={<SingleListing />}
+                            element={<ShowListing />}
                         />
                         <Route
                             path="/listings/new"

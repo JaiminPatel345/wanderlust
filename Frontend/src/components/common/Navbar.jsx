@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass } from "@fortawesome/free-solid-svg-icons"
-import checkUserSession from "../utils/auth"
+import checkUserSession from "../../utils/auth"
 
 // eslint-disable-next-line react/prop-types
 const Navbar = () => {

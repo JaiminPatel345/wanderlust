@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import checkUserSession from "../utils/auth"
+import checkUserSession from "../../utils/auth"
 
 const Signup = () => {
     const [formData, setFormData] = useState({

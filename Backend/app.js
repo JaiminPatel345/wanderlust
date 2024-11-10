@@ -7,9 +7,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const session = require('express-session');
-const RedisStore = require("connect-redis").default
-const { createClient } = require("redis")
+const redisStore = require('./redis')
+
 
 const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
@@ -28,35 +31,6 @@ async function main() {
 
 app.use(express.json());
 
-// Initialize client.
-const redisClient = createClient({
-  password: process.env.REDIS_PASS,
-  socket: {
-    host: 'redis-11634.c330.asia-south1-1.gce.redns.redis-cloud.com',
-    port: 11634
-  }
-});
-
-redisClient.connect()
-  .then(() => {
-    console.log("Connected to Redis");
-    return redisClient.ping(); // Pinging Redis to check if it's reachable
-  })
-  .then((result) => {
-    console.log("Redis ping result:", result); // Logs the ping result
-  })
-  .catch((error) => {
-    console.error("Redis connection error:", error); // More descriptive error handling
-  });
-
-
-// Initialize store.
-let redisStore = new RedisStore({
-  client: redisClient,
-  prefix: "session:",
-})
-
-// Initialize session storage.
 app.use(
   session({
     store: redisStore,

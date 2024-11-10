@@ -24,6 +24,7 @@
         "express": "^4.19.2",
         "express-session": "^1.18.0",
         "firebase": "^10.14.1",
+        "firebase-admin": "^12.7.0",
         "joi": "^17.13.1",
         "method-override": "^3.0.0",
         "mongoose": "^8.3.3",

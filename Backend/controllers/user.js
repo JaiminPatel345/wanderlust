@@ -1,16 +1,24 @@
 const User = require('../models/user.js');
 const { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } = require("firebase/auth");
-const { auth } = require('../utilities/firebase.js');
+const firebase = require('../utilities/firebase.js');
 
 // User signup
 module.exports.signup = (req, res) => {
+    if (!req.body.email || !req.body.password) {
+        return res.status(422).json({
+            email: "email is required",
+            password: "password is required",
+        });
+    }
     const newUser = new User({
         email: req.body.email,
         name: req.body.name,
     });
 
     // Firebase + mongoose
-    createUserWithEmailAndPassword(auth, req.body.email, req.body.password)
+    firebase
+        .auth()
+        .createUserWithEmailAndPassword(req.body.email, req.body.password)
         .then((userCredential) => {
             const firebaseUser = userCredential.user;
 
@@ -37,33 +45,58 @@ module.exports.signup = (req, res) => {
 // User login
 module.exports.login = (req, res) => {
     const { email, password } = req.body;
-
-    signInWithEmailAndPassword(auth, email, password)
+    if (!email || !password) {
+        return res.status(422).json({
+            email: "email is required",
+            password: "password is required",
+        });
+    }
+    firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             const firebaseUser = userCredential.user;
-
-            // Find user in MongoDB
-            return User.findOne({ email }).then(mongoUser => {
-                if (!mongoUser) {
-                    throw new Error('User not found in database');
-                }
-                const data = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email,
-                    name: mongoUser.name, // Get name from MongoDB
-                    _id: mongoUser._id,
-                };
-                req.session.userId = mongoUser._id; // Store MongoDB _id in session
-                res.status(200).json({ success: true, user: data });
-            });
+            const data = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: firebaseUser.displayName,
+            };
+            req.session.userId = firebaseUser.uid;
+            res.status(200).json({ success: true, user: data });
         })
         .catch((error) => {
             console.log('Jaimin : ' + error);
-            res.status(401).json({
-                success: false, message: error.message
-            });
+            res.status(401).json({ success: false, message: error.message });
         });
 };
+
+
+//     firebase.auth().signInWithEmailAndPassword(email, password)
+//         .then((userCredential) => {
+//             const firebaseUser = userCredential.user;
+
+//             // Find user in MongoDB
+//             return User.findOne({ email }).then(mongoUser => {
+//                 if (!mongoUser) {
+//                     throw new Error('User not found in database');
+//                 }
+//                 const data = {
+//                     uid: firebaseUser.uid,
+//                     email: firebaseUser.email,
+//                     name: mongoUser.name, // Get name from MongoDB
+//                     _id: mongoUser._id,
+//                 };
+//                 req.session.userId = mongoUser._id; // Store MongoDB _id in session
+//                 res.status(200).json({ success: true, user: data });
+//             });
+//         })
+//         .catch((error) => {
+//             console.log('Jaimin : ' + error);
+//             res.status(401).json({
+//                 success: false, message: error.message
+//             });
+//         });
+// };
 
 // User logout
 module.exports.logout = (req, res) => {
@@ -85,6 +118,6 @@ module.exports.isLogin = (req, res) => {
         return res.status(200).json({ loggedIn: true, userId: req.session.userId });
     } else {
         // console.log("No");
-        return res.status(401).json({ loggedIn: false, message: 'User not logged in' });
+        return res.json({ loggedIn: false, message: 'User not logged in' });
     }
 };

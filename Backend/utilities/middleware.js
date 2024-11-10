@@ -1,10 +1,23 @@
 const Listing = require('../models/listing.js');
-const { listingsSchema } = require('./schema.js');
 const Review = require('../models/review.js');
+const User = require('../models/user.js');
+const { listingsSchema } = require('./schema.js');
 
 module.exports.isLoggedIn = async (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'You must be logged in' });
+  if (req.session && req.session.uid) {
+    try {
+      const user = await User.findById(req.session.uid)
+      if (user) {
+        req.user = user;
+      } else {
+        res.status(401).send({ msg: "No your found" })
+      }
+    } catch (err) {
+      console.error('Error fetching user:', err);
+      req.user = null;
+    }
+  } else {
+    req.user = null;
   }
   next();
 }

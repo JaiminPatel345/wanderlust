@@ -18,6 +18,9 @@ router.route('/:id')
     .put(isLoggedIn, isListingOwner, upload.single('image'), asyncWrap(listingController.updateListing)) // Update route
     .delete(isLoggedIn, isListingOwner, asyncWrap(listingController.destroyListing)); // Delete route
 
+router.route('/new')
+    .post(isLoggedIn, validateListing, asyncWrap(listingController.createListing))
+
 
 // Temporary route for booking
 router.get("/:id/book", (req, res) => {

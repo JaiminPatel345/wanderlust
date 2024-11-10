@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import checkUserSession from "../utils/auth"
+import checkUserSession from "../../utils/auth"
 
 const Login = () => {
     const [formData, setFormData] = useState({
-        username: "",
+        email: "",
         password: "",
     })
     const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
@@ -31,6 +31,7 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        console.log(JSON.stringify(formData))
 
         fetch("/api/login", {
             method: "POST",
@@ -75,18 +76,18 @@ const Login = () => {
                 >
                     <div className="mb-4">
                         <label
-                            htmlFor="username"
+                            htmlFor="email"
                             className="block text-sm font-medium text-gray-700"
                         >
-                            Username
+                            Email
                         </label>
                         <input
                             type="text"
-                            id="username"
-                            name="username"
+                            id="email"
+                            name="email"
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             required
-                            value={formData.username}
+                            value={formData.email}
                             onChange={handleChange}
                         />
                     </div>

@@ -1,6 +1,10 @@
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 const NewListing = () => {
+    const navigate = useNavigate()
+    const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
+
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -22,8 +26,7 @@ const NewListing = () => {
 
     const handleTagChange = (e) => {
         const selectedTag = e.target.value
-        if (selectedTag !== "null") {
-            removeOption(selectedTag)
+        if (selectedTag !== "null" && !formData.tags.includes(selectedTag)) {
             addTag(selectedTag)
             e.target.value = "null" // Reset select value
         }
@@ -34,17 +37,13 @@ const NewListing = () => {
             ...prevData,
             tags: [...prevData.tags, tag],
         }))
-        removeOption(tag)
     }
 
-    const removeOption = (tag) => {
-        const select = document.getElementById("tags")
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].value === tag) {
-                select.remove(i)
-                break
-            }
-        }
+    const removeTag = (tag) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            tags: prevData.tags.filter((t) => t !== tag),
+        }))
     }
 
     const handleSubmit = (event) => {
@@ -52,32 +51,64 @@ const NewListing = () => {
         if (
             !formData.title ||
             !formData.description ||
+            !formData.price ||
             !formData.country ||
             !formData.location
         ) {
-            return // Validation handling can be improved here
+            alert("Please fill in all required fields")
+            return
         }
 
-        // Add tags array as hidden input
-        const hiddenTagsInput = document.createElement("input")
-        hiddenTagsInput.type = "hidden"
-        hiddenTagsInput.name = "tagsArray"
-        hiddenTagsInput.value = JSON.stringify(formData.tags)
+        const data = {
+            ...formData,
+            tagsArray: formData.tags,
+        }
 
-        // Submit the form using fetch or other methods
-        console.log("Form submitted", { ...formData, tagsArray: formData.tags })
-        // TODO: Handle the form submission to your backend
+        sendData(data)
+            .then((response) => {
+                console.log("Form submitted successfully", response)
+                navigate("/listings")
+            })
+            .catch((e) => {
+                setFlashMessage(e.message)
+            })
+    }
+
+    const sendData = async (data) => {
+        try {
+            const response = await fetch("/api/listings/new", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+                credentials: "include",
+            })
+            return response.json()
+        } catch (error) {
+            console.error("Error submitting form:", error)
+        }
     }
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6">New Listing</h2>
+                {flashMessage && (
+                    <div
+                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                        role="alert"
+                    >
+                        <span className="block sm:inline">{flashMessage}</span>
+                    </div>
+                )}
+
                 <form
                     id="new-listing-form"
                     onSubmit={handleSubmit}
                     className="space-y-6"
                 >
+                    {/* Form fields for title, description, image, price, country, location */}
                     <div>
                         <label
                             htmlFor="title"
@@ -204,6 +235,7 @@ const NewListing = () => {
                         />
                     </div>
 
+                    {/* Tags section */}
                     <div>
                         <label
                             htmlFor="tags"
@@ -228,6 +260,23 @@ const NewListing = () => {
                             <option value="Farms">Farms</option>
                             <option value="Arctic">Arctic</option>
                         </select>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                            {formData.tags.map((tag, index) => (
+                                <div
+                                    key={index}
+                                    className="flex items-center bg-gray-300 px-3 py-1 rounded-md"
+                                >
+                                    <span>{tag}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeTag(tag)}
+                                        className="ml-2 text-gray-600 hover:text-red-500 focus:outline-none"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <button
