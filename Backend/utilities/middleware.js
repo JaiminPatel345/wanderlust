@@ -9,7 +9,7 @@ module.exports.isLoggedIn = async (req, res, next) => {
     try {
       const user = await User.findById(req.session.user.userId)
       if (user) {
-        req.user = user;
+
         next();
 
       } else {
@@ -51,7 +51,7 @@ module.exports.validateListing = (req, res, next) => {
 module.exports.isReviewOwner = async (req, res, next) => {
   let { id, reviewId } = req.params;
   let review = await Review.findById(reviewId);
-  if (review.owner.equals(req.user._id)) {
+  if (review.owner.equals(req.session.user.userId)) {
     next();
   } else {
     return res.status(403).json({ error: 'You are not the owner of this review' });

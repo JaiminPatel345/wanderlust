@@ -231,21 +231,22 @@ const OneListing = () => {
                                     </p>
                                 </div>
                                 <h5 className="text-sm font-bold text-gray-700">
-                                    By: {review.owner.username}
+                                    By: {review.owner.name}
                                 </h5>
                                 <p className="text-sm">{review.content}</p>
                                 {currUser &&
-                                    (currUser._id === review.owner._id ||
-                                        currUser.username === "jaimin345") && (
-                                        <form
-                                            action={`/listings/${listing._id}/reviews/${review._id}`}
-                                            method="post"
-                                        >
-                                            <button className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow mt-2">
-                                                Delete
-                                            </button>
-                                        </form>
-                                    )}
+                                (currUser.userId == review.owner.id ||
+                                    currUser.userId ===
+                                        "66a343a50ff99cdefc1a4657") ? (
+                                    <form
+                                        action={`/listings/${listing._id}/reviews/${review._id}`}
+                                        method="post"
+                                    >
+                                        <button className="bg-red-500 text-white text-xs px-2 py-2 rounded-md shadow mt-2">
+                                            Delete
+                                        </button>
+                                    </form>
+                                ) : null}
                             </div>
                         ))}
                 </div>
