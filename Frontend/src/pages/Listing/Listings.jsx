@@ -11,6 +11,7 @@ import {
     faSnowflake,
 } from "@fortawesome/free-solid-svg-icons"
 import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
+import { Link } from "react-router-dom"
 
 const Listings = () => {
     const [allListings, setAllListings] = useState([])
@@ -97,8 +98,8 @@ const Listings = () => {
                         <p>{tag.charAt(0).toUpperCase() + tag.slice(1)}</p>
                     </div>
                 ))}
-                <div className="tax-toggle w-48">
-                    <div className="form-check-reverse form-switch">
+                <div className="tax-toggle ">
+                    <div className="form-check-reverse flex gap-2 border-2 px-3 form-switch">
                         <input
                             className="form-check-input"
                             type="checkbox"
@@ -136,8 +137,8 @@ const Listings = () => {
                                 key={listing._id}
                                 className="bg-white rounded-lg shadow-md overflow-hidden"
                             >
-                                <a
-                                    href={`/listings/${listing._id}`}
+                                <Link
+                                    to={`/listings/${listing._id}`}
                                     className="block hover:opacity-80 transition"
                                 >
                                     <img
@@ -190,7 +191,7 @@ const Listings = () => {
                                             </span>
                                         </p>
                                     </div>
-                                </a>
+                                </Link>
                             </div>
                         )
                     })}

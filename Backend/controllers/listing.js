@@ -26,12 +26,11 @@ module.exports.singleListing = async (req, res) => {
 module.exports.createListing = async (req, res, next) => {
   try {
     const { title, description, price, location, country, tagsArray } = req.body;
-    let image;
-    if (req.file) {
-      const { path, filename } = req.file;
-      image = { url: path, filename: filename };
-    } else {
-      image = { url: req.body.image, filename: 'listingimage' };
+
+
+    const image = {
+      url: req.body.image,
+      filename: 'listingimage'
     }
 
     const newListing = new Listing({

@@ -14,6 +14,7 @@ const NewListing = () => {
         location: "",
         tags: [],
     })
+    const [imageUrl, setImageUrl] = useState("")
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -54,13 +55,14 @@ const NewListing = () => {
             !formData.country ||
             !formData.location
         ) {
-            alert("Please fill in all required fields")
+            setFlashMessage("Please fill in all required fields")
             return
         }
 
         const data = {
             ...formData,
             tagsArray: formData.tags,
+            image: imageUrl || image,
         }
         console.log(data)
 
@@ -92,6 +94,33 @@ const NewListing = () => {
             return response.json()
         } catch (error) {
             throw new Error("Error submitting form:", error)
+        }
+    }
+
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0]
+        if (!file) return
+
+        const payload = new FormData()
+        payload.append("file", file)
+        payload.append("upload_preset", "ml_default")
+        console.log(payload)
+
+        try {
+            const res = await fetch(
+                `https://api.cloudinary.com/v1_1/${process.env.CLOUD_NAME}/image/upload`,
+                {
+                    method: "POST",
+                    body: payload,
+                }
+            )
+            const data = await res.json()
+            console.log(data)
+
+            setImageUrl(data.secure_url)
+        } catch (error) {
+            console.error("Image upload failed:", error)
+            setFlashMessage((pvs) => pvs + error.message)
         }
     }
 
@@ -181,6 +210,7 @@ const NewListing = () => {
                             name="fileImage"
                             id="fileImage"
                             className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                            onChange={handleImageUpload}
                         />
                     </div>
 

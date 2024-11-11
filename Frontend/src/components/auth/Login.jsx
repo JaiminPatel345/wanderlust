@@ -43,7 +43,12 @@ const Login = () => {
         })
             .then((response) => {
                 if (!response.ok) {
-                    throw new Error("Login failed", response.json().message)
+                    response.json().then((data) => {
+                        setFlashMessage(data.message)
+                        throw new Error(
+                            `Login failed ${response.json().message}`
+                        )
+                    })
                 }
                 return response.json()
             })
@@ -59,6 +64,8 @@ const Login = () => {
                 navigate(-1) // Redirect after successful login
             })
             .catch((error) => {
+                console.log("jaimin", error)
+
                 setFlashMessage(error.message) // Display error message
                 console.error("Login error:", error)
             })

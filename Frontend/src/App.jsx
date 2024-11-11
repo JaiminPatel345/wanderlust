@@ -1,6 +1,6 @@
 import React from "react"
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
-import Navbar from "./components/common/Navbar"
+import MyNavbar from "./components/common/Navbar"
 import Footer from "./components/common/Footer"
 import FlashMessages from "./components/common/FlashMessages"
 import Login from "./components/auth/Login"
@@ -12,7 +12,7 @@ function App() {
         <Router>
             {/* <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" /> */}
             <div className="flex flex-col min-h-screen">
-                <Navbar />
+                <MyNavbar />
                 <div className="container mx-auto min-h-full mb-48">
                     <FlashMessages />
                     <Routes>

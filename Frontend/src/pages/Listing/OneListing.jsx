@@ -8,7 +8,9 @@ const OneListing = () => {
     const { id } = useParams()
     const [listing, setListing] = useState(null)
     const [reviewContent, setReviewContent] = useState("")
-    const [rating, setRating] = useState(4)
+    const [rating, setRating] = useState(0)
+    const [flashMessage, setFlashMessage] = useState("") // Flash message state
+    const [allReviews, setAllReviews] = useState({})
 
     const currUser = localStorage.getItem("user")
 
@@ -17,15 +19,41 @@ const OneListing = () => {
             .then((response) => response.json())
             .then((data) => {
                 setListing(data)
+                setAllReviews(data.reviews)
             })
             .catch((e) => {
                 console.log("Error:", e)
+                setFlashMessage(e.message)
             })
     }, [id])
 
     const deleteListing = () => {
         DeleteListing(listing._id)
         navigate("/listings")
+    }
+
+    const handelDeleteReview = (e, review) => {
+        e.preventDefault()
+        fetch(`/api/listings/${listing._id}/reviews/${review._id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    response.json().then((data) => {
+                        setFlashMessage(data.message)
+                        throw new Error(data.message)
+                    })
+                }
+                setAllReviews((pvs) => pvs.filter((e) => e._id != review._id))
+            })
+            .catch((e) => {
+                console.log("Error submitting review:", e)
+                setFlashMessage(e.message)
+            })
     }
 
     const handleSubmitReview = (e) => {
@@ -38,13 +66,18 @@ const OneListing = () => {
             },
             body: JSON.stringify({ rating, content: reviewContent }),
         })
-            .then(() => {
-                // Refresh listing after submitting the review
-                fetch(`/api/listings/${id}`)
-                    .then((response) => response.json())
-                    .then((data) => setListing(data))
+            .then((response) => {
+                return response.json()
             })
-            .catch((e) => console.log("Error submitting review:", e))
+            .then((data) => {
+                setAllReviews((pvs) => [...pvs, data.review])
+                setReviewContent("")
+                setRating(0)
+            })
+            .catch((e) => {
+                console.log("Error submitting review:", e)
+                setFlashMessage(e.message)
+            })
     }
 
     if (!listing) {
@@ -56,8 +89,16 @@ const OneListing = () => {
     }
 
     return (
-        <div className="container mx-auto mt-10">
+        <div className="container mx-auto mt-10 flex flex-col w-[90%] ">
             <div className="w-full md:w-2/3 mx-auto">
+                {flashMessage && (
+                    <div
+                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                        role="alert"
+                    >
+                        <span className="block sm:inline">{flashMessage}</span>
+                    </div>
+                )}
                 <h3 className="text-2xl font-semibold mb-4">Listing Details</h3>
 
                 <div className="card bg-white shadow-lg">
@@ -194,25 +235,29 @@ const OneListing = () => {
                 </form>
 
                 <div className="mt-8 space-y-4">
-                    <h3 className="text-xl font-semibold">All Reviews</h3>
-                    {listing.reviews &&
-                        listing.reviews.map((review) => (
+                    <h3 className="text-xl font-semibold">
+                        {allReviews.length > 0
+                            ? "All Reviews"
+                            : "No reviews yet , do you wanna give ?"}
+                    </h3>
+                    {allReviews.length > 0 &&
+                        allReviews.map((review) => (
                             <div
                                 key={review._id}
                                 className="p-4 bg-gray-100 rounded-md shadow"
                             >
                                 <div className="flex gap-2 w-full justify-between">
-                                    <div>
+                                    <div className=" flex ">
                                         {[...Array(5)].map((_, i) => (
                                             <span
                                                 key={i}
                                                 className={
                                                     review.rating >= i + 1
                                                         ? "text-yellow-500"
-                                                        : "text-gray-400"
+                                                        : "text-gray-500"
                                                 }
                                             >
-                                                <i className="fas fa-star"></i>
+                                                <p className="text-xl">★</p>
                                             </span>
                                         ))}
                                     </div>
@@ -239,7 +284,9 @@ const OneListing = () => {
                                     currUser.userId ===
                                         "66a343a50ff99cdefc1a4657") ? (
                                     <form
-                                        action={`/listings/${listing._id}/reviews/${review._id}`}
+                                        onSubmit={(e) => {
+                                            handelDeleteReview(e, review)
+                                        }}
                                         method="post"
                                     >
                                         <button className="bg-red-500 text-white text-xs px-2 py-2 rounded-md shadow mt-2">

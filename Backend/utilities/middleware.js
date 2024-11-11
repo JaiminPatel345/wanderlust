@@ -34,7 +34,7 @@ module.exports.isListingOwner = async (req, res, next) => {
   const listing = await Listing.findById(id).populate("owner");
 
   if (!listing || !(req.session.user.userId === "66a343a50ff99cdefc1a4657" || listing.owner._id.equals(req.session.user.userId))) {
-    return res.status(403).json({ error: 'You are not the owner of this listing' });
+    return res.status(403).json({ message: 'You are not the owner of this listing' });
   }
 
   next();
@@ -43,17 +43,19 @@ module.exports.isListingOwner = async (req, res, next) => {
 module.exports.validateListing = (req, res, next) => {
   const { error } = listingsSchema.validate(req.body);
   if (error) {
-    return res.status(400).json({ error: error.details.map(el => el.message).join(",") });
+    return res.status(400).json({ message: error.details.map(el => el.message).join(",") });
   }
   next();
 }
 
 module.exports.isReviewOwner = async (req, res, next) => {
   let { id, reviewId } = req.params;
-  let review = await Review.findById(reviewId);
-  if (review.owner.equals(req.session.user.userId)) {
+
+  let review = await Review.findById(reviewId).populate("owner");
+
+  if (review && review.owner._id.equals(req.session.user.userId)) {
     next();
   } else {
-    return res.status(403).json({ error: 'You are not the owner of this review' });
+    return res.status(403).json({ message: 'You are not the owner of this review' });
   }
 }

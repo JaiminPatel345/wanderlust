@@ -31,19 +31,24 @@ async function main() {
 
 app.use(express.json());
 
-app.use(
-  session({
-    store: redisStore,
-    resave: false, // force lightweight session keep alive (touch)
-    saveUninitialized: false, // only save session when data exists
-    secret: process.env.SECRET,
-    cookie: {
-      // Optional: Customize cookie settings as needed
-      // secure: true, // use true if using HTTPS
-      maxAge: 1000 * 3600 * 24 * 3, // 3 days
-    },
-  }),
-);
+try {
+  app.use(
+    session({
+      store: redisStore,
+      resave: false, // force lightweight session keep alive (touch)
+      saveUninitialized: false, // only save session when data exists
+      secret: process.env.SECRET,
+      cookie: {
+        // Optional: Customize cookie settings as needed
+        // secure: true, // use true if using HTTPS
+        maxAge: 1000 * 3600 * 24 * 3, // 3 days
+      },
+    }),
+  );
+} catch (error) {
+  console.log(error);
+
+}
 
 // CORS setup for frontend-backend communication
 app.use(cors({
