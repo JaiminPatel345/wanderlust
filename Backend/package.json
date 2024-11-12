@@ -1,6 +1,9 @@
 {
     "name": "wanderlust",
     "version": "1.0.0",
+    "engines": {
+        "node": "20.18.0"
+    },
     "description": "",
     "main": "app.js",
     "scripts": {

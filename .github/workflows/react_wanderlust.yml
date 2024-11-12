@@ -1,71 +1,69 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy# More GitHub Actions for Azure: https://github.com/Azure/actions
 name: Build and deploy Node.js app to Azure Web App - Wanderlust
 
 on:
-  push:
-    branches:
-      - react
-  workflow_dispatch:
+    push:
+        branches:
+            - react
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    build:
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20.x'
+            - name: Set up Node.js version
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "20.18.0"
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+            - name: npm install, build, and test
+              run: |
+                  cd Backend
+                  npm install
+                  npm run build --if-present
+                  npm run test --if-present
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+            - name: Zip artifact for deployment
+              run: zip release.zip ./* -r
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: release.zip
+            - name: Upload artifact for deployment job
+              uses: actions/upload-artifact@v4
+              with:
+                  name: node-app
+                  path: release.zip
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build
+        environment:
+            name: "Production"
+            url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+        permissions:
+            id-token: write #This is required for requesting the JWT
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
+        steps:
+            - name: Download artifact from build job
+              uses: actions/download-artifact@v4
+              with:
+                  name: node-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E3FA63C8DF8B4E6FBD73ECCCBC04ACFB }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B57E40543E9645DC9289BCA40DAB8F76 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9469448E48684DE389F5841AA123EF2E }}
+            - name: Unzip artifact for deployment
+              run: unzip release.zip
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'Wanderlust'
-          slot-name: 'Production'
-          package: "./Backend"
-          
+            - name: Login to Azure
+              uses: azure/login@v2
+              with:
+                  client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E3FA63C8DF8B4E6FBD73ECCCBC04ACFB }}
+                  tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B57E40543E9645DC9289BCA40DAB8F76 }}
+                  subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9469448E48684DE389F5841AA123EF2E }}
+
+            - name: "Deploy to Azure Web App"
+              id: deploy-to-webapp
+              uses: azure/webapps-deploy@v3
+              with:
+                  app-name: "Wanderlust"
+                  slot-name: "Production"
+                  package: "./Backend"
