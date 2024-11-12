@@ -31,7 +31,7 @@ function App() {
                         <Route
                             path="/listings/:id/edit"
                             exact
-                            element={<NewListing />}
+                            element={<EditListing />}
                         />
                         <Route path="/login" exact element={<Login />} />
                         <Route path="/signup" exact element={<Signup />} />

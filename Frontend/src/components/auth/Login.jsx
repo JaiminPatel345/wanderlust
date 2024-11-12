@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import checkUserSession from "../../utils/auth"
 
 const Login = () => {
@@ -43,11 +43,9 @@ const Login = () => {
         })
             .then((response) => {
                 if (!response.ok) {
-                    response.json().then((data) => {
+                    return response.json().then((data) => {
                         setFlashMessage(data.message)
-                        throw new Error(
-                            `Login failed ${response.json().message}`
-                        )
+                        throw new Error(`Login failed ${data.message}`)
                     })
                 }
                 return response.json()
@@ -59,6 +57,7 @@ const Login = () => {
                         userId: data.user.userId,
                         email: data.user.email,
                         name: data.user.name,
+                        expireTime: Date.now() + 1000 * 3600,
                     })
                 )
                 navigate(-1) // Redirect after successful login
@@ -128,12 +127,12 @@ const Login = () => {
                 </form>
                 <p className="mt-4 text-center">
                     New user?{" "}
-                    <a
-                        href="/signup"
+                    <Link
+                        to="/signup"
                         className="text-indigo-600 hover:underline"
                     >
                         Click here to sign up
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>

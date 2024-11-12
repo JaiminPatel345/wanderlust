@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass, faBars } from "@fortawesome/free-solid-svg-icons"
 import checkUserSession from "../../utils/auth"
@@ -59,9 +59,9 @@ const MyNavbar = () => {
                 color="blue-gray"
                 className="p-1 font-normal"
             >
-                <a href="/listings/new" className="flex items-center">
+                <Link to="/listings/new" className="flex items-center">
                     List your property
-                </a>
+                </Link>
             </Typography>
             <Typography
                 as="li"
@@ -70,81 +70,19 @@ const MyNavbar = () => {
                 className="p-1 font-normal"
             >
                 {/* //To be Added */}
-                <a href="#" className="flex items-center">
+                <Link to="#" className="flex items-center">
                     chats
-                </a>
+                </Link>
             </Typography>
         </ul>
     )
 
     return (
-        // <nav className="bg-gray-100 border-b sticky top-0 z-50 py-4">
-        //     <div className="container mx-auto flex items-center justify-between">
-        //         <a className="text-2xl text-rose-500" href="/">
-        //             <FontAwesomeIcon icon={faCompass}></FontAwesomeIcon>
-        //         </a>
-        //         <button className="lg:hidden text-gray-700">
-        //             <FontAwesomeIcon icon={faBars}></FontAwesomeIcon>
-        //         </button>
-        //         <div className="hidden lg:flex  space-x-4">
-        //             <a
-        //                 className="text-gray-700 hover:text-black transition bn3637 bn38 mx-2"
-        //                 href="/listings"
-        //             >
-        //                 Explore
-        //             </a>
-        //         </div>
-        //         <div className="hidden lg:flex space-x-4 ml-auto">
-        // <div className="flex space-x-2">
-        //     <input
-        //         className="form-control p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-white"
-        //         type="search"
-        //         placeholder="Search"
-        //         aria-label="Search"
-        //     />
-        //     <button
-        //         className="btn bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition"
-        //         id="search-btn"
-        //         type="submit"
-        //     >
-        //         Search
-        //     </button>
-        // </div>
-        // <div className="hidden lg:flex space-x-4 ml-auto">
-        //     {!currUser ? (
-        //         <>
-        //             <a
-        //                 className="rounded-md py-2 px-4"
-        //                 href="/signup"
-        //             >
-        //                 Sign Up
-        //             </a>
-        //             <a
-        //                 className="rounded-md py-2 px-4"
-        //                 href="/login"
-        //             >
-        //                 Log In
-        //             </a>
-        //         </>
-        //     ) : (
-        //         <a
-        //             className="rounded-md py-2 px-4"
-        //             href=""
-        //             onClick={handelLogout}
-        //         >
-        //             Log Out
-        //         </a>
-        //     )}
-        // </div>
-        //         </div>
-        //     </div>
-        // </nav>
         <Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-4 text-black mb-12">
             <div className="flex items-center justify-between text-blue-gray-900">
                 <div>
-                    <Typography
-                        as="a"
-                        href="/"
+                    <Link
+                        to="/"
                         className="mr-4 cursor-pointer py-1.5 font-medium flex gap-3 items-center"
                     >
                         <FontAwesomeIcon
@@ -152,7 +90,7 @@ const MyNavbar = () => {
                             icon={faCompass}
                         />
                         <p className="hidden lg:block">Explore</p>
-                    </Typography>
+                    </Link>
                 </div>
                 <div className="flex items-center gap-4">
                     {/* <div className="flex w-20 space-x-2">

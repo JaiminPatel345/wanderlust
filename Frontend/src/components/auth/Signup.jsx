@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import checkUserSession from "../../utils/auth"
 
 const Signup = () => {
@@ -80,10 +80,17 @@ const Signup = () => {
                 password: formData.password,
             }),
         })
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    return response.json().then((data) => {
+                        setFlashMessage(data.message)
+                    })
+                }
+                return response.json()
+            })
             .then((data) => {
                 // Assuming the token is included in the response data
-                if (data.success) {
+                if (data) {
                     localStorage.setItem(
                         "user",
                         JSON.stringify({
@@ -210,12 +217,12 @@ const Signup = () => {
 
                 <p className="mt-4 text-center">
                     Already Registered?{" "}
-                    <a
-                        href="/login"
+                    <Link
+                        to="/login"
                         className="text-indigo-600 hover:underline"
                     >
                         Click here to log in
-                    </a>
+                    </Link>
                 </p>
             </div>
         </div>

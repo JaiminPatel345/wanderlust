@@ -118,6 +118,10 @@ const NewListing = () => {
             console.log(data)
 
             setImageUrl(data.secure_url)
+            setFormData((pvs) => ({
+                ...pvs,
+                image: "",
+            }))
         } catch (error) {
             console.error("Image upload failed:", error)
             setFlashMessage((pvs) => pvs + error.message)
