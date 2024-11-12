@@ -67,5 +67,5 @@ jobs:
         with:
           app-name: 'Wanderlust'
           slot-name: 'Production'
-          package: .
+          package: ./Backend
           
