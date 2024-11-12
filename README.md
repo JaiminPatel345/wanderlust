@@ -1,5 +1,9 @@
 # Wanderlust: Explore and Book Unique Stays
 
+---
+## For MERN ( Frontend with react  ) go to *react* branch
+---
+
 **Live Project** <a href="https://wanderlust-zt2d.onrender.com/"> Click here
 </a>
 
