@@ -2,12 +2,12 @@
     "name": "wanderlust",
     "version": "1.0.0",
     "engines": {
-        "node": "20.18.0"
+        "node": ">=14.0.0"
     },
     "description": "",
     "main": "app.js",
     "scripts": {
-        "start": "nodemon app.js",
+        "start": "node app.js",
         "dev": "nodemon app.js"
     },
     "keywords": [],
@@ -26,6 +26,7 @@
         "express": "^4.19.2",
         "express-session": "^1.18.0",
         "firebase": "^11.0.1",
+        "helmet": "^8.0.0",
         "joi": "^17.13.1",
         "method-override": "^3.0.0",
         "mongoose": "^8.3.3",
