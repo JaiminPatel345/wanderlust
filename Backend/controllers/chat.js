@@ -1,11 +1,10 @@
-const Listing = require('../models/listing.js')
-const Chat = require('../models/chat')
-const Message = require('../models/message')
-const mongoose = require("mongoose");
-const User = require('../models/user');
+const Listing = require("../models/listing.js")
+const Chat = require("../models/chat")
+const Message = require("../models/message")
+const mongoose = require("mongoose")
+const User = require("../models/user")
 
 module.exports.renderChats = async (req, res, next) => {
-
     // const { mode } = req.params
 
     // const user = await User.findById(req.user._id).populate({
@@ -23,151 +22,146 @@ module.exports.renderChats = async (req, res, next) => {
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Alice"
+                name: "Alice",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "See you tomorrow!",
-            isLastMessageYours: true
+            isLastMessageYours: true,
         },
         {
             _id: 2,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Bob"
+                name: "Bob",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "I'll send the report soon.",
-            isLastMessageYours: false
+            isLastMessageYours: false,
         },
         {
             _id: 3,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Charlie"
+                name: "Charlie",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "Got it, thanks!",
-            isLastMessageYours: true
+            isLastMessageYours: true,
         },
         {
             _id: 4,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Diana"
+                name: "Diana",
             },
-            chats: [
-                new mongoose.Types.ObjectId()
-            ],
+            chats: [new mongoose.Types.ObjectId()],
             lastMessage: "When can we meet?",
-            isLastMessageYours: false
+            isLastMessageYours: false,
         },
         {
             _id: 5,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Eve"
+                name: "Eve",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "Thanks for the update!",
-            isLastMessageYours: true
+            isLastMessageYours: true,
         },
         {
             _id: 6,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Frank"
+                name: "Frank",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "Call me when you're free.",
-            isLastMessageYours: false
+            isLastMessageYours: false,
         },
         {
             _id: 7,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Grace"
+                name: "Grace",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "Meeting postponed to 3 PM.",
-            isLastMessageYours: true
+            isLastMessageYours: true,
         },
         {
             _id: 8,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Henry"
+                name: "Henry",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "Let's catch up later.",
-            isLastMessageYours: false
+            isLastMessageYours: false,
         },
         {
             _id: 9,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Ivy"
+                name: "Ivy",
             },
-            chats: [
-                new mongoose.Types.ObjectId()
-            ],
+            chats: [new mongoose.Types.ObjectId()],
             lastMessage: "Got the files, thank you!",
-            isLastMessageYours: true
+            isLastMessageYours: true,
         },
         {
             _id: 10,
             listing: new mongoose.Types.ObjectId(),
             user: {
                 _id: new mongoose.Types.ObjectId(),
-                name: "Jack"
+                name: "Jack",
             },
             chats: [
                 new mongoose.Types.ObjectId(),
-                new mongoose.Types.ObjectId()
+                new mongoose.Types.ObjectId(),
             ],
             lastMessage: "When are we starting?",
-            isLastMessageYours: false
-        }
-    ];
+            isLastMessageYours: false,
+        },
+    ]
 
-
-
-    res.render('./Chats/index.ejs', {
+    res.render("./Chats/index.ejs", {
         user: {
-            username: 'jaimin345',
-            name: 'Jaimin'
-        }, chats: fakeChats
+            username: "jaimin345",
+            name: "Jaimin",
+        },
+        chats: fakeChats,
     })
 }

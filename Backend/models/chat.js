@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 
-
 //chat is array of message
 const chatSchema = new mongoose.Schema({
     listing: {
@@ -9,22 +8,22 @@ const chatSchema = new mongoose.Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
     },
-    chats: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Message"
-    }],
+    chats: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Message",
+        },
+    ],
     lastMessage: {
         type: String,
-        default: ""
+        default: "",
     },
     isLastMessageYours: {
         type: Boolean,
-        default: false
-    } // whether the last message is doen by you
-
-
+        default: false,
+    }, // whether the last message is doen by you
 })
 
 module.exports = mongoose.model("Chat", chatSchema)
