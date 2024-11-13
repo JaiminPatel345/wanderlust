@@ -40,7 +40,6 @@ const MyNavbar = () => {
         Logout()
         setCurrUser(null)
         localStorage.removeItem("user")
-        navigate("/listings")
     }
 
     const handelLogin = () => {
@@ -70,7 +69,7 @@ const MyNavbar = () => {
                 className="p-1 font-normal"
             >
                 {/* //To be Added */}
-                <Link to="#" className="flex items-center">
+                <Link to="/chat" className="flex items-center">
                     chats
                 </Link>
             </Typography>

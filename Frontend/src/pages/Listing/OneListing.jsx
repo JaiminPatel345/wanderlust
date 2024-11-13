@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import DeleteListing from "../../utils/deleteListing"
+import {
+    ScaleLoader,
+    PropagateLoader,
+    SyncLoader,
+    PacmanLoader,
+} from "react-spinners"
 import "../../rating.css"
 
 const OneListing = () => {
     const navigate = useNavigate()
     const { id } = useParams()
     const [listing, setListing] = useState(null)
-    const [reviewContent, setReviewContent] = useState("")
-    const [rating, setRating] = useState(5)
+    const [reviewContent, setReviewContent] = useState(null)
+    const [rating, setRating] = useState(3)
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [allReviews, setAllReviews] = useState({})
-    const [currUser, setCurrUser] = useState({})
+    const [currUser, setCurrUser] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [showSignup, setShowSignup] = useState(false)
+    const [submitLoader, setsubmitLoader] = useState(false)
+    const [deleteLoader1, setDeleteLoader1] = useState(false)
+    const [deleteLoader2, setDeleteLoader2] = useState(false)
 
     useEffect(() => {
         setCurrUser(JSON.parse(localStorage.getItem("user")))
@@ -25,15 +36,38 @@ const OneListing = () => {
                 console.log("Error:", e)
                 setFlashMessage(e.message)
             })
+            .finally(() => {
+                setLoading(false)
+            })
     }, [id])
 
     const deleteListing = () => {
-        DeleteListing(listing._id)
-        navigate("/listings")
+        let isDelete = false
+        setDeleteLoader1(true)
+        // DeleteListing(listing._id)
+        fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing._id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+        })
+            .then(() => {
+                isDelete = true
+            })
+            .catch((error) => {
+                setFlashMessage(error.message)
+                console.log(error)
+            })
+            .finally(() => {
+                setDeleteLoader1(false)
+                if (isDelete) navigate("/listings")
+            })
     }
 
     const handelDeleteReview = (e, review) => {
         e.preventDefault()
+        setDeleteLoader2((prev) => ({ ...prev, [review._id]: true }))
         fetch(
             `${process.env.VITE_API_BASE_URL}/listings/${listing._id}/reviews/${review._id}`,
             {
@@ -57,19 +91,41 @@ const OneListing = () => {
                 console.log("Error submitting review:", e)
                 setFlashMessage(e.message)
             })
+            .finally(() => {
+                setDeleteLoader2((prev) => ({ ...prev, [review._id]: false }))
+            })
     }
 
     const handleSubmitReview = (e) => {
         e.preventDefault()
         // Post the review to the API
+
+        if (!rating || !reviewContent) {
+            setFlashMessage("Fill all fields ")
+            return
+        }
+
+        if (!currUser) {
+            setFlashMessage("For submit revive must be logged in ")
+            setShowSignup(true)
+            return
+        }
+        setsubmitLoader(true)
+
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify({ rating, content: reviewContent }),
         })
             .then((response) => {
+                if (!response.ok) {
+                    return response.json().then((data) => {
+                        throw new Error(data.message)
+                    })
+                }
                 return response.json()
             })
             .then((data) => {
@@ -79,11 +135,14 @@ const OneListing = () => {
                 }
                 setAllReviews((pvs) => [...pvs, newReview])
                 setReviewContent("")
-                setRating(0)
+                setRating(3)
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
                 setFlashMessage(e.message)
+            })
+            .finally(() => {
+                setsubmitLoader(false)
             })
     }
 
@@ -91,10 +150,10 @@ const OneListing = () => {
         navigate(`/listings/${listing._id}/edit`, { state: listing })
     }
 
-    if (!listing) {
+    if (loading) {
         return (
-            <div>
-                Loading... fetch from backend takes time , sorry for that{" "}
+            <div className="flex justify-center items-center h-1/2">
+                <ScaleLoader color={"#000000"} loading={loading} size={15} />
             </div>
         )
     }
@@ -175,7 +234,11 @@ const OneListing = () => {
                                 className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600"
                                 onClick={deleteListing}
                             >
-                                Delete
+                                {deleteLoader1 ? (
+                                    <PropagateLoader size={10} />
+                                ) : (
+                                    "Delete"
+                                )}
                             </button>
                         </>
                     ) : (
@@ -199,6 +262,7 @@ const OneListing = () => {
 
             <hr className="my-8" />
 
+            {/* review */}
             <div className="w-full md:w-2/3 mx-auto">
                 <h3 className="text-xl font-semibold mb-4">Leave a Review</h3>
                 <form onSubmit={handleSubmitReview} className="space-y-4">
@@ -234,14 +298,32 @@ const OneListing = () => {
                             className="mt-1 px-2 block w-full border-black border-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             name="content"
                             id="body"
-                            value={reviewContent}
-                            onChange={(e) => setReviewContent(e.target.value)}
+                            value={reviewContent || ""}
+                            onChange={(e) => {
+                                setFlashMessage(null)
+                                setReviewContent(e.target.value)
+                            }}
                             required
                         />
                     </div>
 
+                    <div>
+                        {showSignup && (
+                            <Link
+                                to="/signup"
+                                className="text-red-600 hover:underline"
+                            >
+                                Click here to sign up
+                            </Link>
+                        )}
+                    </div>
+
                     <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">
-                        Submit Review
+                        {submitLoader ? (
+                            <PropagateLoader size={10} />
+                        ) : (
+                            "Submit Review"
+                        )}
                     </button>
                 </form>
 
@@ -252,9 +334,9 @@ const OneListing = () => {
                             : "No reviews yet , do you wanna give ?"}
                     </h3>
                     {allReviews?.length > 0 &&
-                        allReviews.map((review) => (
+                        allReviews.map((review, idx) => (
                             <div
-                                key={review._id}
+                                key={idx}
                                 className="p-4 bg-gray-100 rounded-md shadow"
                             >
                                 <div className="flex gap-2 w-full justify-between">
@@ -276,10 +358,6 @@ const OneListing = () => {
                                         {new Date(
                                             review.createdAt
                                         ).toLocaleDateString("en-IN", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                            hour12: false,
                                             day: "2-digit",
                                             month: "2-digit",
                                             year: "numeric",
@@ -291,7 +369,8 @@ const OneListing = () => {
                                 </h5>
                                 <p className="text-sm">{review.content}</p>
                                 {currUser &&
-                                (currUser.userId == review.owner._id ||
+                                (currUser?.userId?.toString() ==
+                                    review?.owner._id?.toString() ||
                                     currUser.userId ===
                                         "66a343a50ff99cdefc1a4657") ? (
                                     <form
@@ -300,8 +379,15 @@ const OneListing = () => {
                                         }}
                                         method="post"
                                     >
-                                        <button className="bg-red-500 text-white text-xs px-2 py-2 rounded-md shadow mt-2">
-                                            Delete
+                                        <button className="bg-red-500 text-white min-w-16 text-sm px-2 py-2 rounded-md shadow mt-2">
+                                            {deleteLoader2[review._id] ? (
+                                                <PacmanLoader
+                                                    size={10}
+                                                    className="pr-1"
+                                                />
+                                            ) : (
+                                                "Delete"
+                                            )}
                                         </button>
                                     </form>
                                 ) : null}

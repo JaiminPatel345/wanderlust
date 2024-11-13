@@ -5,15 +5,29 @@ import Footer from "./components/common/Footer"
 import FlashMessages from "./components/common/FlashMessages"
 import Login from "./components/auth/Login"
 import Signup from "./components/auth/Signup"
-import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
+import {
+    Listings,
+    EditListing,
+    NewListing,
+    OneListing,
+    Chat,
+} from "./pages/Listing/"
+
+// const createBrowserRouter = {routes,  {future: {
+//         v7_fetcherPersist: true,
+//         v7_normalizeFormMethod: true,
+//         v7_partialHydration: true,
+//         v7_relativeSplatPath: true,
+//         v7_skipActionErrorRevalidation: true,
+//       },
+//     }
 
 function App() {
     return (
         <Router>
-            {/* <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" /> */}
             <div className="flex flex-col min-h-screen">
-                <MyNavbar />
-                <div className="container mx-auto min-h-full mb-48">
+                <MyNavbar /> {/* Now inside the Router */}
+                <div className="container mx-auto flex-grow mb-12">
                     <FlashMessages />
                     <Routes>
                         <Route path="/" exact element={<Listings />} />
@@ -23,11 +37,7 @@ function App() {
                             exact
                             element={<OneListing />}
                         />
-                        <Route
-                            path="/listings/new"
-                            exact
-                            element={<NewListing />}
-                        />
+                        <Route path="/listings/new" element={<NewListing />} />
                         <Route
                             path="/listings/:id/edit"
                             exact
@@ -35,9 +45,10 @@ function App() {
                         />
                         <Route path="/login" exact element={<Login />} />
                         <Route path="/signup" exact element={<Signup />} />
+                        <Route path="/chat" exact element={<Chat />} />
                     </Routes>
                 </div>
-                <Footer />
+                <Footer className="mt-auto" />
             </div>
         </Router>
     )

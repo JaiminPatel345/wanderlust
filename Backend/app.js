@@ -1,4 +1,5 @@
 const express = require("express")
+
 const mongoose = require("mongoose")
 const cors = require("cors")
 const { Server } = require("socket.io")
@@ -11,9 +12,9 @@ const io = new Server(server, {
             process.env.REACT_APP_API_URL,
             "https://wanderlust-git-react-gdgc-bvm.vercel.app",
             "https://wanderlust-ten.vercel.app",
-            " http://localhost:5173",
+            "http://localhost:5173",
         ],
-        methods: ["GET", "POST" , "PUT" , "DELETE"],
+        methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     },
 })
@@ -54,7 +55,7 @@ try {
                 // Optional: Customize cookie settings as needed
                 // secure: true, // use true if using HTTPS
                 secure: process.env.NODE_ENV === "production",
-                maxAge: 1000 * 3600 * 24 * 3, // 3 days
+                maxAge: 1000 * 3600, //1 H
             },
         })
     )
@@ -65,16 +66,23 @@ try {
 // CORS setup for frontend-backend communication
 app.use(
     cors({
-       origin: [
+        origin: [
             process.env.REACT_APP_API_URL,
             "https://wanderlust-git-react-gdgc-bvm.vercel.app",
             "https://wanderlust-ten.vercel.app",
             " http://localhost:5173",
         ],
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         credentials: true,
     })
 )
+
+// Development only
+// app.use((req, res, next) => {
+//     setTimeout(() => {
+//         next() // Proceed to the next middleware/route after 2 seconds
+//     }, 3000)
+// })
 
 // API routes
 app.use((req, res, next) => {

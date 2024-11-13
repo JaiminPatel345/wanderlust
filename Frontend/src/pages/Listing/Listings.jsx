@@ -12,11 +12,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
 import { Link } from "react-router-dom"
+import { ScaleLoader } from "react-spinners"
 
 const Listings = () => {
     const [allListings, setAllListings] = useState([])
     const [activeTags, setActiveTags] = useState([])
     const [showWithTax, setShowWithTax] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const taxRate = 0.18 // 18% GST
 
@@ -29,6 +31,9 @@ const Listings = () => {
             })
             .catch((error) => {
                 console.error("Error fetching listings:", error)
+            })
+            .finally(() => {
+                setLoading(false)
             })
     }, [])
 
@@ -47,6 +52,14 @@ const Listings = () => {
 
     const toggleTaxDisplay = () => {
         setShowWithTax(!showWithTax)
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-1/2">
+                <ScaleLoader color={"#000000"} loading={loading} size={15} />
+            </div>
+        )
     }
 
     return (

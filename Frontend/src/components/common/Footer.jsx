@@ -4,7 +4,7 @@ import React from "react"
 
 const Footer = () => {
     return (
-        <footer className="w-full mt-5 bg-gray-100 py-8 h-full">
+        <footer className="  w-screen mt-5 bg-gray-100 py-8">
             <div className="text-center">
                 <div className="flex justify-center space-x-6 mb-4">
                     <a

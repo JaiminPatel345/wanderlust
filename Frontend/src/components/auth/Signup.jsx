@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import checkUserSession from "../../utils/auth"
+import { BeatLoader } from "react-spinners"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -11,20 +12,8 @@ const Signup = () => {
 
     const [errors, setErrors] = useState({})
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
+    const [signupLoader, setSignupLoader] = useState(false)
     const navigate = useNavigate()
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const userData = await checkUserSession(navigate)
-            if (userData) {
-                // User is logged in, you can process user data here if needed
-                console.log("User is already logged in:", userData)
-                navigate(-1)
-            }
-        }
-
-        fetchUserData()
-    }, [navigate])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -68,6 +57,7 @@ const Signup = () => {
             setFlashMessage("Please correct the errors in the form.") // Set flash message
             return
         }
+        setSignupLoader(true)
 
         await fetch(`${process.env.VITE_API_BASE_URL}/signup`, {
             method: "POST",
@@ -107,6 +97,9 @@ const Signup = () => {
             })
             .catch((error) => {
                 setFlashMessage(error.message)
+            })
+            .finally(() => {
+                setSignupLoader(false)
             })
     }
 
@@ -211,7 +204,7 @@ const Signup = () => {
                     </div>
 
                     <button className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                        Submit
+                        {signupLoader ? <BeatLoader size={10} /> : "Submit"}
                     </button>
                 </form>
 

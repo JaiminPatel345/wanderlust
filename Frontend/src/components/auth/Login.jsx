@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import checkUserSession from "../../utils/auth"
+import { BeatLoader } from "react-spinners"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -8,21 +8,8 @@ const Login = () => {
         password: "",
     })
     const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
+    const [loginLoader, setLoginLoader] = useState(false)
     const navigate = useNavigate()
-
-    // Check if the user is logged in on component mount
-    useEffect(() => {
-        const fetchUserData = async () => {
-            const userData = await checkUserSession(navigate)
-            if (userData) {
-                // User is logged in, you can process user data here if needed
-                console.log("User is already logged in:", userData)
-                navigate(-1)
-            }
-        }
-
-        fetchUserData()
-    }, [navigate])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -31,7 +18,12 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        console.log(JSON.stringify(formData))
+        if (formData.email.length == 0 || formData.password.length == 0) {
+            setFlashMessage("Email or Password can't be empty ")
+            return
+        }
+
+        setLoginLoader(true)
 
         fetch(`${process.env.VITE_API_BASE_URL}/login`, {
             method: "POST",
@@ -57,16 +49,19 @@ const Login = () => {
                         userId: data.user.userId,
                         email: data.user.email,
                         name: data.user.name,
-                        expireTime: Date.now() + 1000 * 3600,
+                        expireTime: Date.now() + 1000 * 60,
                     })
                 )
-                navigate(-1) // Redirect after successful login
+                window.history.go(-1) // Redirect after successful login
             })
             .catch((error) => {
                 console.log("jaimin", error)
 
                 setFlashMessage(error.message) // Display error message
                 console.error("Login error:", error)
+            })
+            .finally(() => {
+                setLoginLoader(false)
             })
     }
 
@@ -122,7 +117,7 @@ const Login = () => {
                         />
                     </div>
                     <button className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                        Submit
+                        {loginLoader ? <BeatLoader size={10} /> : "Submit"}
                     </button>
                 </form>
                 <p className="mt-4 text-center">

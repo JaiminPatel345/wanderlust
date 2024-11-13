@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { BeatLoader } from "react-spinners"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -15,6 +16,7 @@ const NewListing = () => {
         tags: [],
     })
     const [imageUrl, setImageUrl] = useState("")
+    const [submitLoader, setSubmitLoader] = useState(false)
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -59,6 +61,8 @@ const NewListing = () => {
             return
         }
 
+        setSubmitLoader(true)
+
         const data = {
             ...formData,
             tagsArray: formData.tags,
@@ -73,6 +77,9 @@ const NewListing = () => {
             })
             .catch((e) => {
                 setFlashMessage(e.message)
+            })
+            .finally(() => {
+                setSubmitLoader(false)
             })
     }
 
@@ -325,7 +332,11 @@ const NewListing = () => {
                         type="submit"
                         className="w-full bg-rose-500 text-white py-3 rounded-md hover:bg-rose-600 transition-colors"
                     >
-                        Add to List
+                        {submitLoader ? (
+                            <BeatLoader size={10} />
+                        ) : (
+                            "Add to List"
+                        )}
                     </button>
                 </form>
             </div>

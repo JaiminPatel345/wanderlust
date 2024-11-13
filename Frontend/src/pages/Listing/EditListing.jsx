@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { BeatLoader } from "react-spinners"
 
 const EditListing = () => {
     const navigate = useNavigate()
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [imageUrl, setImageUrl] = useState(null)
+    const [submitLoader, setSubmitLoader] = useState(false)
 
     const { state } = useLocation()
 
@@ -64,6 +66,8 @@ const EditListing = () => {
             return
         }
 
+        setSubmitLoader(true)
+
         const data = {
             ...formData,
             tagsArray: formData.tags,
@@ -78,6 +82,9 @@ const EditListing = () => {
             })
             .catch((e) => {
                 setFlashMessage(e.message)
+            })
+            .finally(() => {
+                setSubmitLoader(false)
             })
     }
 
@@ -338,7 +345,11 @@ const EditListing = () => {
                         type="submit"
                         className="w-full bg-rose-500 text-white py-3 rounded-md hover:bg-rose-600 transition-colors"
                     >
-                        Add to List
+                        {submitLoader ? (
+                            <BeatLoader size={10} />
+                        ) : (
+                            "Add to List"
+                        )}
                     </button>
                 </form>
             </div>

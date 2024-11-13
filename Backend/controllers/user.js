@@ -58,6 +58,14 @@ module.exports.login = (req, res) => {
                 userId: mongoUser?._id,
             }
             req.session.user = { ...data }
+            req.session.save((err) => {
+                if (err) {
+                    console.error("Error saving session:", err)
+                } else {
+                    console.log("Session saved successfully")
+                }
+            })
+
             return res.status(200).json({ user: data })
         })
 
@@ -74,20 +82,23 @@ module.exports.logout = (req, res) => {
         .signOut()
         .then(() => {
             // Sign-out successful.
-            console.log(`user logout `)
+            console.log(`User logged out from Firebase`)
+
+            req.session.destroy((err) => {
+                if (err) {
+                    console.error("Session destroy failed:", err)
+                    return res.status(500).json({ message: "Logout failed" })
+                }
+                res.clearCookie("connect.sid") // Clear session cookie
+                return res
+                    .status(200)
+                    .json({ message: "Logged out successfully" })
+            })
         })
         .catch((error) => {
-            // An error happened.
-            res.status(500).send(error)
+            console.error("Error during Firebase sign-out:", error)
+            res.status(500).json({ message: "Error during logout", error })
         })
-
-    req.session.destroy((err) => {
-        if (err) {
-            return res.status(500).json({ message: "Logout failed" })
-        }
-        res.clearCookie("connect.sid") // Clear session cookie
-        return res.status(200).json({ message: "Logged out successfully" })
-    })
 }
 
 // Check if user is logged in
