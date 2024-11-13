@@ -7,13 +7,18 @@ const app = express()
 const server = http.createServer(app)
 const io = new Server(server, {
     cors: {
-        origin: process.env.REACT_APP_API_URL || " http://localhost:5173", 
-        methods: ["GET", "POST"],
+        origin: [
+            process.env.REACT_APP_API_URL,
+            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+            "https://wanderlust-ten.vercel.app",
+            " http://localhost:5173",
+        ],
+        methods: ["GET", "POST" , "PUT" , "DELETE"],
         credentials: true,
     },
 })
-const helmet = require('helmet');
-app.use(helmet());
+const helmet = require("helmet")
+app.use(helmet())
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config()
@@ -48,7 +53,7 @@ try {
             cookie: {
                 // Optional: Customize cookie settings as needed
                 // secure: true, // use true if using HTTPS
-                 secure: process.env.NODE_ENV === 'production',
+                secure: process.env.NODE_ENV === "production",
                 maxAge: 1000 * 3600 * 24 * 3, // 3 days
             },
         })
@@ -60,7 +65,13 @@ try {
 // CORS setup for frontend-backend communication
 app.use(
     cors({
-        origin: process.env.REACT_APP_API_URL, // Adjust as per your frontend deployment URL
+       origin: [
+            process.env.REACT_APP_API_URL,
+            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+            "https://wanderlust-ten.vercel.app",
+            " http://localhost:5173",
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], 
         credentials: true,
     })
 )
