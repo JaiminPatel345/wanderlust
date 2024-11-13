@@ -69,7 +69,7 @@ const Signup = () => {
             return
         }
 
-        await fetch("/api/signup", {
+        await fetch(`${process.env.VITE_API_BASE_URL}/signup`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

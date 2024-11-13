@@ -15,7 +15,7 @@ const OneListing = () => {
 
     useEffect(() => {
         setCurrUser(JSON.parse(localStorage.getItem("user")))
-        fetch(`/api/listings/${id}`)
+        fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`)
             .then((response) => response.json())
             .then((data) => {
                 setListing(data)
@@ -34,13 +34,16 @@ const OneListing = () => {
 
     const handelDeleteReview = (e, review) => {
         e.preventDefault()
-        fetch(`/api/listings/${listing._id}/reviews/${review._id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-        })
+        fetch(
+            `${process.env.VITE_API_BASE_URL}/listings/${listing._id}/reviews/${review._id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            }
+        )
             .then((response) => {
                 if (!response.ok) {
                     response.json().then((data) => {
@@ -59,7 +62,7 @@ const OneListing = () => {
     const handleSubmitReview = (e) => {
         e.preventDefault()
         // Post the review to the API
-        fetch(`/api/listings/${id}/reviews`, {
+        fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

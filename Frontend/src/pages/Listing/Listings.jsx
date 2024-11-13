@@ -22,7 +22,7 @@ const Listings = () => {
 
     // Fetch listings from the backend
     useEffect(() => {
-        fetch("/api/listings") // Adjust the URL to your backend endpoint
+        fetch(`${process.env.VITE_API_BASE_URL}/listings`) // Adjust the URL to your backend endpoint
             .then((response) => response.json())
             .then((data) => {
                 setAllListings(data)

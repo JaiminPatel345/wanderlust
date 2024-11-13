@@ -5,6 +5,8 @@ on:
     push:
         branches:
             - react
+        paths:
+            - "./Backend/**"
     workflow_dispatch:
 
 jobs:

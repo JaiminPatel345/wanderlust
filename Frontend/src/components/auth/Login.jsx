@@ -33,7 +33,7 @@ const Login = () => {
         e.preventDefault()
         console.log(JSON.stringify(formData))
 
-        fetch("/api/login", {
+        fetch(`${process.env.VITE_API_BASE_URL}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

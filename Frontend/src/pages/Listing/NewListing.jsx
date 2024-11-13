@@ -78,14 +78,17 @@ const NewListing = () => {
 
     const sendData = async (data) => {
         try {
-            const response = await fetch("/api/listings/new", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-                credentials: "include",
-            })
+            const response = await fetch(
+                `${process.env.VITE_API_BASE_URL}/listings/new`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                    credentials: "include",
+                }
+            )
 
             if (!response.ok) {
                 const data = await response.json()

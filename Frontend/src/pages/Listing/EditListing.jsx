@@ -85,14 +85,17 @@ const EditListing = () => {
         try {
             console.log(data)
 
-            const response = await fetch(`/api/listings/${listing._id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-                credentials: "include",
-            })
+            const response = await fetch(
+                `${process.env.VITE_API_BASE_URL}/listings/${listing._id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                    credentials: "include",
+                }
+            )
 
             if (!response.ok) {
                 const data = await response.json()
