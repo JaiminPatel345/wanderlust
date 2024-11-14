@@ -5,8 +5,6 @@ const DeleteListing = (id) => {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
-            'Cookie': `sessionId=${Cookies.get('sessionId')}`
-
         },
         credentials: "include",
     }).catch((error) => {

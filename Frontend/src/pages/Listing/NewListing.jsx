@@ -105,7 +105,7 @@ const NewListing = () => {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+                        "Content-Type": "application/json", 
 
                     },
                     body: JSON.stringify(data),
@@ -141,6 +141,7 @@ const NewListing = () => {
                 {
                     method: "POST",
                     body: payload,
+                    credentials: "include",
                 }
             )
             const data = await res.json()

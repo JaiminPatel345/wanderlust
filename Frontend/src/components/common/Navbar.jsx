@@ -30,7 +30,7 @@ const MyNavbar = () => {
             const userData = await checkUserSession(navigate)
 
             if (userData) {
-                // User is logged in, you can process user data here if needed
+                // User is logged in, you can process user data here if needed                
                 setCurrUser(userData)
             }
         }

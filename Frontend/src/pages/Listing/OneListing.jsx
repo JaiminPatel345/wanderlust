@@ -56,7 +56,7 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing?._id}`, {
             method: "DELETE",
             headers: {
-                "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+                "Content-Type": "application/json", 
 
             },
             credentials: "include",
@@ -82,8 +82,7 @@ const OneListing = () => {
             {
                 method: "DELETE",
                 headers: {
-                    "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
-
+                    "Content-Type": "application/json", 
                 },
                 credentials: "include",
             }
@@ -125,7 +124,7 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+                "Content-Type": "application/json", 
 
             },
             credentials: "include",

@@ -1,11 +1,16 @@
 import Cookies from "js-cookie"
 
 const checkUserSession = () => {
-    if (Cookies.get("user")) {
-        const user = JSON.parse(Cookies.get("user"))
+    try {
+        if (Cookies.get("user")) {
+            const user = JSON.parse(Cookies.get("user"))
 
-        return user
+            return user
+        }
+    } catch (e) {
+        return null
     }
+
 }
 
 export default checkUserSession

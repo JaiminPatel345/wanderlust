@@ -60,7 +60,7 @@ app.use(
             secure: process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
             SameSite: process.env.SAME_SITE,
-            httpOnly: true, // Added security
+            httpOnly: false, // Added security
             domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
         },
     })

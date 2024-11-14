@@ -33,7 +33,7 @@ const Login = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Cookie: `sessionId=${Cookies.get("sessionId")}`,
+                
             },
             body: JSON.stringify(formData),
             credentials: "include", // Ensure cookies are sent with the request
@@ -48,12 +48,12 @@ const Login = () => {
                 return response.json()
             })
             .then((data) => {
+                console.log(data);
+                
                 Cookies.set(
                     "user",
                     JSON.stringify({
-                        userId: data.user.userId,
-                        email: data.user.email,
-                        name: data.user.name,
+                        ...data.user
                     }),
                     { expires: 1 / 12 }
                 )

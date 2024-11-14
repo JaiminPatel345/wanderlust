@@ -101,7 +101,7 @@ const EditListing = () => {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        Cookie: `sessionId=${Cookies.get("sessionId")}`,
+                           
                     },
                     body: JSON.stringify(data),
                     credentials: "include",
@@ -133,6 +133,7 @@ const EditListing = () => {
                 {
                     method: "POST",
                     body: payload,
+                    credentials: "include",
                 }
             )
             const data = await res.json()
