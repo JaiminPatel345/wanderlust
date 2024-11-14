@@ -71,7 +71,7 @@ const MyNavbar = () => {
                 className="p-1 font-normal"
             >
                 {/* //To be Added */}
-                <Link to="/" className="flex items-center ">
+                <Link to="/" className="flex items-center text-gray-400">
                     chats
                 </Link>
             </Typography>
