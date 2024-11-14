@@ -39,9 +39,10 @@ app.use(
         secret: process.env.SECRET,
         name: "sessionId", // Custom name instead of 'connect.sid'
         cookie: {
-            secure: process.env.IS_SAVE_COOKIES && process.env.NODE_ENV,
+            secure:
+                process.env.IS_SAVE_COOKIES &&
+                process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
-            sameSite: "none", // Added security
             httpOnly: true, // Added security
         },
     })
@@ -55,6 +56,8 @@ app.use(
                 ? [
                       "https://wanderlust-git-react-gdgc-bvm.vercel.app",
                       "https://wanderlust-ten.vercel.app",
+                      "http://localhost:5173/",
+                      process.env.REACT_APP_API_URL,
                   ]
                 : ["http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -70,6 +73,7 @@ const io = new Server(server, {
                 ? [
                       "https://wanderlust-git-react-gdgc-bvm.vercel.app",
                       "https://wanderlust-ten.vercel.app",
+                      "http://localhost:5173/",
                       process.env.REACT_APP_API_URL,
                   ]
                 : ["http://localhost:5173"],
@@ -102,9 +106,9 @@ io.on("connection", (socket) => {
 
 app.use((err, req, res, next) => {
     console.log(err)
-    if (res.headersSent) {
-        return next(err) // If headers are already sent, delegate to the default error handler
-    }
+    // if (res.headersSent) {
+    //     return next(err) // If headers are already sent, delegate to the default error handler
+    // }
     res.status(err.statusCode || 500).json({ message: err.message })
 })
 
