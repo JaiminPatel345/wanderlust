@@ -1,25 +1,11 @@
 const express = require("express")
-
 const mongoose = require("mongoose")
 const cors = require("cors")
 const { Server } = require("socket.io")
 const http = require("http")
 const app = express()
 const server = http.createServer(app)
-const io = new Server(server, {
-    cors: {
-        origin: [
-            process.env.REACT_APP_API_URL,
-            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
-            "https://wanderlust-ten.vercel.app",
-            "http://localhost:5173",
-        ],
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        credentials: true,
-    },
-})
 const helmet = require("helmet")
-app.use(helmet())
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config()
@@ -42,26 +28,28 @@ async function main() {
     await mongoose.connect(process.env.MONGO_URL)
 }
 
+app.use(helmet())
 app.use(express.json())
 
-try {
-    app.use(
-        session({
-            store: redisStore,
-            resave: false, // force lightweight session keep alive (touch)
-            saveUninitialized: false, // only save session when data exists
-            secret: process.env.SECRET,
-            cookie: {
-                // Optional: Customize cookie settings as needed
-                // secure: true, // use true if using HTTPS
-                secure: process.env.NODE_ENV === "production",
-                maxAge: 1000 * 3600, //1 H
-            },
-        })
-    )
-} catch (error) {
-    console.log(error)
-}
+app.use(
+    session({
+        store: redisStore,
+        resave: false,
+        saveUninitialized: false,
+        secret: process.env.SECRET,
+        name: "sessionId", // Custom name instead of 'connect.sid'
+        cookie: {
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 1000 * 3600, //1 H
+            sameSite: "strict", // Added security
+            httpOnly: true, // Added security
+            domain:
+                process.env.NODE_ENV === "production"
+                    ? ".azurewebsites.net"
+                    : undefined, // Adjust this
+        },
+    })
+)
 
 // CORS setup for frontend-backend communication
 app.use(
@@ -76,6 +64,19 @@ app.use(
         credentials: true,
     })
 )
+
+const io = new Server(server, {
+    cors: {
+        origin: [
+            process.env.REACT_APP_API_URL,
+            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+            "https://wanderlust-ten.vercel.app",
+            "http://localhost:5173",
+        ],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+    },
+})
 
 // Development only
 // app.use((req, res, next) => {

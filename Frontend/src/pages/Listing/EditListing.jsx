@@ -81,7 +81,7 @@ const EditListing = () => {
                 navigate(`/listings/${listing._id}`)
             })
             .catch((e) => {
-                setFlashMessage(e.message)
+                setFlashMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setSubmitLoader(false)
@@ -110,7 +110,7 @@ const EditListing = () => {
             }
             return response.json()
         } catch (error) {
-            throw new Error(error.message)
+            throw new Error(error.message || "Unknown error")
         }
     }
 
@@ -141,7 +141,7 @@ const EditListing = () => {
             setImageUrl(data.secure_url)
         } catch (error) {
             console.error("Image upload failed:", error)
-            setFlashMessage((pvs) => pvs + error.message)
+            setFlashMessage((pvs) => pvs + error.message || "Unknown error")
         }
     }
     return (

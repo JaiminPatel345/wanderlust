@@ -12,6 +12,7 @@ import {
     IconButton,
     Card,
 } from "@material-tailwind/react"
+import Cookies from "js-cookie"
 
 // eslint-disable-next-line react/prop-types
 const MyNavbar = () => {
@@ -27,6 +28,7 @@ const MyNavbar = () => {
 
         const fetchUserData = async () => {
             const userData = await checkUserSession(navigate)
+
             if (userData) {
                 // User is logged in, you can process user data here if needed
                 setCurrUser(userData)
@@ -39,7 +41,7 @@ const MyNavbar = () => {
     const handelLogout = () => {
         Logout()
         setCurrUser(null)
-        localStorage.removeItem("user")
+        Cookies.remove("user")
     }
 
     const handelLogin = () => {

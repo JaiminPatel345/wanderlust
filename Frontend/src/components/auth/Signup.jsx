@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import checkUserSession from "../../utils/auth"
 import { BeatLoader } from "react-spinners"
+import Cookies from "js-cookie"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -14,6 +14,10 @@ const Signup = () => {
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [signupLoader, setSignupLoader] = useState(false)
     const navigate = useNavigate()
+
+    useEffect(() => {
+        window.scrollTo(0, 0)
+    })
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -81,13 +85,14 @@ const Signup = () => {
             .then((data) => {
                 // Assuming the token is included in the response data
                 if (data) {
-                    localStorage.setItem(
+                    Cookies.set(
                         "user",
-                        JSON.stringify({
+                        {
                             userId: data.user.userId,
                             email: data.user.email,
                             name: data.user.name,
-                        })
+                        },
+                        { expires: 1 / 24 }
                     )
                 } else {
                     throw new Error(data.message)
@@ -96,7 +101,7 @@ const Signup = () => {
                 navigate("/listings")
             })
             .catch((error) => {
-                setFlashMessage(error.message)
+                setFlashMessage(error.message || "Unknown error")
             })
             .finally(() => {
                 setSignupLoader(false)
@@ -104,7 +109,7 @@ const Signup = () => {
     }
 
     return (
-        <div className="flex justify-center min-h-screen bg-gray-50">
+        <div className="flex justify-center">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
 

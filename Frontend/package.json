@@ -27,6 +27,7 @@
     "dotenv": "^16.4.5",
     "firebase": "^10.14.1",
     "firebaseui": "^6.1.0",
+    "js-cookie": "^3.0.5",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-client-session": "^0.0.8",

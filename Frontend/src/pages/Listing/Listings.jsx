@@ -135,9 +135,9 @@ const Listings = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3 px-4">
                 {allListings
-                    .filter((listing) => filterListings(listing.tags))
+                    .filter((listing) => filterListings(listing?.tags))
                     .map((listing) => {
-                        const originalPrice = listing.price
+                        const originalPrice = listing?.price
                         const displayedPrice = showWithTax
                             ? (
                                   originalPrice +
@@ -147,26 +147,26 @@ const Listings = () => {
 
                         return (
                             <div
-                                key={listing._id}
+                                key={listing?._id}
                                 className="bg-white rounded-lg shadow-md overflow-hidden"
                             >
                                 <Link
-                                    to={`/listings/${listing._id}`}
+                                    to={`/listings/${listing?._id}`}
                                     className="block hover:opacity-80 transition"
                                 >
                                     <img
-                                        src={listing.image.url}
+                                        src={listing?.image.url}
                                         className="w-full h-72 object-cover"
                                         alt="Image is processing"
                                     />
                                     <div className="p-4">
                                         <h5 className="text-xl font-semibold mb-2">
-                                            {listing.title}
+                                            {listing?.title}
                                         </h5>
                                         <p className="text-gray-700">
                                             &#8377;
                                             <span
-                                                id={`price-${listing._id}`}
+                                                id={`price-${listing?._id}`}
                                                 data-original-price={
                                                     originalPrice
                                                 }
@@ -182,14 +182,14 @@ const Listings = () => {
                                             </i>
                                             <br />
                                             <i className="fa-solid fa-location-dot text-gray-600"></i>{" "}
-                                            {listing.location}
+                                            {listing?.location}
                                             <br />
                                             <i className="fa-solid fa-globe text-gray-600"></i>{" "}
-                                            {listing.country}
+                                            {listing?.country}
                                             <br />
                                             <br />
                                             <span className="tags flex flex-wrap gap-2">
-                                                {listing.tags.map(
+                                                {listing?.tags.map(
                                                     (tag) =>
                                                         tag !== "null" && (
                                                             <span

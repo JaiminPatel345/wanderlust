@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { BeatLoader } from "react-spinners"
+import { BeatLoader, PulseLoader } from "react-spinners"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -17,6 +17,7 @@ const NewListing = () => {
     })
     const [imageUrl, setImageUrl] = useState("")
     const [submitLoader, setSubmitLoader] = useState(false)
+    const [imageLoader, setImageLoader] = useState(false)
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -24,6 +25,8 @@ const NewListing = () => {
             ...prevData,
             [name]: value,
         }))
+
+        if (flashMessage) setFlashMessage("")
     }
 
     const handleTagChange = (e) => {
@@ -61,6 +64,14 @@ const NewListing = () => {
             return
         }
 
+        if (!formData.image && !imageUrl) {
+            setFlashMessage(
+                "Please provide either an image URL or upload an image"
+            )
+            window.scrollTo(0, 0)
+            return false
+        }
+
         setSubmitLoader(true)
 
         const data = {
@@ -76,7 +87,7 @@ const NewListing = () => {
                 navigate("/listings")
             })
             .catch((e) => {
-                setFlashMessage(e.message)
+                setFlashMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setSubmitLoader(false)
@@ -110,7 +121,8 @@ const NewListing = () => {
     const handleImageUpload = async (event) => {
         const file = event.target.files[0]
         if (!file) return
-
+        setFlashMessage("")
+        setImageLoader(true)
         const payload = new FormData()
         payload.append("file", file)
         payload.append("upload_preset", "ml_default")
@@ -134,8 +146,9 @@ const NewListing = () => {
             }))
         } catch (error) {
             console.error("Image upload failed:", error)
-            setFlashMessage((pvs) => pvs + error.message)
+            setFlashMessage((pvs) => pvs + error.message || "Unknown error")
         }
+        setImageLoader(false)
     }
 
     return (
@@ -212,6 +225,10 @@ const NewListing = () => {
                         />
                     </div>
 
+                    <div className="text-center text-gray-500">
+                        <p>OR</p>
+                    </div>
+
                     <div>
                         <label
                             htmlFor="fileImage"
@@ -226,6 +243,13 @@ const NewListing = () => {
                             className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
                             onChange={handleImageUpload}
                         />
+                        <p className="mt-2 text-sm text-green-600">
+                            {imageLoader ? (
+                                <PulseLoader size={5} />
+                            ) : (
+                                imageUrl && "Image uploaded successfully!"
+                            )}
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

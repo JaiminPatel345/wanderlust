@@ -1,8 +1,11 @@
+import Cookies from "js-cookie"
 
+const checkUserSession = () => {
+    if (Cookies.get("user")) {
+        const user = JSON.parse(Cookies.get("user"))
 
-const checkUserSession = async () => {
-    const user = localStorage.getItem("user");
-    return user;
-};
+        return user
+    }
+}
 
-export default checkUserSession;
+export default checkUserSession

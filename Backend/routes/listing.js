@@ -21,25 +21,12 @@ router
 router
     .route("/:id")
     .get(asyncWrap(listingController.singleListing)) // Show route
-    .put(
-        isLoggedIn,
-        isListingOwner,
-        upload.single("image"),
-        asyncWrap(listingController.updateListing)
-    ) // Update route
+    .put(isLoggedIn, isListingOwner, asyncWrap(listingController.updateListing)) // Update route
     .delete(
         isLoggedIn,
         isListingOwner,
         asyncWrap(listingController.destroyListing)
     ) // Delete route
-
-router
-    .route("/new")
-    .post(
-        isLoggedIn,
-        upload.single("image"),
-        asyncWrap(listingController.createListing)
-    )
 
 // Temporary route for booking
 router.get("/:id/book", (req, res) => {

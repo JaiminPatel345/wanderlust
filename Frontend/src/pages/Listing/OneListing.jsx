@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import DeleteListing from "../../utils/deleteListing"
-import {
-    ScaleLoader,
-    PropagateLoader,
-    SyncLoader,
-    PacmanLoader,
-} from "react-spinners"
+import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
 import "../../rating.css"
+import checkUserSession from "../../utils/auth"
 
 const OneListing = () => {
     const navigate = useNavigate()
@@ -25,7 +20,18 @@ const OneListing = () => {
     const [deleteLoader2, setDeleteLoader2] = useState(false)
 
     useEffect(() => {
-        setCurrUser(JSON.parse(localStorage.getItem("user")))
+        const fetchUserData = async () => {
+            const userData = await checkUserSession(navigate)
+
+            if (userData) {
+                // User is logged in, you can process user data here if needed
+                setCurrUser(userData)
+            }
+        }
+
+        fetchUserData()
+        console.log(currUser)
+
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`)
             .then((response) => response.json())
             .then((data) => {
@@ -34,7 +40,7 @@ const OneListing = () => {
             })
             .catch((e) => {
                 console.log("Error:", e)
-                setFlashMessage(e.message)
+                setFlashMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setLoading(false)
@@ -44,8 +50,8 @@ const OneListing = () => {
     const deleteListing = () => {
         let isDelete = false
         setDeleteLoader1(true)
-        // DeleteListing(listing._id)
-        fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing._id}`, {
+        // DeleteListing(listing?._id)
+        fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing?._id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -56,7 +62,7 @@ const OneListing = () => {
                 isDelete = true
             })
             .catch((error) => {
-                setFlashMessage(error.message)
+                setFlashMessage(error.message || "Unknown error")
                 console.log(error)
             })
             .finally(() => {
@@ -69,7 +75,7 @@ const OneListing = () => {
         e.preventDefault()
         setDeleteLoader2((prev) => ({ ...prev, [review._id]: true }))
         fetch(
-            `${process.env.VITE_API_BASE_URL}/listings/${listing._id}/reviews/${review._id}`,
+            `${process.env.VITE_API_BASE_URL}/listings/${listing?._id}/reviews/${review._id}`,
             {
                 method: "DELETE",
                 headers: {
@@ -89,7 +95,7 @@ const OneListing = () => {
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
-                setFlashMessage(e.message)
+                setFlashMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setDeleteLoader2((prev) => ({ ...prev, [review._id]: false }))
@@ -131,15 +137,16 @@ const OneListing = () => {
             .then((data) => {
                 const newReview = {
                     ...data.review,
-                    owner: currUser,
+                    owner: { _id: currUser.userId, name: currUser.name },
                 }
+
                 setAllReviews((pvs) => [...pvs, newReview])
                 setReviewContent("")
                 setRating(3)
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
-                setFlashMessage(e.message)
+                setFlashMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setsubmitLoader(false)
@@ -147,7 +154,7 @@ const OneListing = () => {
     }
 
     const handelEditForm = () => {
-        navigate(`/listings/${listing._id}/edit`, { state: listing })
+        navigate(`/listings/${listing?._id}/edit`, { state: listing })
     }
 
     if (loading) {
@@ -172,36 +179,36 @@ const OneListing = () => {
                 <h3 className="text-2xl font-semibold mb-4">Listing Details</h3>
 
                 <div className="card bg-white shadow-lg">
-                    {listing.image && (
+                    {listing?.image && (
                         <img
-                            src={listing.image.url}
+                            src={listing?.image.url}
                             className="w-full h-64 object-cover"
                             alt="Image loading..."
                         />
                     )}
                     <div className="p-4">
                         <h5 className="text-xl font-bold mb-2">
-                            {listing.title}
+                            {listing?.title}
                         </h5>
 
                         <p className="text-gray-500">
-                            Owned by <i>{listing.owner?.name}</i>
+                            Owned by <i>{listing?.owner?.name}</i>
                         </p>
-                        <p className="text-gray-700">{listing.description}</p>
+                        <p className="text-gray-700">{listing?.description}</p>
                         <p className="text-lg font-semibold mt-2">
-                            ₹ {listing.price?.toLocaleString("en-IN")}
+                            ₹ {listing?.price?.toLocaleString("en-IN")}
                         </p>
                         <p className="mt-2">
                             <i className="fas fa-location-dot"></i>{" "}
-                            {listing.location}
+                            {listing?.location}
                         </p>
                         <p className="mt-2">
-                            <i className="fas fa-globe"></i> {listing.country}
+                            <i className="fas fa-globe"></i> {listing?.country}
                         </p>
 
                         <div className="flex flex-wrap gap-2 mt-4">
-                            {listing.tags &&
-                                listing.tags.map(
+                            {listing?.tags &&
+                                listing?.tags.map(
                                     (tag, index) =>
                                         tag !== "null" && (
                                             <span
@@ -219,8 +226,8 @@ const OneListing = () => {
 
                 <div className="mt-6 flex space-x-4">
                     {currUser &&
-                    listing.owner &&
-                    (listing.owner._id.toString() === currUser.userId ||
+                    listing?.owner &&
+                    (listing?.owner._id.toString() === currUser.userId ||
                         currUser.userId === "66a343a50ff99cdefc1a4657") ? (
                         <>
                             <p
@@ -244,16 +251,16 @@ const OneListing = () => {
                     ) : (
                         <>
                             {/* <a
-                                href={`/listings/${listing._id}/book`}
+                                href={`/listings/${listing?._id}/book`}
                                 className="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600"
                             >
                                 Book
                             </a> */}
                             <Link
-                                to={`/chats/${listing.owner?._id}`}
+                                to={`/chats/${listing?.owner?._id}`}
                                 className="bg-purple-500 text-white px-4 py-2 rounded-md shadow hover:bg-purple-600"
                             >
-                                Chat with {listing.owner?.name}
+                                Chat with {listing?.owner?.name}
                             </Link>
                         </>
                     )}
@@ -369,9 +376,9 @@ const OneListing = () => {
                                 </h5>
                                 <p className="text-sm">{review.content}</p>
                                 {currUser &&
-                                (currUser?.userId?.toString() ==
+                                (currUser?.userId?.toString() ===
                                     review?.owner._id?.toString() ||
-                                    currUser.userId ===
+                                    currUser?.userId?.toString() ===
                                         "66a343a50ff99cdefc1a4657") ? (
                                     <form
                                         onSubmit={(e) => {

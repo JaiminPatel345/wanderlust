@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
+import Cookies from "js-cookie"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -9,7 +10,10 @@ const Login = () => {
     })
     const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
     const [loginLoader, setLoginLoader] = useState(false)
-    const navigate = useNavigate()
+
+    useEffect(() => {
+        window.scrollTo(0, 0)
+    })
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -43,21 +47,21 @@ const Login = () => {
                 return response.json()
             })
             .then((data) => {
-                localStorage.setItem(
+                Cookies.set(
                     "user",
                     JSON.stringify({
                         userId: data.user.userId,
                         email: data.user.email,
                         name: data.user.name,
-                        expireTime: Date.now() + 1000 * 60,
-                    })
+                    }),
+                    { expires: 1 / 24 }
                 )
                 window.history.go(-1) // Redirect after successful login
             })
             .catch((error) => {
                 console.log("jaimin", error)
 
-                setFlashMessage(error.message) // Display error message
+                setFlashMessage(error.message || "Unknown error") // Display error message
                 console.error("Login error:", error)
             })
             .finally(() => {
@@ -66,7 +70,7 @@ const Login = () => {
     }
 
     return (
-        <div className="flex justify-center min-h-screen bg-gray-50">
+        <div className="flex justify-center  ">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Login</h2>
                 {flashMessage && (
