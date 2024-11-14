@@ -42,6 +42,7 @@ app.use(
             secure: process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
             httpOnly: true, // Added security
+            domain: '.azurewebsites.net',
         },
     })
 )
