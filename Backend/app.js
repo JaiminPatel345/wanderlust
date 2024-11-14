@@ -41,12 +41,8 @@ app.use(
         cookie: {
             secure: process.env.IS_SAVE_COOKIES && process.env.NODE_ENV,
             maxAge: 1000 * 3600 * 2, //2 H
-            sameSite: "strict", // Added security
+            sameSite: "none", // Added security
             httpOnly: true, // Added security
-            domain:
-                process.env.NODE_ENV === "production"
-                    ? ".azurewebsites.net"
-                    : undefined, // Adjust this
         },
     })
 )
@@ -54,20 +50,29 @@ app.use(
 // CORS setup for frontend-backend communication
 app.use(
     cors({
-        origin: [process.env.REACT_APP_API_URL],
+        origin:
+            process.env.NODE_ENV === "production"
+                ? [
+                      "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+                      "https://wanderlust-ten.vercel.app",
+                  ]
+                : ["http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         credentials: true,
     })
 )
 
+// Socket.io configuration
 const io = new Server(server, {
     cors: {
-        origin: [
-            process.env.REACT_APP_API_URL,
-            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
-            "https://wanderlust-ten.vercel.app",
-            "http://localhost:5173",
-        ],
+        origin:
+            process.env.NODE_ENV === "production"
+                ? [
+                      "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+                      "https://wanderlust-ten.vercel.app",
+                      process.env.REACT_APP_API_URL,
+                  ]
+                : ["http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     },
