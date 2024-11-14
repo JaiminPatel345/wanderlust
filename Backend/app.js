@@ -49,38 +49,40 @@ app.use(
 )
 
 // CORS setup for frontend-backend communication
-app.use(
-    cors({
-        origin:
-            process.env.NODE_ENV === "production"
-                ? [
-                      process.env.REACT_APP_API_URL,
-                      "https://wanderlust-git-react-gdgc-bvm.vercel.app",
-                      "https://wanderlust-ten.vercel.app",
-                      "http://localhost:5173/",
-                  ]
-                : ["http://localhost:5173"],
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        credentials: true,
-    })
-)
+// app.use(
+//     cors({
+//         origin:
+//             process.env.NODE_ENV === "production"
+//                 ? [
+//                       process.env.REACT_APP_API_URL,
+//                       "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+//                       "https://wanderlust-ten.vercel.app",
+//                       "http://localhost:5173/",
+//                   ]
+//                 : ["http://localhost:5173"],
+//         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+//         credentials: true,
+//     })
+// )
+
+app.use(cors({ origin: "*", credentials: true }))
 
 // Socket.io configuration
-const io = new Server(server, {
-    cors: {
-        origin:
-            process.env.NODE_ENV === "production"
-                ? [
-                      process.env.REACT_APP_API_URL,
-                      "https://wanderlust-git-react-gdgc-bvm.vercel.app",
-                      "https://wanderlust-ten.vercel.app",
-                      "http://localhost:5173/",
-                  ]
-                : ["http://localhost:5173"],
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        credentials: true,
-    },
-})
+// const io = new Server(server, {
+//     cors: {
+//         origin:
+//             process.env.NODE_ENV === "production"
+//                 ? [
+//                       process.env.REACT_APP_API_URL,
+//                       "https://wanderlust-git-react-gdgc-bvm.vercel.app",
+//                       "https://wanderlust-ten.vercel.app",
+//                       "http://localhost:5173/",
+//                   ]
+//                 : ["http://localhost:5173"],
+//         methods: ["GET", "POST", "PUT", "DELETE"],
+//         credentials: true,
+//     },
+// })
 
 // API routes
 app.use((req, res, next) => {
@@ -95,14 +97,14 @@ app.use("/chats", chatsRoutes)
 app.use("/", usersRoutes)
 
 // Socket.io for chat
-io.on("connection", (socket) => {
-    socket.on("chat message", (data) => {
-        socket.broadcast.emit(
-            "chat message",
-            `${data.username}  : ${data.message}`
-        )
-    })
-})
+// io.on("connection", (socket) => {
+//     socket.on("chat message", (data) => {
+//         socket.broadcast.emit(
+//             "chat message",
+//             `${data.username}  : ${data.message}`
+//         )
+//     })
+// })
 
 app.use((err, req, res, next) => {
     console.log(err)
@@ -113,4 +115,4 @@ app.use((err, req, res, next) => {
 })
 
 // Start server
-server.listen(port, () => console.log(`Listening on port ${port}`))
+app.listen(port, () => console.log(`Listening on port ${port}`))
