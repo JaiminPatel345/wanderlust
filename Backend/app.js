@@ -27,6 +27,7 @@ main()
 async function main() {
     await mongoose.connect(process.env.MONGO_URL)
 }
+app.set('trust proxy', true);
 
 app.use(helmet())
 app.use(express.json())
