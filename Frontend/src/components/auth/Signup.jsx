@@ -66,7 +66,8 @@ const Signup = () => {
         await fetch(`${process.env.VITE_API_BASE_URL}/signup`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+
             },
             body: JSON.stringify({
                 name: formData.name,

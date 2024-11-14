@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
+import Cookies from "js-cookie"
+
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -103,7 +105,8 @@ const NewListing = () => {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
+                        "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+
                     },
                     body: JSON.stringify(data),
                     credentials: "include",

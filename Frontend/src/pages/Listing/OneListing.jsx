@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom"
 import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
 import "../../rating.css"
 import checkUserSession from "../../utils/auth"
+import Cookies from "js-cookie"
+
 
 const OneListing = () => {
     const navigate = useNavigate()
@@ -54,7 +56,8 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing?._id}`, {
             method: "DELETE",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+
             },
             credentials: "include",
         })
@@ -79,7 +82,8 @@ const OneListing = () => {
             {
                 method: "DELETE",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+
                 },
                 credentials: "include",
             }
@@ -121,7 +125,8 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json",                          'Cookie': `sessionId=${Cookies.get('sessionId')}`
+
             },
             credentials: "include",
             body: JSON.stringify({ rating, content: reviewContent }),

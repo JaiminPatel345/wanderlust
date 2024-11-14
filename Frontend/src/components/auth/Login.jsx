@@ -33,6 +33,7 @@ const Login = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Cookie: `sessionId=${Cookies.get("sessionId")}`,
             },
             body: JSON.stringify(formData),
             credentials: "include", // Ensure cookies are sent with the request

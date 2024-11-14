@@ -1,7 +1,9 @@
 const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
-const { Server } = require("socket.io")
+const {
+    Server
+} = require("socket.io")
 const http = require("http")
 const app = express()
 const server = http.createServer(app)
@@ -27,10 +29,10 @@ main()
 async function main() {
     await mongoose.connect(process.env.MONGO_URL)
 }
-app.set('trust proxy', true);
 
 app.use(helmet())
 app.use(express.json())
+app.set("trust proxy", 1);
 
 app.use(
     session({
@@ -42,8 +44,9 @@ app.use(
         cookie: {
             secure: process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
+            SameSite: "none",
             httpOnly: true, // Added security
-            domain: '.azurewebsites.net',
+            domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
         },
     })
 )
@@ -51,11 +54,14 @@ app.use(
 // CORS setup for frontend-backend communication
 app.use(
     cors({
-        origin: process.env.REACT_APP_API_URL,
+        origin: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         credentials: true,
+        exposedHeaders: ["Set-Cookie"],
     })
 )
+
+
 
 // app.use(cors({ origin: "*", credentials: true }))
 
@@ -100,10 +106,12 @@ app.use("/", usersRoutes)
 
 app.use((err, req, res, next) => {
     console.log(err)
-    // if (res.headersSent) {
-    //     return next(err) // If headers are already sent, delegate to the default error handler
-    // }
-    res.status(err.statusCode || 500).json({ message: err.message })
+    if (res.headersSent) {
+        return // If headers are already sent, delegate to the default error handler
+    }
+    res.status(err.statusCode || 500).json({
+        message: err.message
+    })
 })
 
 // Start server

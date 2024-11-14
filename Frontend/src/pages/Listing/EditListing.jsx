@@ -2,6 +2,8 @@
 import React, { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
+import Cookies from "js-cookie"
+
 
 const EditListing = () => {
     const navigate = useNavigate()
@@ -99,6 +101,7 @@ const EditListing = () => {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
+                        Cookie: `sessionId=${Cookies.get("sessionId")}`,
                     },
                     body: JSON.stringify(data),
                     credentials: "include",
