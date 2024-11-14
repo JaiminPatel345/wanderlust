@@ -71,10 +71,10 @@ const io = new Server(server, {
         origin:
             process.env.NODE_ENV === "production"
                 ? [
+                      process.env.REACT_APP_API_URL,
                       "https://wanderlust-git-react-gdgc-bvm.vercel.app",
                       "https://wanderlust-ten.vercel.app",
                       "http://localhost:5173/",
-                      process.env.REACT_APP_API_URL,
                   ]
                 : ["http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE"],
