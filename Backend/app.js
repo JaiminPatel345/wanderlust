@@ -34,22 +34,10 @@ app.use(helmet())
 app.use(express.json())
 app.set("trust proxy", 1);
 
-app.use(
-    session({
-        store: redisStore,
-        resave: false,
-        saveUninitialized: false,
-        secret: process.env.SECRET,
-        name: "sessionId", // Custom name instead of 'connect.sid'
-        cookie: {
-            secure: process.env.NODE_ENV == "production",
-            maxAge: 1000 * 3600 * 2, //2 H
-            SameSite: "none",
-            httpOnly: true, // Added security
-            domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
-        },
-    })
-)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+});
 
 // CORS setup for frontend-backend communication
 app.use(
@@ -60,6 +48,25 @@ app.use(
         exposedHeaders: ["Set-Cookie"],
     })
 )
+
+app.use(
+    session({
+        store: redisStore,
+        resave: false,
+        saveUninitialized: false,
+        secret: process.env.SECRET,
+        name: "sessionId", // Custom name instead of 'connect.sid'
+        cookie: {
+            secure: process.env.NODE_ENV == "production",
+            maxAge: 1000 * 3600 * 2, //2 H
+            SameSite: process.env.SAME_SITE,
+            httpOnly: true, // Added security
+            domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
+        },
+    })
+)
+
+
 
 
 
