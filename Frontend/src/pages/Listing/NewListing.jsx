@@ -21,6 +21,8 @@ const NewListing = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target
+        console.log(value)
+
         setFormData((prevData) => ({
             ...prevData,
             [name]: value,
@@ -97,7 +99,7 @@ const NewListing = () => {
     const sendData = async (data) => {
         try {
             const response = await fetch(
-                `${process.env.VITE_API_BASE_URL}/listings/new`,
+                `${process.env.VITE_API_BASE_URL}/listings`,
                 {
                     method: "POST",
                     headers: {
@@ -114,7 +116,9 @@ const NewListing = () => {
             }
             return response.json()
         } catch (error) {
-            throw new Error("Error submitting form:", error)
+            console.log(error)
+
+            throw new Error(error.message)
         }
     }
 
@@ -152,7 +156,7 @@ const NewListing = () => {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="flex justify-center items-center min-h-screen ">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6">New Listing</h2>
                 {flashMessage && (

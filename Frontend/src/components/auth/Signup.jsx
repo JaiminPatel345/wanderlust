@@ -92,7 +92,7 @@ const Signup = () => {
                             email: data.user.email,
                             name: data.user.name,
                         },
-                        { expires: 1 / 24 }
+                        { expires: 1 / 12 }
                     )
                 } else {
                     throw new Error(data.message)

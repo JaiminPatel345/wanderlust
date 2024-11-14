@@ -39,8 +39,8 @@ app.use(
         secret: process.env.SECRET,
         name: "sessionId", // Custom name instead of 'connect.sid'
         cookie: {
-            secure: process.env.NODE_ENV === "production",
-            maxAge: 1000 * 3600, //1 H
+            secure: process.env.IS_SAVE_COOKIES && process.env.NODE_ENV,
+            maxAge: 1000 * 3600 * 2, //2 H
             sameSite: "strict", // Added security
             httpOnly: true, // Added security
             domain:
@@ -54,12 +54,7 @@ app.use(
 // CORS setup for frontend-backend communication
 app.use(
     cors({
-        origin: [
-            process.env.REACT_APP_API_URL,
-            "https://wanderlust-git-react-gdgc-bvm.vercel.app",
-            "https://wanderlust-ten.vercel.app",
-            " http://localhost:5173",
-        ],
+        origin: [process.env.REACT_APP_API_URL],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         credentials: true,
     })
@@ -77,13 +72,6 @@ const io = new Server(server, {
         credentials: true,
     },
 })
-
-// Development only
-// app.use((req, res, next) => {
-//     setTimeout(() => {
-//         next() // Proceed to the next middleware/route after 2 seconds
-//     }, 3000)
-// })
 
 // API routes
 app.use((req, res, next) => {

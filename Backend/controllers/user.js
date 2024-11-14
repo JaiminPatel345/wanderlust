@@ -65,6 +65,7 @@ module.exports.login = (req, res) => {
                     console.log("Session saved successfully")
                 }
             })
+            console.log(req.session)
 
             return res.status(200).json({ user: data })
         })
@@ -89,7 +90,7 @@ module.exports.logout = (req, res) => {
                     console.error("Session destroy failed:", err)
                     return res.status(500).json({ message: "Logout failed" })
                 }
-                res.clearCookie("connect.sid") // Clear session cookie
+                res.clearCookie("sessionId") // Clear session cookie
                 return res
                     .status(200)
                     .json({ message: "Logged out successfully" })

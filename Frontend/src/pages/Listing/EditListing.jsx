@@ -1,13 +1,14 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { BeatLoader } from "react-spinners"
+import { BeatLoader, PulseLoader } from "react-spinners"
 
 const EditListing = () => {
     const navigate = useNavigate()
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [imageUrl, setImageUrl] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
+    const [imageLoader, setImageLoader] = useState(false)
 
     const { state } = useLocation()
 
@@ -121,7 +122,7 @@ const EditListing = () => {
         const payload = new FormData()
         payload.append("file", file)
         payload.append("upload_preset", "ml_default")
-        console.log(payload)
+        setImageLoader(true)
 
         try {
             const res = await fetch(
@@ -143,6 +144,7 @@ const EditListing = () => {
             console.error("Image upload failed:", error)
             setFlashMessage((pvs) => pvs + error.message || "Unknown error")
         }
+        setImageLoader(false)
     }
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50">
@@ -237,6 +239,13 @@ const EditListing = () => {
                             className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
                             onChange={handleImageUpload}
                         />
+                        <p className="mt-2 text-sm text-green-600">
+                            {imageLoader ? (
+                                <PulseLoader size={5} />
+                            ) : (
+                                imageUrl && "Image uploaded successfully!"
+                            )}
+                        </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
