@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
 import "../../rating.css"
 import checkUserSession from "../../utils/auth"
-import Cookies from "js-cookie"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
 
 const OneListing = () => {
     const navigate = useNavigate()
@@ -11,7 +11,6 @@ const OneListing = () => {
     const [listing, setListing] = useState(null)
     const [reviewContent, setReviewContent] = useState(null)
     const [rating, setRating] = useState(3)
-    const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [allReviews, setAllReviews] = useState({})
     const [currUser, setCurrUser] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -19,6 +18,12 @@ const OneListing = () => {
     const [submitLoader, setsubmitLoader] = useState(false)
     const [deleteLoader1, setDeleteLoader1] = useState(false)
     const [deleteLoader2, setDeleteLoader2] = useState(false)
+    const {
+        showSuccessMessage,
+        showErrorMessage,
+        showWarningMessage,
+        clearFlashMessage,
+    } = useContext(FlashMessageContext)
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -40,7 +45,7 @@ const OneListing = () => {
             })
             .catch((e) => {
                 console.log("Error:", e)
-                setFlashMessage(e.message || "Unknown error")
+                showErrorMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setLoading(false)
@@ -62,7 +67,7 @@ const OneListing = () => {
                 isDelete = true
             })
             .catch((error) => {
-                setFlashMessage(error.message || "Unknown error")
+                showErrorMessage(error.message || "Unknown error")
                 console.log(error)
             })
             .finally(() => {
@@ -87,7 +92,7 @@ const OneListing = () => {
             .then((response) => {
                 if (!response.ok) {
                     response.json().then((data) => {
-                        setFlashMessage(data.message)
+                        showErrorMessage(data.message)
                         throw new Error(data.message)
                     })
                 }
@@ -95,7 +100,7 @@ const OneListing = () => {
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
-                setFlashMessage(e.message || "Unknown error")
+                showErrorMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setDeleteLoader2((prev) => ({ ...prev, [review._id]: false }))
@@ -107,12 +112,12 @@ const OneListing = () => {
         // Post the review to the API
 
         if (!rating || !reviewContent) {
-            setFlashMessage("Fill all fields ")
+            showErrorMessage("Fill all fields ")
             return
         }
 
         if (!currUser) {
-            setFlashMessage("For submit revive must be logged in ")
+            showErrorMessage("For submit revive must be logged in ")
             setShowSignup(true)
             return
         }
@@ -146,7 +151,7 @@ const OneListing = () => {
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
-                setFlashMessage(e.message || "Unknown error")
+                showErrorMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setsubmitLoader(false)
@@ -168,14 +173,6 @@ const OneListing = () => {
     return (
         <div className="container mx-auto mt-10 flex flex-col w-[90%] ">
             <div className="w-full md:w-2/3 mx-auto">
-                {flashMessage && (
-                    <div
-                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                        role="alert"
-                    >
-                        <span className="block sm:inline">{flashMessage}</span>
-                    </div>
-                )}
                 <h3 className="text-2xl font-semibold mb-4">Listing Details</h3>
 
                 <div className="card bg-white shadow-lg">
@@ -307,7 +304,6 @@ const OneListing = () => {
                             id="body"
                             value={reviewContent || ""}
                             onChange={(e) => {
-                                setFlashMessage(null)
                                 setReviewContent(e.target.value)
                             }}
                             required

@@ -1,12 +1,18 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
-import Cookies from "js-cookie"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
 
 const EditListing = () => {
     const navigate = useNavigate()
-    const [flashMessage, setFlashMessage] = useState("") // Flash message state
+    // const [showErrorMessage, showErrorMessage] = useState("") // Flash message state
+    const {
+        showSuccessMessage,
+        showErrorMessage,
+        showWarningMessage,
+        clearFlashMessage,
+    } = useContext(FlashMessageContext)
     const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
@@ -40,7 +46,7 @@ const EditListing = () => {
             e.target.value = "null" // Reset select value
         }
 
-        if (flashMessage) setFlashMessage("")
+        if (showErrorMessage) showErrorMessage("")
     }
 
     const addTag = (tag) => {
@@ -75,13 +81,13 @@ const EditListing = () => {
             !formData.country ||
             !formData.location
         ) {
-            setFlashMessage("Please fill in all required fields")
+            showErrorMessage("Please fill in all required fields")
             window.scrollTo(0, 0)
 
             return
         }
         if (!formData.image && !imageFile) {
-            setFlashMessage(
+            showErrorMessage(
                 "Please provide either an image URL or upload an image"
             )
             window.scrollTo(0, 0)
@@ -89,7 +95,7 @@ const EditListing = () => {
         }
 
         if (formData.image && !isUrlValid(formData.image)) {
-            setFlashMessage("Invalid image URL")
+            showErrorMessage("Invalid image URL")
             window.scrollTo(0, 0)
             return
         }
@@ -109,7 +115,7 @@ const EditListing = () => {
                 navigate(`/listings/${listing._id}`)
             })
             .catch((e) => {
-                setFlashMessage(e.message || "Unknown error")
+                showErrorMessage(e.message || "Unknown error")
             })
             .finally(() => {
                 setSubmitLoader(false)
@@ -150,7 +156,7 @@ const EditListing = () => {
         payload.append("file", file)
         payload.append("upload_preset", "ml_default")
         setImageLoader(true)
-        if (flashMessage) setFlashMessage("")
+        if (showErrorMessage) showErrorMessage("")
 
         try {
             const res = await fetch(
@@ -166,7 +172,7 @@ const EditListing = () => {
             setImageFile(data.secure_url)
         } catch (error) {
             console.error("Image upload failed:", error)
-            setFlashMessage((pvs) => pvs + error.message || "Unknown error")
+            showErrorMessage((pvs) => pvs + error.message || "Unknown error")
         }
         setImageLoader(false)
     }
@@ -176,14 +182,6 @@ const EditListing = () => {
                 <h2 className="text-2xl font-bold mb-6 text-red-500">
                     Edit Listing
                 </h2>
-                {flashMessage && (
-                    <div
-                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                        role="alert"
-                    >
-                        <span className="block sm:inline">{flashMessage}</span>
-                    </div>
-                )}
 
                 <form
                     id="new-listing-form"

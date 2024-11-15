@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import Cookies from "js-cookie"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -11,9 +12,14 @@ const Signup = () => {
     })
 
     const [errors, setErrors] = useState({})
-    const [flashMessage, setFlashMessage] = useState("") // Flash message state
     const [signupLoader, setSignupLoader] = useState(false)
     const navigate = useNavigate()
+    const {
+        showSuccessMessage,
+        showErrorMessage,
+        showWarningMessage,
+        clearFlashMessage,
+    } = useContext(FlashMessageContext)
 
     useEffect(() => {
         window.scrollTo(0, 0)
@@ -55,10 +61,10 @@ const Signup = () => {
         e.preventDefault()
 
         // Clear any previous flash message
-        setFlashMessage("")
+        showErrorMessage("")
 
         if (!validateForm()) {
-            setFlashMessage("Please correct the errors in the form.") // Set flash message
+            showErrorMessage("Please correct the errors in the form.") // Set flash message
             return
         }
         setSignupLoader(true)
@@ -78,7 +84,7 @@ const Signup = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((data) => {
-                        setFlashMessage(data.message)
+                        showErrorMessage(data.message)
                     })
                 }
                 return response.json()
@@ -102,7 +108,7 @@ const Signup = () => {
                 navigate("/listings")
             })
             .catch((error) => {
-                setFlashMessage(error.message || "Unknown error")
+                showErrorMessage(error.message || "Unknown error")
             })
             .finally(() => {
                 setSignupLoader(false)
@@ -113,15 +119,6 @@ const Signup = () => {
         <div className="flex justify-center">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
-
-                {flashMessage && (
-                    <div
-                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                        role="alert"
-                    >
-                        <span className="block sm:inline">{flashMessage}</span>
-                    </div>
-                )}
 
                 <form
                     onSubmit={handleSubmit}

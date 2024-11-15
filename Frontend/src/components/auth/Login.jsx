@@ -1,14 +1,20 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import Cookies from "js-cookie"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
 
 const Login = () => {
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     })
-    const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
+    const {
+        showSuccessMessage,
+        showErrorMessage,
+        showWarningMessage,
+        clearFlashMessage,
+    } = useContext(FlashMessageContext)
     const [loginLoader, setLoginLoader] = useState(false)
 
     useEffect(() => {
@@ -23,7 +29,7 @@ const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault()
         if (formData.email.length == 0 || formData.password.length == 0) {
-            setFlashMessage("Email or Password can't be empty ")
+            showErrorMessage("Email or Password can't be empty ")
             return
         }
 
@@ -40,8 +46,7 @@ const Login = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((data) => {
-                        setFlashMessage(data.message)
-                        throw new Error(`Login failed ${data.message}`)
+                        throw new Error(`Login failed :  ${data.message}`)
                     })
                 }
                 return response.json()
@@ -59,10 +64,8 @@ const Login = () => {
                 window.history.go(-1) // Redirect after successful login
             })
             .catch((error) => {
-                console.log("jaimin", error)
-
-                setFlashMessage(error.message || "Unknown error") // Display error message
-                console.error("Login error:", error)
+                console.log("error in login : ", error)
+                showErrorMessage(error.message || "Unknown error") // Display error message
             })
             .finally(() => {
                 setLoginLoader(false)
@@ -73,14 +76,6 @@ const Login = () => {
         <div className="flex justify-center  ">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Login</h2>
-                {flashMessage && (
-                    <div
-                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                        role="alert"
-                    >
-                        <span className="block sm:inline">{flashMessage}</span>
-                    </div>
-                )}
                 <form
                     onSubmit={handleSubmit}
                     className="needs-validation"

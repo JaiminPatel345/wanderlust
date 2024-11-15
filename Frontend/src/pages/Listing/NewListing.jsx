@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
-import Cookies from "js-cookie"
 import checkUserSession from "../../utils/auth"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
 
 const NewListing = () => {
     const navigate = useNavigate()
-    const [flashMessage, setFlashMessage] = useState("") // For displaying error messages
 
     const [formData, setFormData] = useState({
         title: "",
@@ -21,6 +20,12 @@ const NewListing = () => {
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
     const [currUser, setCurrUser] = useState(null)
+    const {
+        showSuccessMessage,
+        showErrorMessage,
+        showWarningMessage,
+        clearFlashMessage,
+    } = useContext(FlashMessageContext)
 
     useEffect(() => {
         const user = checkUserSession()
@@ -44,7 +49,7 @@ const NewListing = () => {
             [name]: value,
         }))
 
-        if (flashMessage) setFlashMessage("")
+        clearFlashMessage()
     }
 
     const handleTagChange = (e) => {
@@ -78,12 +83,12 @@ const NewListing = () => {
             !formData.country ||
             !formData.location
         ) {
-            setFlashMessage("Please fill in all required fields")
+            showErrorMessage("Please fill in all required fields")
             return
         }
 
         if (!formData.image && !imageFile) {
-            setFlashMessage(
+            showErrorMessage(
                 "Please provide either an image URL or upload an image"
             )
             window.scrollTo(0, 0)
@@ -91,7 +96,7 @@ const NewListing = () => {
         }
 
         if (formData.image && !isUrlValid(formData.image)) {
-            setFlashMessage("Invalid image URL")
+            showErrorMessage("Invalid image URL")
             window.scrollTo(0, 0)
             return
         }
@@ -110,7 +115,7 @@ const NewListing = () => {
                 navigate("/listings")
             })
             .catch((e) => {
-                setFlashMessage(e.message || "Unknown error")
+                showErrorMessage(e.message || "Unknown error")
                 window.scrollTo(0, 0)
             })
             .finally(() => {
@@ -147,7 +152,7 @@ const NewListing = () => {
     const handleImageUpload = async (event) => {
         const file = event.target.files[0]
         if (!file) return
-        setFlashMessage("")
+        showErrorMessage("")
         setImageLoader(true)
         const payload = new FormData()
         payload.append("file", file)
@@ -172,7 +177,7 @@ const NewListing = () => {
             }))
         } catch (error) {
             console.error("Image upload failed:", error)
-            setFlashMessage((pvs) => pvs + error.message || "Unknown error")
+            showErrorMessage((pvs) => pvs + error.message || "Unknown error")
         }
         setImageLoader(false)
     }
@@ -210,14 +215,6 @@ const NewListing = () => {
         <div className="flex justify-center items-center min-h-screen ">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6">New Listing</h2>
-                {flashMessage && (
-                    <div
-                        className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                        role="alert"
-                    >
-                        <span className="block sm:inline">{flashMessage}</span>
-                    </div>
-                )}
 
                 <form
                     id="new-listing-form"
