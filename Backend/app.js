@@ -45,7 +45,9 @@ app.use(
 );
 
 const corsOptions = {
-    origin: true,
+    origin: function (origin, callback) {
+        callback(null, true); // Allows all origins
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     exposedHeaders: ["set-cookie"],
@@ -72,10 +74,11 @@ app.use(
         saveUninitialized: false,
         secret: process.env.SECRET,
         name: "sessionId", // Custom name instead of 'connect.sid'
+        proxy: true,
         cookie: {
             secure: process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
-            SameSite: process.env.SAME_SITE,
+            SameSite: "none",
             httpOnly: true, // Added security
         },
     })
