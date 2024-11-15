@@ -30,24 +30,40 @@ async function main() {
     await mongoose.connect(process.env.MONGO_URL)
 }
 
-app.use(helmet())
+
 app.use(express.json())
 app.set("trust proxy", 1);
+app.use(
+    helmet({
+        crossOriginResourcePolicy: {
+            policy: "cross-origin"
+        },
+        crossOriginOpenerPolicy: {
+            policy: "unsafe-none"
+        }
+    })
+);
+
+const corsOptions = {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    exposedHeaders: ["set-cookie"],
+};
+
+// CORS setup for frontend-backend communication
+app.use(cors(corsOptions));
+
 
 app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Credentials', 'true');
     next();
 });
 
-// CORS setup for frontend-backend communication
-app.use(
-    cors({
-        origin: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-        credentials: true,
-        exposedHeaders: ["set-cookie"],
-    })
-)
 
 app.use(
     session({
@@ -61,7 +77,6 @@ app.use(
             maxAge: 1000 * 3600 * 2, //2 H
             SameSite: process.env.SAME_SITE,
             httpOnly: true, // Added security
-            domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
         },
     })
 )
