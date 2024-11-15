@@ -45,7 +45,7 @@ app.use(
         origin: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         credentials: true,
-        exposedHeaders: ["Set-Cookie"],
+        exposedHeaders: ["set-cookie"],
     })
 )
 
@@ -60,7 +60,7 @@ app.use(
             secure: process.env.NODE_ENV == "production",
             maxAge: 1000 * 3600 * 2, //2 H
             SameSite: process.env.SAME_SITE,
-            httpOnly: false, // Added security
+            httpOnly: true, // Added security
             domain: process.env.NODE_ENV === "production" ? ".azurewebsites.net" : ".localhost",
         },
     })
