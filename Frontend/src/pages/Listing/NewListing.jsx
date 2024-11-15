@@ -107,12 +107,11 @@ const NewListing = () => {
             tagsArray: formData.tags,
             image: imageFile || formData.image,
         }
-        console.log(data)
 
         sendData(data)
             .then((response) => {
-                console.log("Form submitted successfully", response)
-                navigate("/listings")
+                showSuccessMessage(`Listing added successfully`)
+                navigate(`/listings/${response._id}`)
             })
             .catch((e) => {
                 showErrorMessage(e.message || "Unknown error")
@@ -152,7 +151,7 @@ const NewListing = () => {
     const handleImageUpload = async (event) => {
         const file = event.target.files[0]
         if (!file) return
-        showErrorMessage("")
+        clearFlashMessage()
         setImageLoader(true)
         const payload = new FormData()
         payload.append("file", file)
@@ -168,16 +167,16 @@ const NewListing = () => {
                 }
             )
             const data = await res.json()
-            console.log(data)
 
             setImageFile(data.secure_url)
+            showSuccessMessage("Image uploaded")
             setFormData((pvs) => ({
                 ...pvs,
                 image: "",
             }))
         } catch (error) {
-            console.error("Image upload failed:", error)
-            showErrorMessage((pvs) => pvs + error.message || "Unknown error")
+            console.log("Image upload failed:", error)
+            showErrorMessage(error.message || "Unknown error")
         }
         setImageLoader(false)
     }
@@ -299,11 +298,7 @@ const NewListing = () => {
                             onChange={handleImageUpload}
                         />
                         <p className="mt-2 text-sm text-green-600">
-                            {imageLoader ? (
-                                <PulseLoader size={5} />
-                            ) : (
-                                imageFile && "Image uploaded successfully!"
-                            )}
+                            {imageLoader ? <PulseLoader size={5} /> : ""}
                         </p>
                     </div>
 

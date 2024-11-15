@@ -46,7 +46,9 @@ const Login = () => {
             .then((response) => {
                 if (!response.ok) {
                     return response.json().then((data) => {
-                        throw new Error(`Login failed :  ${data.message}`)
+                        console.log(data)
+
+                        throw new Error(`${data.message}`)
                     })
                 }
                 return response.json()
@@ -61,6 +63,7 @@ const Login = () => {
                     }),
                     { expires: 1 / 24 }
                 )
+                showSuccessMessage(`Hi  ${data.user.name} 👋`)
                 window.history.go(-1) // Redirect after successful login
             })
             .catch((error) => {

@@ -107,11 +107,11 @@ const EditListing = () => {
             tagsArray: formData.tags,
             image: imageFile || formData.image,
         }
-        console.log(data)
 
         sendData(data)
             .then((response) => {
-                console.log("Form submitted successfully", response)
+                showSuccessMessage("Edited 👍")
+
                 navigate(`/listings/${listing._id}`)
             })
             .catch((e) => {
@@ -124,8 +124,6 @@ const EditListing = () => {
 
     const sendData = async (data) => {
         try {
-            console.log(data)
-
             const response = await fetch(
                 `${process.env.VITE_API_BASE_URL}/listings/${listing._id}`,
                 {
@@ -156,7 +154,7 @@ const EditListing = () => {
         payload.append("file", file)
         payload.append("upload_preset", "ml_default")
         setImageLoader(true)
-        if (showErrorMessage) showErrorMessage("")
+        clearFlashMessage()
 
         try {
             const res = await fetch(
@@ -167,7 +165,7 @@ const EditListing = () => {
                 }
             )
             const data = await res.json()
-            console.log(data)
+            showSuccessMessage("Image Uploaded ")
 
             setImageFile(data.secure_url)
         } catch (error) {
@@ -266,11 +264,7 @@ const EditListing = () => {
                             onChange={handleImageUpload}
                         />
                         <p className="mt-2 text-sm text-green-600">
-                            {imageLoader ? (
-                                <PulseLoader size={5} />
-                            ) : (
-                                imageFile && "Image uploaded successfully!"
-                            )}
+                            {imageLoader ? <PulseLoader size={5} /> : ""}
                         </p>
                     </div>
 

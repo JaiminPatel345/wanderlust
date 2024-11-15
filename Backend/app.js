@@ -130,7 +130,7 @@ app.use("/", usersRoutes)
 // })
 
 app.use((err, req, res, next) => {
-    console.log(err)
+    console.log("Error at last ", err)
     if (res.headersSent) {
         return // If headers are already sent, delegate to the default error handler
     }

@@ -52,8 +52,7 @@ const Signup = () => {
             formErrors.password = "Password must be at least 6 characters long"
             valid = false
         }
-
-        setErrors(formErrors)
+        if (Object.entries(formErrors > 0)) setErrors(formErrors)
         return valid
     }
 
@@ -101,13 +100,16 @@ const Signup = () => {
                         }),
                         { expires: 1 / 24 }
                     )
+
+                    showSuccessMessage(`Hi  ${data.user.name} 👋`)
                 } else {
                     throw new Error(data.message)
                 }
-                console.log(data) // Log the response data
                 navigate("/listings")
             })
             .catch((error) => {
+                console.log(error)
+
                 showErrorMessage(error.message || "Unknown error")
             })
             .finally(() => {

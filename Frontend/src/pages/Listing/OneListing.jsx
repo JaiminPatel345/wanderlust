@@ -65,6 +65,7 @@ const OneListing = () => {
         })
             .then(() => {
                 isDelete = true
+                showSuccessMessage("Listing Deleted")
             })
             .catch((error) => {
                 showErrorMessage(error.message || "Unknown error")
@@ -97,6 +98,7 @@ const OneListing = () => {
                     })
                 }
                 setAllReviews((pvs) => pvs.filter((e) => e._id != review._id))
+                showSuccessMessage("Review Deleted")
             })
             .catch((e) => {
                 console.log("Error submitting review:", e)
@@ -146,6 +148,8 @@ const OneListing = () => {
                 }
 
                 setAllReviews((pvs) => [...pvs, newReview])
+                showSuccessMessage("Review added")
+
                 setReviewContent("")
                 setRating(3)
             })

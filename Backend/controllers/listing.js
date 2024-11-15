@@ -1,77 +1,107 @@
-const Listing = require("../models/listing.js")
+const Listing = require("../models/listing.js");
 
 // Index: Get all listings
-module.exports.index = async (req, res) => {
-    const allListings = await Listing.find({})
-    res.json(allListings) // Send data in JSON format
-}
+module.exports.index = (req, res) => {
+    Listing.find({})
+        .then((data) => {
+            res.send(data);
+        })
+        .catch((e) => {
+            res.status(500).json({
+                message: "Error to get all Listing",
+                error: e.message,
+            });
+        });
+};
 
 // Show a specific listing
-module.exports.singleListing = async (req, res) => {
-    const { id } = req.params
-    const listing = await Listing.findById(id)
+module.exports.singleListing = (req, res) => {
+    const {
+        id
+    } = req.params;
+    Listing.findById(id)
         .populate({
             path: "reviews",
-            populate: { path: "owner" },
+            populate: {
+                path: "owner",
+            },
         })
         .populate("owner")
-
-    if (!listing) {
-        return res.status(404).json({ error: "Listing not found" })
-    }
-    res.json(listing)
-}
+        .then((listing) => {
+            if (!listing) {
+                return res.status(404).json({
+                    error: "Listing not found",
+                });
+            }
+            res.json(listing);
+        })
+        .catch((error) => {
+            res.status(500).json({
+                message: "Error retrieving listing",
+                error: error.message,
+            });
+        });
+};
 
 // Create a new listing
-module.exports.createListing = async (req, res, next) => {
-    try {
-        const { title, description, price, location, country, tagsArray } =
-            req.body
-
-        const image = {
-            url: req.body.image,
-            filename: "listingimage",
-        }
-
-        const newListing = new Listing({
-            title,
-            description,
-            image,
-            price,
-            location,
-            country,
-            tags: tagsArray || "[]",
-            owner: req.session.user.userId,
-        })
-        console.log(newListing)
-
-        newListing
-            .save()
-            .then((result) => {
-                res.status(201).json({
-                    message: "New Listing Added!",
-                    listing: result,
-                }) // Response sent here=
-            })
-            .catch((error) => {
-                console.log(error)
-
-                res.status(500).json({ message: error.message }) // Response sent here
-            })
-    } catch (err) {
-        next(err) // Pass the error to the error-handling middleware
-    }
-}
-
-// Update a listing
-module.exports.updateListing = async (req, res) => {
-    const { id } = req.params
-    const { title, description, price, location, country, tagsArray } = req.body
+module.exports.createListing = (req, res, next) => {
+    const {
+        title,
+        description,
+        price,
+        location,
+        country,
+        tagsArray
+    } = req.body;
 
     const image = {
         url: req.body.image,
         filename: "listingimage",
-    }
+    };
+
+    const newListing = new Listing({
+        title,
+        description,
+        image,
+        price,
+        location,
+        country,
+        tags: tagsArray || "[]",
+        owner: req.session.user.userId,
+    });
+    console.log(newListing);
+
+    newListing
+        .save()
+        .then((result) => {
+            res.status(201).json(result);
+        })
+        .catch((error) => {
+            res.status(500).json({
+                message: "Error creating listing",
+                error: error.message,
+            });
+        });
+};
+
+// Update a listing
+module.exports.updateListing = (req, res) => {
+    const {
+        id
+    } = req.params;
+    const {
+        title,
+        description,
+        price,
+        location,
+        country,
+        tagsArray
+    } = req.body;
+
+    const image = {
+        url: req.body.image,
+        filename: "listingimage",
+    };
 
     const data = {
         title,
@@ -82,33 +112,55 @@ module.exports.updateListing = async (req, res) => {
         country,
         tags: tagsArray,
         owner: req.session.user.userId,
-    }
-    // console.log(req.body.tagsArray)
-    // console.log(typeof req.body.tagsArray)
+    };
 
     const body = {
         ...data,
-        // tags: JSON.parse(`{${req.body.tagsArray}}` || "[]"),
-    }
-    const listing = await Listing.findByIdAndUpdate(id, body, { new: true })
+    };
 
-    if (!listing) {
-        return res.status(404).json({ message: "Listing not found" })
-    }
+    Listing.findByIdAndUpdate(id, body, {
+            new: true
+        })
+        .then((listing) => {
+            if (!listing) {
+                return res.status(404).json({
+                    message: "Listing not found",
+                });
+            }
 
-    res.json({ message: "Listing Updated!", listing }) // Send success message and updated listing
-}
+            res.json(listing);
+        })
+        .catch((error) => {
+            res.status(500).json({
+                message: "Error updating listing",
+                error: error.message,
+            });
+        });
+};
 
 // Delete a listing
-module.exports.destroyListing = async (req, res) => {
-    const { id } = req.params
-    console.log(id)
+module.exports.destroyListing = (req, res) => {
+    const {
+        id
+    } = req.params;
+    console.log(id);
 
-    const result = await Listing.findByIdAndDelete(id)
+    Listing.findByIdAndDelete(id)
+        .then((result) => {
+            if (!result) {
+                return res.status(404).json({
+                    message: "Listing not found",
+                });
+            }
 
-    if (!result) {
-        return res.status(404).json({ error: "Listing not found" })
-    }
-
-    res.json({ message: "Listing Deleted" }) // Send success message
-}
+            res.json({
+                message: "Listing Deleted",
+            });
+        })
+        .catch((error) => {
+            res.status(500).json({
+                message: "Error deleting listing",
+                error: error.message,
+            });
+        });
+};
