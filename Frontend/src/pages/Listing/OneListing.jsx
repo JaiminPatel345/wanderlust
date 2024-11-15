@@ -5,7 +5,6 @@ import "../../rating.css"
 import checkUserSession from "../../utils/auth"
 import Cookies from "js-cookie"
 
-
 const OneListing = () => {
     const navigate = useNavigate()
     const { id } = useParams()
@@ -32,7 +31,6 @@ const OneListing = () => {
         }
 
         fetchUserData()
-        console.log(currUser)
 
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`)
             .then((response) => response.json())
@@ -56,8 +54,7 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing?._id}`, {
             method: "DELETE",
             headers: {
-                "Content-Type": "application/json", 
-
+                "Content-Type": "application/json",
             },
             credentials: "include",
         })
@@ -82,7 +79,7 @@ const OneListing = () => {
             {
                 method: "DELETE",
                 headers: {
-                    "Content-Type": "application/json", 
+                    "Content-Type": "application/json",
                 },
                 credentials: "include",
             }
@@ -124,8 +121,7 @@ const OneListing = () => {
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json", 
-
+                "Content-Type": "application/json",
             },
             credentials: "include",
             body: JSON.stringify({ rating, content: reviewContent }),
@@ -242,11 +238,11 @@ const OneListing = () => {
                             </p>
 
                             <button
-                                className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600"
+                                className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 min-w-20"
                                 onClick={deleteListing}
                             >
                                 {deleteLoader1 ? (
-                                    <PropagateLoader size={10} />
+                                    <PacmanLoader size={10} />
                                 ) : (
                                     "Delete"
                                 )}
@@ -376,12 +372,12 @@ const OneListing = () => {
                                     </p>
                                 </div>
                                 <h5 className="text-sm font-bold text-gray-700">
-                                    By: {review.owner.name}
+                                    By: {review.owner?.name}
                                 </h5>
                                 <p className="text-sm">{review.content}</p>
                                 {currUser &&
                                 (currUser?.userId?.toString() ===
-                                    review?.owner._id?.toString() ||
+                                    review?.owner?._id?.toString() ||
                                     currUser?.userId?.toString() ===
                                         "66a343a50ff99cdefc1a4657") ? (
                                     <form

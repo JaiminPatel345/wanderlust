@@ -4,11 +4,10 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import Cookies from "js-cookie"
 
-
 const EditListing = () => {
     const navigate = useNavigate()
     const [flashMessage, setFlashMessage] = useState("") // Flash message state
-    const [imageUrl, setImageUrl] = useState(null)
+    const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
 
@@ -40,6 +39,8 @@ const EditListing = () => {
             addTag(selectedTag)
             e.target.value = "null" // Reset select value
         }
+
+        if (flashMessage) setFlashMessage("")
     }
 
     const addTag = (tag) => {
@@ -56,6 +57,15 @@ const EditListing = () => {
         }))
     }
 
+    function isUrlValid(string) {
+        try {
+            new URL(string)
+            return true
+        } catch (err) {
+            return false
+        }
+    }
+
     const handleSubmit = (event) => {
         event.preventDefault()
         if (
@@ -66,6 +76,21 @@ const EditListing = () => {
             !formData.location
         ) {
             setFlashMessage("Please fill in all required fields")
+            window.scrollTo(0, 0)
+
+            return
+        }
+        if (!formData.image && !imageFile) {
+            setFlashMessage(
+                "Please provide either an image URL or upload an image"
+            )
+            window.scrollTo(0, 0)
+            return
+        }
+
+        if (formData.image && !isUrlValid(formData.image)) {
+            setFlashMessage("Invalid image URL")
+            window.scrollTo(0, 0)
             return
         }
 
@@ -74,7 +99,7 @@ const EditListing = () => {
         const data = {
             ...formData,
             tagsArray: formData.tags,
-            image: imageUrl || formData.image,
+            image: imageFile || formData.image,
         }
         console.log(data)
 
@@ -101,7 +126,6 @@ const EditListing = () => {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                           
                     },
                     body: JSON.stringify(data),
                     credentials: "include",
@@ -126,6 +150,7 @@ const EditListing = () => {
         payload.append("file", file)
         payload.append("upload_preset", "ml_default")
         setImageLoader(true)
+        if (flashMessage) setFlashMessage("")
 
         try {
             const res = await fetch(
@@ -133,17 +158,12 @@ const EditListing = () => {
                 {
                     method: "POST",
                     body: payload,
-                    credentials: "include",
                 }
             )
             const data = await res.json()
             console.log(data)
-            setFormData((pvs) => ({
-                ...pvs,
-                image: data.secure_url,
-            }))
 
-            setImageUrl(data.secure_url)
+            setImageFile(data.secure_url)
         } catch (error) {
             console.error("Image upload failed:", error)
             setFlashMessage((pvs) => pvs + error.message || "Unknown error")
@@ -211,22 +231,26 @@ const EditListing = () => {
                     <div>
                         <label
                             htmlFor="image"
-                            className="flex gap-1 text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700"
                         >
-                            {imageUrl && (
-                                <p className="font-bold text-green-700">New </p>
-                            )}
                             Image URL
                         </label>
                         <input
                             type="text"
                             name="image"
                             id="image"
-                            placeholder="Enter your Image URL"
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
-                            value={imageUrl || formData.image}
+                            placeholder="Add an image URL"
+                            className={`mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 ${
+                                imageFile ? "bg-green-100" : ""
+                            }`}
+                            value={imageFile || formData.image}
                             onChange={handleChange}
+                            disabled={imageFile !== null}
                         />
+                    </div>
+
+                    <div className="text-center text-gray-500">
+                        <p>OR</p>
                     </div>
 
                     <div>
@@ -247,7 +271,7 @@ const EditListing = () => {
                             {imageLoader ? (
                                 <PulseLoader size={5} />
                             ) : (
-                                imageUrl && "Image uploaded successfully!"
+                                imageFile && "Image uploaded successfully!"
                             )}
                         </p>
                     </div>

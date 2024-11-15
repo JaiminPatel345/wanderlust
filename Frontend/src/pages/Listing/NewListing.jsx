@@ -1,8 +1,8 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import Cookies from "js-cookie"
-
+import checkUserSession from "../../utils/auth"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -17,13 +17,27 @@ const NewListing = () => {
         location: "",
         tags: [],
     })
-    const [imageUrl, setImageUrl] = useState("")
+    const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
+    const [currUser, setCurrUser] = useState(null)
+
+    useEffect(() => {
+        const user = checkUserSession()
+        setCurrUser(user)
+    }, [])
+
+    function isUrlValid(string) {
+        try {
+            new URL(string)
+            return true
+        } catch (err) {
+            return false
+        }
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        console.log(value)
 
         setFormData((prevData) => ({
             ...prevData,
@@ -68,20 +82,25 @@ const NewListing = () => {
             return
         }
 
-        if (!formData.image && !imageUrl) {
+        if (!formData.image && !imageFile) {
             setFlashMessage(
                 "Please provide either an image URL or upload an image"
             )
             window.scrollTo(0, 0)
-            return false
+            return
         }
 
+        if (formData.image && !isUrlValid(formData.image)) {
+            setFlashMessage("Invalid image URL")
+            window.scrollTo(0, 0)
+            return
+        }
         setSubmitLoader(true)
 
         const data = {
             ...formData,
             tagsArray: formData.tags,
-            image: imageUrl || image,
+            image: imageFile || formData.image,
         }
         console.log(data)
 
@@ -92,6 +111,7 @@ const NewListing = () => {
             })
             .catch((e) => {
                 setFlashMessage(e.message || "Unknown error")
+                window.scrollTo(0, 0)
             })
             .finally(() => {
                 setSubmitLoader(false)
@@ -105,8 +125,7 @@ const NewListing = () => {
                 {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json", 
-
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify(data),
                     credentials: "include",
@@ -141,13 +160,12 @@ const NewListing = () => {
                 {
                     method: "POST",
                     body: payload,
-                    credentials: "include",
                 }
             )
             const data = await res.json()
             console.log(data)
 
-            setImageUrl(data.secure_url)
+            setImageFile(data.secure_url)
             setFormData((pvs) => ({
                 ...pvs,
                 image: "",
@@ -157,6 +175,35 @@ const NewListing = () => {
             setFlashMessage((pvs) => pvs + error.message || "Unknown error")
         }
         setImageLoader(false)
+    }
+
+    if (!currUser) {
+        //You are not login page
+        return (
+            <div className="flex ">
+                <div>
+                    <h1 className="text-3xl text-center">
+                        To add new Listing you must be{" "}
+                        <Link
+                            to="/login"
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                            Logged In
+                        </Link>{" "}
+                    </h1>
+                    <p>
+                        new User ? click{" "}
+                        <Link
+                            to="/signup"
+                            className="text-blue-500 hover:underline"
+                        >
+                            here
+                        </Link>{" "}
+                        to signup
+                    </p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -226,10 +273,13 @@ const NewListing = () => {
                             type="text"
                             name="image"
                             id="image"
-                            placeholder="Enter your Image URL"
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
-                            value={formData.image}
+                            placeholder="Add an image URL"
+                            className={`mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 ${
+                                imageFile ? "bg-green-100" : ""
+                            }`}
+                            value={imageFile || formData.image}
                             onChange={handleChange}
+                            disabled={imageFile !== null}
                         />
                     </div>
 
@@ -255,7 +305,7 @@ const NewListing = () => {
                             {imageLoader ? (
                                 <PulseLoader size={5} />
                             ) : (
-                                imageUrl && "Image uploaded successfully!"
+                                imageFile && "Image uploaded successfully!"
                             )}
                         </p>
                     </div>

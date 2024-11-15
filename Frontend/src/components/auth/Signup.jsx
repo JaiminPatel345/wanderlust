@@ -66,8 +66,7 @@ const Signup = () => {
         await fetch(`${process.env.VITE_API_BASE_URL}/signup`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json", 
-                
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 name: formData.name,
@@ -87,16 +86,15 @@ const Signup = () => {
             .then((data) => {
                 // Assuming the token is included in the response data
                 if (data) {
-                    
-                   Cookies.set(
-                    "user",
-                    JSON.stringify({
-                        userId: data.user.userId,
-                        email: data.user.email,
-                        name: data.user.name,
-                    }),
-                    { expires: 1 / 12 }
-                )
+                    Cookies.set(
+                        "user",
+                        JSON.stringify({
+                            userId: data.user.userId,
+                            email: data.user.email,
+                            name: data.user.name,
+                        }),
+                        { expires: 1 / 24 }
+                    )
                 } else {
                     throw new Error(data.message)
                 }

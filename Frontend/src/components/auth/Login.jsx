@@ -33,7 +33,6 @@ const Login = () => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                
             },
             body: JSON.stringify(formData),
             credentials: "include", // Ensure cookies are sent with the request
@@ -48,14 +47,14 @@ const Login = () => {
                 return response.json()
             })
             .then((data) => {
-                console.log(data);
-                
+                console.log(data)
+
                 Cookies.set(
                     "user",
                     JSON.stringify({
-                        ...data.user
+                        ...data.user,
                     }),
-                    { expires: 1 / 12 }
+                    { expires: 1 / 24 }
                 )
                 window.history.go(-1) // Redirect after successful login
             })
