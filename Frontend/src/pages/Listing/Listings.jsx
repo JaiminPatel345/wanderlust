@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faFire,
@@ -13,17 +13,21 @@ import {
 import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
 import { Link } from "react-router-dom"
 import { ScaleLoader } from "react-spinners"
+import { UserContext } from "../../components/contexts/userContext"
 
 const Listings = () => {
     const [allListings, setAllListings] = useState([])
     const [activeTags, setActiveTags] = useState([])
     const [showWithTax, setShowWithTax] = useState(false)
     const [loading, setLoading] = useState(true)
+    const { currUser, checkCurrUser } = useContext(UserContext)
 
     const taxRate = 0.18 // 18% GST
 
     // Fetch listings from the backend
     useEffect(() => {
+        if (!currUser) checkCurrUser()
+
         fetch(`${process.env.VITE_API_BASE_URL}/listings`) // Adjust the URL to your backend endpoint
             .then((response) => response.json())
             .then((data) => {

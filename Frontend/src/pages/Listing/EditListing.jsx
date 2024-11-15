@@ -3,6 +3,8 @@ import React, { useContext, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
+import { UserContext } from "../../components/contexts/userContext"
+import { Link } from "react-router-dom"
 
 const EditListing = () => {
     const navigate = useNavigate()
@@ -16,9 +18,8 @@ const EditListing = () => {
     const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
-
+    const { currUser, checkCurrUser } = useContext(UserContext)
     const { state } = useLocation()
-
     const listing = state
 
     const [formData, setFormData] = useState({
@@ -174,6 +175,35 @@ const EditListing = () => {
         }
         setImageLoader(false)
     }
+    if (!currUser) {
+        //You are not login page
+        return (
+            <div className="flex ">
+                <div>
+                    <h1 className="text-3xl text-center">
+                        To edit Listing you must be{" "}
+                        <Link
+                            to="/login"
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                            Logged In
+                        </Link>{" "}
+                    </h1>
+                    <p>
+                        new User ? click{" "}
+                        <Link
+                            to="/signup"
+                            className="text-blue-500 hover:underline"
+                        >
+                            here
+                        </Link>{" "}
+                        to signup
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">

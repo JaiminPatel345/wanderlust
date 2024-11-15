@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import Cookies from "js-cookie"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
+import { UserContext } from "../contexts/userContext"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ const Signup = () => {
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
+    const { currUSer, checkCurrUser } = useContext(UserContext)
 
     useEffect(() => {
         window.scrollTo(0, 0)
@@ -60,7 +62,7 @@ const Signup = () => {
         e.preventDefault()
 
         // Clear any previous flash message
-        showErrorMessage("")
+        clearFlashMessage()
 
         if (!validateForm()) {
             showErrorMessage("Please correct the errors in the form.") // Set flash message
@@ -101,20 +103,25 @@ const Signup = () => {
                         { expires: 1 / 24 }
                     )
 
+                    checkCurrUser()
                     showSuccessMessage(`Hi  ${data.user.name} 👋`)
+                    navigate("/listings")
                 } else {
                     throw new Error(data.message)
                 }
-                navigate("/listings")
             })
             .catch((error) => {
                 console.log(error)
-
                 showErrorMessage(error.message || "Unknown error")
             })
             .finally(() => {
                 setSignupLoader(false)
             })
+    }
+
+    if (currUSer) {
+        showWarningMessage("You are already logged in")
+        window.history.go("/")
     }
 
     return (

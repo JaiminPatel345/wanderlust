@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
+import { UserContext } from "../../components/contexts/userContext"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -19,17 +20,16 @@ const NewListing = () => {
     const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
-    const [currUser, setCurrUser] = useState(null)
     const {
         showSuccessMessage,
         showErrorMessage,
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
+    const { currUser, checkCurrUser } = useContext(UserContext)
 
     useEffect(() => {
-        const user = checkUserSession()
-        setCurrUser(user)
+        if (!currUser) checkCurrUser()
     }, [])
 
     function isUrlValid(string) {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import Cookies from "js-cookie"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
+import { UserContext } from "../contexts/userContext"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ const Login = () => {
         clearFlashMessage,
     } = useContext(FlashMessageContext)
     const [loginLoader, setLoginLoader] = useState(false)
+    const { currUSer, checkCurrUser } = useContext(UserContext)
 
     useEffect(() => {
         window.scrollTo(0, 0)
@@ -63,6 +65,7 @@ const Login = () => {
                     }),
                     { expires: 1 / 24 }
                 )
+                checkCurrUser()
                 showSuccessMessage(`Hi  ${data.user.name} 👋`)
                 window.history.go(-1) // Redirect after successful login
             })
@@ -73,6 +76,11 @@ const Login = () => {
             .finally(() => {
                 setLoginLoader(false)
             })
+    }
+
+    if (currUSer) {
+        showWarningMessage("You are already logged in")
+        window.history.go("/")
     }
 
     return (

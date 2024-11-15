@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass, faBars } from "@fortawesome/free-solid-svg-icons"
@@ -12,36 +12,23 @@ import {
     IconButton,
     Card,
 } from "@material-tailwind/react"
-import Cookies from "js-cookie"
+import { UserContext } from "../contexts/userContext"
 
 // eslint-disable-next-line react/prop-types
 const MyNavbar = () => {
     const navigate = useNavigate()
-    const [currUser, setCurrUser] = useState(null)
     const [openNav, setOpenNav] = React.useState(false)
+    const { currUser, logout } = useContext(UserContext)
 
     useEffect(() => {
         window.addEventListener(
             "resize",
             () => window.innerWidth >= 960 && setOpenNav(false)
         )
-
-        const fetchUserData = async () => {
-            const userData = await checkUserSession(navigate)
-
-            if (userData) {
-                // User is logged in, you can process user data here if needed                
-                setCurrUser(userData)
-            }
-        }
-
-        fetchUserData()
     }, [navigate])
 
     const handelLogout = () => {
-        Logout()
-        setCurrUser(null)
-        Cookies.remove("user")
+        logout()
     }
 
     const handelLogin = () => {

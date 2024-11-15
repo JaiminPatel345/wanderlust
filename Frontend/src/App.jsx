@@ -14,6 +14,7 @@ import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
 import { FlashMessageProvider } from "./utils/flashMessageContext"
 import FlashMessageDisplay from "./components/flashMessageDisplay"
 import { Toaster } from "react-hot-toast"
+import { UserProvider } from "./components/contexts/userContext"
 
 const Layout = () => {
     return (
@@ -54,10 +55,12 @@ const router = createBrowserRouter(
 
 function App() {
     return (
-        <FlashMessageProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-        </FlashMessageProvider>
+        <UserProvider>
+            <FlashMessageProvider>
+                <RouterProvider router={router} />
+                <Toaster />
+            </FlashMessageProvider>
+        </UserProvider>
     )
 }
 

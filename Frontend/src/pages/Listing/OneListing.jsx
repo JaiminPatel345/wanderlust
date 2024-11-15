@@ -4,6 +4,7 @@ import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
 import "../../rating.css"
 import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
+import { UserContext } from "../../components/contexts/userContext"
 
 const OneListing = () => {
     const navigate = useNavigate()
@@ -12,7 +13,6 @@ const OneListing = () => {
     const [reviewContent, setReviewContent] = useState(null)
     const [rating, setRating] = useState(3)
     const [allReviews, setAllReviews] = useState({})
-    const [currUser, setCurrUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [showSignup, setShowSignup] = useState(false)
     const [submitLoader, setsubmitLoader] = useState(false)
@@ -24,18 +24,10 @@ const OneListing = () => {
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
+    const { currUser, checkCurrUser } = useContext(UserContext)
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            const userData = await checkUserSession(navigate)
-
-            if (userData) {
-                // User is logged in, you can process user data here if needed
-                setCurrUser(userData)
-            }
-        }
-
-        fetchUserData()
+        if (!currUser) checkCurrUser()
 
         fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`)
             .then((response) => response.json())
