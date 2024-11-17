@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react"
 
-const Chat = ({ chats }) => {
+const Chat = ({}) => {
     const [selectedChatId, setSelectedChatId] = useState(null)
 
     const openChat = (chatId) => {
@@ -11,7 +11,7 @@ const Chat = ({ chats }) => {
     return (
         <div className="flex">
             {/* Left side for chat list */}
-            <div className="maxHight flex flex-col w-1/4 min-w-72 mt-2 border-t border-slate-100 text-center overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-xl [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-xl [&::-webkit-scrollbar-track]:bg-slate-100">
+            {/* <div className="maxHight flex flex-col w-1/4 min-w-72 mt-2 border-t border-slate-100 text-center overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-xl [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-xl [&::-webkit-scrollbar-track]:bg-slate-100">
                 <h2 className="text-xl font-semibold mb-4 text-gray-800">
                     All Chats
                 </h2>
@@ -40,7 +40,6 @@ const Chat = ({ chats }) => {
                 </ul>
             </div>
 
-            {/* Right side for chat interaction */}
             <div className="w-3/4 p-4 bg-white">
                 {selectedChatId ? (
                     chats.map((chat, index) => (
@@ -55,7 +54,6 @@ const Chat = ({ chats }) => {
                                 Chat with {chat.user.name}
                             </h3>
                             <div className="bg-gray-100 p-4 rounded-lg h-96 overflow-y-auto mb-4">
-                                {/* Display messages for the selected chat */}
                                 {chat.chats.map((messageId, msgIndex) => (
                                     <p
                                         key={msgIndex}
@@ -84,7 +82,8 @@ const Chat = ({ chats }) => {
                         </h3>
                     </div>
                 )}
-            </div>
+            </div> */}
+            <h1>I will added chat functionality very soon</h1>
         </div>
     )
 }

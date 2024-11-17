@@ -116,7 +116,7 @@ const Listings = () => {
                     </div>
                 ))}
                 <div className="tax-toggle ">
-                    <div className="form-check-reverse flex gap-2 border-2 px-3 form-switch">
+                    <div className="form-check-reverse flex gap-2 border-2 rounded-md px-3 form-switch">
                         <input
                             className="form-check-input"
                             type="checkbox"

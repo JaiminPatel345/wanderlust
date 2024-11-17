@@ -25,7 +25,6 @@ export const UserProvider = ({ children }) => {
                 currUser,
                 setCurrUser,
                 checkCurrUser,
-                setCurrUser,
                 logout,
             }}
         >

@@ -2,17 +2,15 @@ import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass, faBars } from "@fortawesome/free-solid-svg-icons"
-import checkUserSession from "../../utils/auth"
-import Logout from "../../utils/logout"
 import {
     Navbar,
     Collapse,
     Typography,
     Button,
     IconButton,
-    Card,
 } from "@material-tailwind/react"
 import { UserContext } from "../contexts/userContext"
+import "../../button.css"
 
 // eslint-disable-next-line react/prop-types
 const MyNavbar = () => {
@@ -47,8 +45,8 @@ const MyNavbar = () => {
                 color="blue-gray"
                 className="p-1 font-normal"
             >
-                <Link to="/listings/new" className="flex items-center">
-                    List your property
+                <Link to="/listings/new" className="flex items-center bn13">
+                    Add new
                 </Link>
             </Typography>
             <Typography
