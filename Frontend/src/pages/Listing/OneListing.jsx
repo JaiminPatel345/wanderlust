@@ -4,7 +4,7 @@ import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
 import "../../rating.css"
 import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../components/contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
 
 const OneListing = () => {
     const navigate = useNavigate()

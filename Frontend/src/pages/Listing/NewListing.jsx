@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../components/contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
 
 const NewListing = () => {
     const navigate = useNavigate()

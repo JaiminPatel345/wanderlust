@@ -8,13 +8,13 @@ import {
 } from "react-router-dom"
 import MyNavbar from "./components/common/Navbar"
 import Footer from "./components/common/Footer"
-import Login from "./components/auth/Login"
-import Signup from "./components/auth/Signup"
+import Login from "./pages/auth/Login"
+import Signup from "./pages/auth/Signup"
 import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
 import { FlashMessageProvider } from "./utils/flashMessageContext"
 import FlashMessageDisplay from "./components/flashMessageDisplay"
 import { Toaster } from "react-hot-toast"
-import { UserProvider } from "./components/contexts/userContext"
+import { UserProvider } from "./contexts/userContext"
 import Chat from "./pages/Chat"
 
 const Layout = () => {

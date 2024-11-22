@@ -17,9 +17,12 @@ const FlashMessageDisplay = () => {
                     onClose: clearFlashMessage,
                 })
             } else if (type === "warning") {
-                toast.warning(message, {
-                    onClose: clearFlashMessage,
-                })
+                toast((t) => (
+                    <span>
+                        <b>you are already logged in </b>
+                        <br />
+                    </span>
+                ))
             }
         }
     }, [flashMessage, clearFlashMessage])

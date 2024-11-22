@@ -9,7 +9,7 @@ import {
     Button,
     IconButton,
 } from "@material-tailwind/react"
-import { UserContext } from "../contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
 import "../../button.css"
 
 // eslint-disable-next-line react/prop-types
@@ -113,7 +113,7 @@ const MyNavbar = () => {
                                     className="hidden lg:inline-block text-black"
                                     onClick={handelSignup}
                                 >
-                                    <span>Sign in</span>
+                                    <span>Sign up</span>
                                 </Button>
                             </div>
                         )}
@@ -192,7 +192,7 @@ const MyNavbar = () => {
                                 className="text-black border-2"
                                 onClick={handelSignup}
                             >
-                                <span className="">Sign in</span>
+                                <span className="">Sign up</span>
                             </Button>
                         </div>
                     ) : (

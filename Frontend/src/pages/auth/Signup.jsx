@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
-import Cookies from "js-cookie"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
+import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -12,22 +12,47 @@ const Signup = () => {
         password: "",
     })
 
+    const navigate = useNavigate()
+
     const [errors, setErrors] = useState({})
     const [signupLoader, setSignupLoader] = useState(false)
-    const navigate = useNavigate()
     const {
         showSuccessMessage,
         showErrorMessage,
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
-    const { currUSer, checkCurrUser } = useContext(UserContext)
+    const { setCurrUserAndCookies, getCurrUser } = useContext(UserContext)
+    const [isObscureText, setIsObscureText] = useState(true)
+
+    const { RiveComponent, rive } = useRive({
+        src: "/animated_login_screen.riv", // Path to your Rive file
+        stateMachines: "Login Machine", // Exact name of the state machine in your Rive file
+        autoplay: true,
+    })
 
     useEffect(() => {
+        if (getCurrUser) {
+            showWarningMessage("You are already logged in")
+            navigate("/")
+        }
         window.scrollTo(0, 0)
     })
 
+    const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
+    const isHandsUp = useStateMachineInput(rive, "Login Machine", "isHandsUp")
+    const trigSuccess = useStateMachineInput(
+        rive,
+        "Login Machine",
+        "trigSuccess"
+    )
+    const trigFail = useStateMachineInput(rive, "Login Machine", "trigFail")
+    const numLook = useStateMachineInput(rive, "Login Machine", "numLook")
+
     const handleChange = (e) => {
+        if (numLook) {
+            numLook.value = Math.min(e.target.value.length, 40)
+        }
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
@@ -66,6 +91,7 @@ const Signup = () => {
 
         if (!validateForm()) {
             showErrorMessage("Please correct the errors in the form.") // Set flash message
+            if (trigFail) trigFail.fire()
             return
         }
         setSignupLoader(true)
@@ -86,6 +112,10 @@ const Signup = () => {
                 if (!response.ok) {
                     return response.json().then((data) => {
                         showErrorMessage(data.message)
+                        throw {
+                            message: data.message,
+                            error: data.error,
+                        }
                     })
                 }
                 return response.json()
@@ -93,41 +123,38 @@ const Signup = () => {
             .then((data) => {
                 // Assuming the token is included in the response data
                 if (data) {
-                    Cookies.set(
-                        "user",
-                        JSON.stringify({
-                            userId: data.user.userId,
-                            email: data.user.email,
-                            name: data.user.name,
-                        }),
-                        { expires: 1 / 24 }
-                    )
+                    setCurrUserAndCookies(data) //set cookies
 
-                    checkCurrUser()
                     showSuccessMessage(`Hi  ${data.user.name} 👋`)
-                    navigate("/listings")
+                    if (trigSuccess) trigSuccess.fire()
+
+                    setTimeout(() => {
+                        window.history.go(-1)
+                    }, 500)
                 } else {
-                    throw new Error(data.message)
+                    throw {
+                        message: data.message,
+                        error: data.error,
+                    }
                 }
             })
             .catch((error) => {
                 console.log(error)
-                showErrorMessage(error.message || "Unknown error")
+                if (trigFail) trigFail.fire()
+                showErrorMessage(error?.message || "Unknown error")
             })
             .finally(() => {
                 setSignupLoader(false)
             })
     }
 
-    if (currUSer) {
-        showWarningMessage("You are already logged in")
-        window.history.go("/")
-    }
-
     return (
         <div className="flex justify-center">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
+                <div className="w-full max-w-md">
+                    <RiveComponent className="h-80 w-full" />
+                </div>
 
                 <form
                     onSubmit={handleSubmit}
@@ -152,6 +179,12 @@ const Signup = () => {
                             } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                             value={formData.name}
                             onChange={handleChange}
+                            onFocus={() =>
+                                isChecking && (isChecking.value = true)
+                            }
+                            onBlur={() =>
+                                isChecking && (isChecking.value = false)
+                            }
                             required
                         />
                         {errors.name && (
@@ -179,6 +212,12 @@ const Signup = () => {
                             } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                             value={formData.email}
                             onChange={handleChange}
+                            onFocus={() =>
+                                isChecking && (isChecking.value = true)
+                            }
+                            onBlur={() =>
+                                isChecking && (isChecking.value = false)
+                            }
                             required
                         />
                         {errors.email && (
@@ -206,6 +245,12 @@ const Signup = () => {
                             } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
                             value={formData.password}
                             onChange={handleChange}
+                            onFocus={() =>
+                                isHandsUp && (isHandsUp.value = true)
+                            }
+                            onBlur={() =>
+                                isHandsUp && (isHandsUp.value = false)
+                            }
                             required
                         />
                         {errors.password && (

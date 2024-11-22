@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
-import Cookies from "js-cookie"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
+import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -17,13 +17,39 @@ const Login = () => {
         clearFlashMessage,
     } = useContext(FlashMessageContext)
     const [loginLoader, setLoginLoader] = useState(false)
-    const { currUSer, checkCurrUser } = useContext(UserContext)
+    const { setCurrUserAndCookies, getCurrUser } = useContext(UserContext)
+    const [isObscureText, setIsObscureText] = useState(true)
+    const navigate = useNavigate()
+
+    const { RiveComponent, rive } = useRive({
+        src: "/animated_login_screen.riv", // Path to your Rive file
+        stateMachines: "Login Machine", // Exact name of the state machine in your Rive file
+        autoplay: true,
+    })
 
     useEffect(() => {
+        if (getCurrUser) {
+            showWarningMessage("You are already logged in")
+            navigate("/")
+        }
         window.scrollTo(0, 0)
     })
 
+    // Retrieve State Machine Inputs
+    const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
+    const isHandsUp = useStateMachineInput(rive, "Login Machine", "isHandsUp")
+    const trigSuccess = useStateMachineInput(
+        rive,
+        "Login Machine",
+        "trigSuccess"
+    )
+    const trigFail = useStateMachineInput(rive, "Login Machine", "trigFail")
+    const numLook = useStateMachineInput(rive, "Login Machine", "numLook")
+
     const handleChange = (e) => {
+        if (numLook) {
+            numLook.value = Math.min(e.target.value.length, 40)
+        }
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
@@ -32,10 +58,12 @@ const Login = () => {
         e.preventDefault()
         if (formData.email.length == 0 || formData.password.length == 0) {
             showErrorMessage("Email or Password can't be empty ")
+            if (trigFail) trigFail.fire()
             return
         }
 
         setLoginLoader(true)
+        if (isHandsUp) isHandsUp.value = false
 
         fetch(`${process.env.VITE_API_BASE_URL}/login`, {
             method: "POST",
@@ -56,37 +84,31 @@ const Login = () => {
                 return response.json()
             })
             .then((data) => {
-                console.log(data)
-
-                Cookies.set(
-                    "user",
-                    JSON.stringify({
-                        ...data.user,
-                    }),
-                    { expires: 1 / 24 }
-                )
-                checkCurrUser()
+                setCurrUserAndCookies(data)
                 showSuccessMessage(`Hi  ${data.user.name} 👋`)
-                window.history.go(-1) // Redirect after successful login
+                if (trigSuccess) trigSuccess.fire()
+
+                setTimeout(() => {
+                    window.history.go(-1)
+                }, 1000)
             })
             .catch((error) => {
                 console.log("error in login : ", error)
-                showErrorMessage(error.message || "Unknown error") // Display error message
+                if (trigFail) trigFail.fire()
+                showErrorMessage(error.message || "Unknown error")
             })
             .finally(() => {
                 setLoginLoader(false)
             })
     }
 
-    if (currUSer) {
-        showWarningMessage("You are already logged in")
-        window.history.go("/")
-    }
-
     return (
         <div className="flex justify-center  ">
             <div className="w-3/4 lg:w-1/2">
                 <h2 className="text-2xl font-bold mb-6">Login</h2>
+                <div className="w-full max-w-md">
+                    <RiveComponent className="h-80 w-full" />
+                </div>
                 <form
                     onSubmit={handleSubmit}
                     className="needs-validation"
@@ -107,6 +129,12 @@ const Login = () => {
                             required
                             value={formData.email}
                             onChange={handleChange}
+                            onFocus={() =>
+                                isChecking && (isChecking.value = true)
+                            }
+                            onBlur={() =>
+                                isChecking && (isChecking.value = false)
+                            }
                         />
                     </div>
                     <div className="mb-4">
@@ -124,6 +152,12 @@ const Login = () => {
                             required
                             value={formData.password}
                             onChange={handleChange}
+                            onFocus={() =>
+                                isHandsUp && (isHandsUp.value = true)
+                            }
+                            onBlur={() =>
+                                isHandsUp && (isHandsUp.value = false)
+                            }
                         />
                     </div>
                     <button className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">

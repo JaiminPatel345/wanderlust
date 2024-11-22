@@ -1257,6 +1257,18 @@
   resolved "https://registry.yarnpkg.com/@remix-run/router/-/router-1.21.0.tgz#c65ae4262bdcfe415dbd4f64ec87676e4a56e2b5"
   integrity sha512-xfSkCAchbdG5PnbrKqFWwia4Bi61nH+wm8wLEqfHDyp7Y3dZzgqS2itV8i4gAq9pC2HsTpwyBC6Ds8VHZ96JlA==
 
+"@rive-app/canvas@2.23.9":
+  version "2.23.9"
+  resolved "https://registry.yarnpkg.com/@rive-app/canvas/-/canvas-2.23.9.tgz#f71e4299768ff7b9a903f196a86cb885cd52b1e8"
+  integrity sha512-XLR9kdryiLOtjC7wbhLokDmiEktr622i42KgoQ6B7/4LpoFJPAKYVsHOWVdlPeIBV+WfxQZcWzehNfjL+0q9DQ==
+
+"@rive-app/react-canvas@^4.16.5":
+  version "4.16.5"
+  resolved "https://registry.yarnpkg.com/@rive-app/react-canvas/-/react-canvas-4.16.5.tgz#8c51cfd1c8ae7a1e69c6f41403821d19f24266b2"
+  integrity sha512-KAQJFxCdYW/y8WPcc66j6ovb3inM3t4cIIAwrBPR1l5ZyOMgo7hP/NzK9Wqbm7czS52shJgShCk9vfnapqrwgA==
+  dependencies:
+    "@rive-app/canvas" "2.23.9"
+
 "@rollup/pluginutils@^5.0.2":
   version "5.1.3"
   resolved "https://registry.yarnpkg.com/@rollup/pluginutils/-/pluginutils-5.1.3.tgz#3001bf1a03f3ad24457591f2c259c8e514e0dbdf"

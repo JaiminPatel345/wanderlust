@@ -13,7 +13,7 @@ import {
 import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
 import { Link } from "react-router-dom"
 import { ScaleLoader } from "react-spinners"
-import { UserContext } from "../../components/contexts/userContext"
+import { UserContext } from "../../contexts/userContext"
 
 const Listings = () => {
     const [allListings, setAllListings] = useState([])
