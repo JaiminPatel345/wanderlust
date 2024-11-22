@@ -6,6 +6,7 @@
         "setsubmit",
         "signup",
         "Swal",
-        "sweetalert"
+        "sweetalert",
+        "VITE"
     ]
 }

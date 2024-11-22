@@ -4,6 +4,8 @@ import { BeatLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
 import { UserContext } from "../../contexts/userContext"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
+import { FaEye } from "react-icons/fa"
+import { FaEyeSlash } from "react-icons/fa6"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -22,8 +24,8 @@ const Signup = () => {
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
-    const { setCurrUserAndCookies, getCurrUser } = useContext(UserContext)
-    const [isObscureText, setIsObscureText] = useState(true)
+    const { currUser, setCurrUserAndCookies } = useContext(UserContext)
+    const [isPasswordShow, setIsPasswordShow] = useState(false)
 
     const { RiveComponent, rive } = useRive({
         src: "/animated_login_screen.riv", // Path to your Rive file
@@ -32,12 +34,11 @@ const Signup = () => {
     })
 
     useEffect(() => {
-        if (getCurrUser) {
-            showWarningMessage("You are already logged in")
-            navigate("/")
+        if (currUser) {
+            navigate(-1) // Go back to the previous page
         }
         window.scrollTo(0, 0)
-    })
+    }, [currUser, navigate])
 
     const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
     const isHandsUp = useStateMachineInput(rive, "Login Machine", "isHandsUp")
@@ -149,127 +150,149 @@ const Signup = () => {
     }
 
     return (
-        <div className="flex justify-center">
-            <div className="w-3/4 lg:w-1/2">
-                <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
-                <div className="w-full max-w-md">
-                    <RiveComponent className="h-80 w-full" />
+        <div className="flex justify-center items-center">
+            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg gap-4">
+                <div className="mb-4">
+                    <div className="w-full">
+                        <RiveComponent className="h-72 w-full" />
+                    </div>
                 </div>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="needs-validation"
-                    noValidate
-                >
-                    <div className="mb-4">
-                        <label
-                            htmlFor="name"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Name
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                                errors.name
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                            } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                            value={formData.name}
-                            onChange={handleChange}
-                            onFocus={() =>
-                                isChecking && (isChecking.value = true)
-                            }
-                            onBlur={() =>
-                                isChecking && (isChecking.value = false)
-                            }
-                            required
-                        />
-                        {errors.name && (
-                            <p className="text-red-500 text-sm">
-                                {errors.name}
-                            </p>
-                        )}
-                    </div>
+                <div className="">
+                    <h2 className="text-3xl font-extrabold text-gray-900 mb-4 text-center">
+                        Sign Up
+                    </h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label
+                                htmlFor="name"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                className={`w-full px-3 py-2 border ${
+                                    errors.name
+                                        ? "border-red-500"
+                                        : "border-gray-300"
+                                } rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300`}
+                                value={formData.name}
+                                onChange={handleChange}
+                                onFocus={() =>
+                                    isChecking && (isChecking.value = true)
+                                }
+                                onBlur={() =>
+                                    isChecking && (isChecking.value = false)
+                                }
+                                required
+                            />
+                            {errors.name && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.name}
+                                </p>
+                            )}
+                        </div>
 
-                    <div className="mb-4">
-                        <label
-                            htmlFor="email"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                                errors.email
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                            } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                            value={formData.email}
-                            onChange={handleChange}
-                            onFocus={() =>
-                                isChecking && (isChecking.value = true)
-                            }
-                            onBlur={() =>
-                                isChecking && (isChecking.value = false)
-                            }
-                            required
-                        />
-                        {errors.email && (
-                            <p className="text-red-500 text-sm">
-                                {errors.email}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                className={`w-full px-3 py-2 border ${
+                                    errors.email
+                                        ? "border-red-500"
+                                        : "border-gray-300"
+                                } rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300`}
+                                value={formData.email}
+                                onChange={handleChange}
+                                onFocus={() =>
+                                    isChecking && (isChecking.value = true)
+                                }
+                                onBlur={() =>
+                                    isChecking && (isChecking.value = false)
+                                }
+                                required
+                            />
+                            {errors.email && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.email}
+                                </p>
+                            )}
+                        </div>
 
-                    <div className="mb-4">
-                        <label
-                            htmlFor="password"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            className={`mt-1 block w-full px-3 py-2 border ${
-                                errors.password
-                                    ? "border-red-500"
-                                    : "border-gray-300"
-                            } rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-                            value={formData.password}
-                            onChange={handleChange}
-                            onFocus={() =>
-                                isHandsUp && (isHandsUp.value = true)
-                            }
-                            onBlur={() =>
-                                isHandsUp && (isHandsUp.value = false)
-                            }
-                            required
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-sm">
-                                {errors.password}
-                            </p>
-                        )}
-                    </div>
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-medium text-gray-700 mb-2"
+                            >
+                                Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={isPasswordShow ? "text" : "password"}
+                                    id="password"
+                                    name="password"
+                                    className={`w-full px-3 py-2 pr-10 border ${
+                                        errors.password
+                                            ? "border-red-500"
+                                            : "border-gray-300"
+                                    } rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300`}
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    onFocus={() =>
+                                        isHandsUp &&
+                                        !isPasswordShow &&
+                                        (isHandsUp.value = true)
+                                    }
+                                    onBlur={() =>
+                                        isHandsUp && (isHandsUp.value = false)
+                                    }
+                                    required
+                                />
+                                <span
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-700 transition"
+                                    onClick={() =>
+                                        setIsPasswordShow((pvs) => !pvs)
+                                    }
+                                >
+                                    {isPasswordShow ? (
+                                        <FaEye />
+                                    ) : (
+                                        <FaEyeSlash />
+                                    )}
+                                </span>
+                            </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
 
-                    <button className="w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                        {signupLoader ? <BeatLoader size={10} /> : "Submit"}
-                    </button>
-                </form>
+                        <button className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-300 ease-in-out">
+                            {signupLoader ? (
+                                <BeatLoader size={10} color="white" />
+                            ) : (
+                                "Sign Up"
+                            )}
+                        </button>
+                    </form>
+                </div>
 
-                <p className="mt-4 text-center">
-                    Already Registered?{" "}
+                <p className="text-center text-sm text-gray-600 mt-4">
+                    Already registered?{" "}
                     <Link
                         to="/login"
-                        className="text-indigo-600 hover:underline"
+                        className="text-indigo-600 hover:underline font-medium"
                     >
                         Click here to log in
                     </Link>

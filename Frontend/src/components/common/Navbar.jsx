@@ -16,9 +16,10 @@ import "../../button.css"
 const MyNavbar = () => {
     const navigate = useNavigate()
     const [openNav, setOpenNav] = React.useState(false)
-    const { currUser, logout } = useContext(UserContext)
+    const { currUser, logout, checkCurrUser } = useContext(UserContext)
 
     useEffect(() => {
+        checkCurrUser()
         window.addEventListener(
             "resize",
             () => window.innerWidth >= 960 && setOpenNav(false)
