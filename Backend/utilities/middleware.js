@@ -35,28 +35,30 @@ module.exports.saveOriginalUrl = (req, res, next) => {
 };
 
 module.exports.isListingOwner = (req, res, next) => {
+    if (req.session.user.userId === "66a343a50ff99cdefc1a4657") {
+        next()
+        return
+    }
     const {
         id
     } = req.params;
     Listing.findById(id)
         .populate("owner")
         .then((listing) => {
-            if (
-                !listing ||
-                !(
-                    req.session.user.userId === "66a343a50ff99cdefc1a4657" ||
-                    listing.owner._id.equals(req.session.user.userId)
-                )
-            ) {
-                return res.status(403).json({
+
+            if (listing && listing.owner._id.equals(req.session.user.userId))
+                next();
+            else {
+                throw {
+                    status: 403,
                     message: "You are not the owner of this listing",
-                });
+                }
             }
-            next();
+
         })
-        .catch((err) => {
-            res.status(500).json({
-                message: err.message,
+        .catch((error) => {
+            res.status(error.status || 500).json({
+                message: error.message,
             });
         });
 };

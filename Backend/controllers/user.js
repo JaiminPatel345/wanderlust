@@ -42,7 +42,7 @@ module.exports.signup = (req, res) => {
         .catch((error) => {
             let message = "An error occurred during signup.";
             switch (error.code) {
-                case "auth/email-already-exists":
+                case "auth/email-already-in-use":
                     message = "Email already in use.";
                     break;
                 case "auth/invalid-email":
@@ -57,9 +57,10 @@ module.exports.signup = (req, res) => {
                 default:
                     console.error("Signup error:", error);
             }
-            res.status(500).json({
+            res.status(message === "An error occurred during signup." ? 500 : 403).json({
                 success: false,
                 message,
+                error,
             });
         });
 };
@@ -132,7 +133,7 @@ module.exports.login = (req, res) => {
             res.status(401).json({
                 success: false,
                 message,
-                error: error.message
+                error
             });
         });
 };

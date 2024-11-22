@@ -95,7 +95,8 @@ module.exports.updateListing = (req, res) => {
         price,
         location,
         country,
-        tagsArray
+        tagsArray,
+
     } = req.body;
 
     const image = {
@@ -111,7 +112,6 @@ module.exports.updateListing = (req, res) => {
         location,
         country,
         tags: tagsArray,
-        owner: req.session.user.userId,
     };
 
     const body = {
