@@ -14,45 +14,42 @@ import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
 import { Link } from "react-router-dom"
 import { ScaleLoader } from "react-spinners"
 import { UserContext } from "../../contexts/userContext"
+import useListingStore from "../../../Store/listing"
+import { useListingApi } from "../../../hooks/listingApi"
+import useTagStore from "../../../Store/tagStore"
 
 const Listings = () => {
-    const [allListings, setAllListings] = useState([])
-    const [activeTags, setActiveTags] = useState([])
+    const filterListings = useListingStore((state) => state.filterListings)
+    const allListings = useListingStore((state) => state.allListings)
+    const filterListingsOnTag = useListingStore(
+        (state) => state.filterListingsOnTag
+    )
+    const selectedTags = useTagStore((state) => state.selectedTags)
+    const tagClick = useTagStore((state) => state.tagClick)
     const [showWithTax, setShowWithTax] = useState(false)
     const [loading, setLoading] = useState(true)
     const { currUser, checkCurrUser } = useContext(UserContext)
+    const { getAllListings } = useListingApi()
 
     const taxRate = 0.18 // 18% GST
 
     // Fetch listings from the backend
     useEffect(() => {
         if (!currUser) checkCurrUser()
-
-        fetch(`${process.env.VITE_API_BASE_URL}/listings`) // Adjust the URL to your backend endpoint
-            .then((response) => response.json())
-            .then((data) => {
-                setAllListings(data)
-            })
-            .catch((error) => {
-                console.error("Error fetching listings:", error)
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+        getAllListings(setLoading)
     }, [])
 
     const handleTagClick = (tag) => {
-        setActiveTags((prev) =>
-            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-        )
+        tagClick(tag)
+        filterListingsOnTag()
     }
 
-    const filterListings = (listingTags) => {
-        return (
-            activeTags.length === 0 ||
-            activeTags.every((tag) => listingTags.includes(tag))
-        )
-    }
+    // const filterListings = (listingTags) => {
+    //     return (
+    //         activeTags.length === 0 ||
+    //         activeTags.every((tag) => listingTags.includes(tag))
+    //     )
+    // }
 
     const toggleTaxDisplay = () => {
         setShowWithTax(!showWithTax)
@@ -62,6 +59,14 @@ const Listings = () => {
         return (
             <div className="flex justify-center items-center h-1/2">
                 <ScaleLoader color={"#000000"} loading={loading} size={15} />
+            </div>
+        )
+    }
+
+    if (!loading && allListings?.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-1/2">
+                <p>Something is wrong , try to refresh the page</p>
             </div>
         )
     }
@@ -87,7 +92,7 @@ const Listings = () => {
                     <div
                         key={tag}
                         className={`filter flex flex-col items-center ${
-                            activeTags.includes(tag) ? "active" : ""
+                            selectedTags.includes(tag) ? "active" : ""
                         }`}
                         onClick={() => handleTagClick(tag)}
                     >
@@ -138,8 +143,8 @@ const Listings = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3 px-4">
-                {allListings
-                    .filter((listing) => filterListings(listing?.tags))
+                {filterListings
+                    // .filter((listing) => filterListings(listing?.tags))
                     .map((listing) => {
                         const originalPrice = listing?.price
                         const displayedPrice = showWithTax

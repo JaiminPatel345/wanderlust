@@ -38,7 +38,8 @@
         "react-icons-kit": "^2.0.0",
         "react-router-dom": "^6.26.2",
         "react-spinners": "^0.14.1",
-        "vue-sweetalert2": "^5.0.11"
+        "vue-sweetalert2": "^5.0.11",
+        "zustand": "^5.0.2"
     },
     "devDependencies": {
         "@chromatic-com/storybook": "^3.2.2",

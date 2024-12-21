@@ -25,8 +25,9 @@
 - yarn
 
 **Deployment**  :
-- [Azure](https://wanderlust-a9bffqcnaucneeat.eastus-01.azurewebsites.net/)
-- [Vercel](https://wanderlust-ten.vercel.app/)
+- [Vercel](https://wanderlust-ten.vercel.app/) (Frontend)
+- [Azure](https://wanderlust-a9bffqcnaucneeat.eastus-01.azurewebsites.net/) (Backend)
+- [MongoDB Atlas]() (Database)
 
 **CI/CD tool** :
 - Github Action
