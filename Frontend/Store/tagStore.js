@@ -17,6 +17,9 @@ const useTagStore = create((set) => ({
                 }
             }
         }),
+    clearTag: () => {
+        set({ selectedTags: [] })
+    }
 }))
 
 export default useTagStore

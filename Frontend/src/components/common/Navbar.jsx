@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCompass, faBars } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -11,12 +11,18 @@ import {
 } from "@material-tailwind/react"
 import { UserContext } from "../../contexts/userContext"
 import "../../button.css"
+import useListingStore from "../../../Store/listing"
 
 // eslint-disable-next-line react/prop-types
 const MyNavbar = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const [openNav, setOpenNav] = React.useState(false)
     const { currUser, logout, checkCurrUser } = useContext(UserContext)
+    const filterListingOnTyping = useListingStore(
+        (state) => state.filterListingOnTyping
+    )
+    const [searchString, setSearchString] = useState("")
 
     useEffect(() => {
         checkCurrUser()
@@ -24,7 +30,16 @@ const MyNavbar = () => {
             "resize",
             () => window.innerWidth >= 960 && setOpenNav(false)
         )
+        setSearchString("")
     }, [navigate])
+
+    useEffect(() => {
+        setSearchString("")
+    }, [location.pathname])
+
+    useEffect(() => {
+        filterListingOnTyping(searchString)
+    }, [searchString])
 
     const handelLogout = () => {
         logout()
@@ -66,7 +81,7 @@ const MyNavbar = () => {
 
     return (
         <Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-4 text-black mb-12">
-            <div className="flex items-center justify-between text-blue-gray-900">
+            <div className="flex items-center justify-start md:justify-between text-blue-gray-900 ">
                 <div>
                     <Link
                         to="/"
@@ -79,22 +94,24 @@ const MyNavbar = () => {
                         <p className="hidden lg:block">Explore</p>
                     </Link>
                 </div>
-                <div className="flex items-center gap-4">
-                    {/* <div className="flex w-20 space-x-2">
-                        <input
-                            className="form-control p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-white"
-                            type="search"
-                            placeholder="Search"
-                            aria-label="Search"
-                        />
-                        <button
-                            className="btn bg-rose-500 text-white px-4 py-2 rounded-lg hover:bg-rose-600 transition"
-                            id="search-btn"
-                            type="submit"
-                        >
-                            Search
-                        </button>
-                    </div> */}
+                <div className="flex gap-1 md:gap-2 lg:map-4 text-sm md:text-base ">
+                    <input
+                        className="form-control p-1 md:p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-white"
+                        type="search"
+                        value={searchString}
+                        placeholder="Search"
+                        aria-label="Search"
+                        onChange={(e) => setSearchString(e.target.value)}
+                    />
+                    <button
+                        className="btn bg-rose-500 text-white px-2 py-2 rounded-lg hover:bg-rose-600 transition"
+                        id="search-btn"
+                        type="submit"
+                    >
+                        Search
+                    </button>
+                </div>
+                <div className="flex items-center gap-4 ">
                     <div className="mr-4 hidden lg:block">{navList}</div>
 
                     <div>
@@ -134,7 +151,7 @@ const MyNavbar = () => {
                     </div>
                     <IconButton
                         variant="text"
-                        className="ml-auto h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden"
+                        className="absolute right-6 h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden"
                         ripple={false}
                         onClick={() => setOpenNav(!openNav)}
                     >

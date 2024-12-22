@@ -30,16 +30,47 @@ const useListingStore = create((set, get) => ({
         const selectedTags = useTagStore.getState().selectedTags
         const state = get()
 
-        // if (!selectedTags.length) {
-        //     set({ filterListings: state.allListings })
-        //     return
-        // }
-
         const tempListings = state.allListings.filter((listing) =>
             selectedTags.every((tag) => listing.tags.includes(tag))
         )
 
         set({ filterListings: tempListings })
+    },
+
+    filterListingOnTyping: (searchTerm) => {
+        const state = get()
+        if (searchTerm?.length === 0) {
+            const selectedTags = useTagStore.getState().selectedTags
+            if (selectedTags?.length === 0) {
+                set({ filterListings: state.allListings })
+                return
+            } else {
+                state.filterListingsOnTag()
+                return
+            }
+        }
+        state.filterListingsOnTag()
+        let tempListings = state.filterListings.filter(
+            (listing) =>
+                listing.title
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                listing.price.toString().includes(searchTerm) ||
+                listing.location
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                listing.country.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+
+        const tempListings2 = state.filterListings.filter(
+            (listing) =>
+                listing.description
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) &&
+                !tempListings.includes(listing)
+        )
+        tempListings.push(...tempListings2)
+        set({ filterListings:  tempListings})
     },
 }))
 

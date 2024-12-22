@@ -26,6 +26,7 @@ const Listings = () => {
     )
     const selectedTags = useTagStore((state) => state.selectedTags)
     const tagClick = useTagStore((state) => state.tagClick)
+    const clearTag = useTagStore((state) => state.clearTag)
     const [showWithTax, setShowWithTax] = useState(false)
     const [loading, setLoading] = useState(true)
     const { currUser, checkCurrUser } = useContext(UserContext)
@@ -37,6 +38,11 @@ const Listings = () => {
     useEffect(() => {
         if (!currUser) checkCurrUser()
         getAllListings(setLoading)
+
+        //Clear all tags when refresh
+        // return () => {
+        //     clearTag()
+        // }
     }, [])
 
     const handleTagClick = (tag) => {
