@@ -1,235 +1,206 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useContext } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCompass, faBars } from "@fortawesome/free-solid-svg-icons"
-import {
-    Navbar,
-    Collapse,
-    Typography,
-    Button,
-    IconButton,
-} from "@material-tailwind/react"
 import { UserContext } from "../../contexts/userContext"
-import "../../button.css"
 import useListingStore from "../../../Store/listing"
+import {
+    IconCompass,
+    IconSearch,
+    IconMenu2,
+    IconX,
+    IconPlus,
+    IconMessages,
+} from "@tabler/icons-react"
 
-// eslint-disable-next-line react/prop-types
-const MyNavbar = () => {
+const NavLink = ({ to, children, disabled = false, className = "" }) => (
+    <Link
+        to={to}
+        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
+      ${disabled ? "text-gray-400 cursor-not-allowed" : "hover:bg-gray-100"} 
+      ${className}`}
+    >
+        {children}
+    </Link>
+)
+
+const NavButton = ({
+    onClick,
+    children,
+    variant = "primary",
+    disabled = false,
+}) => {
+    const baseStyles =
+        "px-4 py-2 rounded-md text-sm font-medium transition-colors"
+    const variants = {
+        primary:
+            "bg-rose-500 text-white hover:bg-rose-600 disabled:bg-rose-300",
+        secondary:
+            "bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-100",
+        outline: "border border-gray-300 hover:bg-gray-50 disabled:bg-gray-50",
+    }
+
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className={`${baseStyles} ${variants[variant]} disabled:cursor-not-allowed`}
+        >
+            {children}
+        </button>
+    )
+}
+
+const SearchBar = ({ value, onChange }) => (
+    <div className="flex gap-2 max-w-md w-full">
+        <div className="relative flex-1">
+            <input
+                type="search"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Search listings..."
+                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                aria-label="Search listings"
+            />
+            <IconSearch
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+            />
+        </div>
+    </div>
+)
+
+const Navigation = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const [openNav, setOpenNav] = React.useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState("")
     const { currUser, logout, checkCurrUser } = useContext(UserContext)
     const filterListingOnTyping = useListingStore(
         (state) => state.filterListingOnTyping
     )
-    const [searchString, setSearchString] = useState("")
 
     useEffect(() => {
+        const handleResize = () => window.innerWidth >= 768 && setIsOpen(false)
+        window.addEventListener("resize", handleResize)
         checkCurrUser()
-        window.addEventListener(
-            "resize",
-            () => window.innerWidth >= 960 && setOpenNav(false)
-        )
-        setSearchString("")
-    }, [navigate])
+
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
 
     useEffect(() => {
-        setSearchString("")
+        setSearchQuery("")
+        setIsOpen(false)
     }, [location.pathname])
 
     useEffect(() => {
-        filterListingOnTyping(searchString)
-    }, [searchString])
+        filterListingOnTyping(searchQuery)
+    }, [searchQuery])
 
-    const handelLogout = () => {
+    const handleLogout = () => {
         logout()
+        navigate("/")
     }
 
-    const handelLogin = () => {
-        navigate("/login")
-    }
+    const mobileMenuButton = (
+        <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 rounded-md hover:bg-gray-100"
+            aria-label="Toggle menu"
+        >
+            {isOpen ? <IconX size={24} /> : <IconMenu2 size={24} />}
+        </button>
+    )
 
-    const handelSignup = () => {
-        navigate("/signup")
-    }
+    const navigationLinks = (
+        <div className={`${isOpen ? "block" : "hidden"} md:block`}>
+            <div className="flex flex-col md:flex-row md:items-center md:gap-4">
+                <NavLink to="/listings/new" className="flex items-center gap-2">
+                    <IconPlus size={20} />
+                    Add Listing
+                </NavLink>
+                <NavLink to="/chats" className="flex items-center gap-2">
+                    <IconMessages size={20} />
+                    Chats
+                </NavLink>
+            </div>
+        </div>
+    )
 
-    const navList = (
-        <ul className="mt-2 mb-4 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
-            <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-            >
-                <Link to="/listings/new" className="flex items-center bn13">
-                    Add new
-                </Link>
-            </Typography>
-            <Typography
-                as="li"
-                variant="small"
-                color="blue-gray"
-                className="p-1 font-normal"
-            >
-                {/* //To be Added */}
-                <Link to="/" className="flex items-center text-gray-400">
-                    chats
-                </Link>
-            </Typography>
-        </ul>
+    const authButtons = (
+        <div className={`${isOpen ? "block" : "hidden"} md:block mt-4 md:mt-0`}>
+            <div className="flex flex-col md:flex-row gap-2">
+                {currUser ? (
+                    <NavButton onClick={handleLogout} variant="outline">
+                        Log out
+                    </NavButton>
+                ) : (
+                    <>
+                        <NavButton
+                            onClick={() => navigate("/login")}
+                            variant="outline"
+                        >
+                            Log in
+                        </NavButton>
+                        <NavButton
+                            onClick={() => navigate("/signup")}
+                            variant="primary"
+                        >
+                            Sign up
+                        </NavButton>
+                    </>
+                )}
+            </div>
+        </div>
     )
 
     return (
-        <Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-4 text-black mb-12">
-            <div className="flex items-center justify-start md:justify-between text-blue-gray-900 ">
-                <div>
+        <nav className="sticky top-0 z-50 bg-white shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                    {/* Logo */}
                     <Link
                         to="/"
-                        className="mr-4 cursor-pointer py-1.5 font-medium flex gap-3 items-center"
+                        className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
                     >
-                        <FontAwesomeIcon
-                            className="text-rose-500 h-6"
-                            icon={faCompass}
-                        />
-                        <p className="hidden lg:block">Explore</p>
+                        <IconCompass size={28} />
+                        <span className="hidden md:block font-medium">
+                            Explore
+                        </span>
                     </Link>
-                </div>
-                <div className="flex gap-1 md:gap-2 lg:map-4 text-sm md:text-base ">
-                    <input
-                        className="form-control p-1 md:p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-white"
-                        type="search"
-                        value={searchString}
-                        placeholder="Search"
-                        aria-label="Search"
-                        onChange={(e) => setSearchString(e.target.value)}
-                    />
-                    <button
-                        className="btn bg-rose-500 text-white px-2 py-2 rounded-lg hover:bg-rose-600 transition"
-                        id="search-btn"
-                        type="submit"
-                    >
-                        Search
-                    </button>
-                </div>
-                <div className="flex items-center gap-4 ">
-                    <div className="mr-4 hidden lg:block">{navList}</div>
 
-                    <div>
-                        {!currUser && (
-                            <div className="flex  gap-x-1">
-                                <Button
-                                    variant="gradient"
-                                    size="sm"
-                                    className="hidden lg:block text-black"
-                                    onClick={handelLogin}
-                                >
-                                    <span>Log In</span>
-                                </Button>
-                                <Button
-                                    variant="gradient"
-                                    size="sm"
-                                    className="hidden lg:inline-block text-black"
-                                    onClick={handelSignup}
-                                >
-                                    <span>Sign up</span>
-                                </Button>
-                            </div>
-                        )}
-
-                        {currUser && (
-                            <div className="text-black">
-                                <Button
-                                    variant="gradient"
-                                    size="sm"
-                                    className="hidden lg:inline-block text-black"
-                                    onClick={handelLogout}
-                                >
-                                    <span>Log out</span>
-                                </Button>
-                            </div>
-                        )}
+                    {/* Search Bar - Hidden on mobile, shown on larger screens */}
+                    <div className="hidden md:block flex-1 max-w-2xl mx-4">
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={setSearchQuery}
+                        />
                     </div>
-                    <IconButton
-                        variant="text"
-                        className="absolute right-6 h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden"
-                        ripple={false}
-                        onClick={() => setOpenNav(!openNav)}
-                    >
-                        {openNav ? (
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                className="h-6 w-6"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
-                        ) : (
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={2}
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                />
-                            </svg>
-                        )}
-                    </IconButton>
+
+                    {/* Navigation Links & Auth Buttons - Hidden on mobile */}
+                    <div className="hidden md:flex md:items-center md:gap-4">
+                        {navigationLinks}
+                        {authButtons}
+                    </div>
+
+                    {/* Mobile menu button */}
+                    {mobileMenuButton}
+                </div>
+
+                {/* Mobile Search Bar */}
+                <div className="md:hidden py-2">
+                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                </div>
+
+                {/* Mobile Navigation Links & Auth Buttons */}
+                <div
+                    className={`md:hidden pb-4 ${isOpen ? "block" : "hidden"}`}
+                >
+                    {navigationLinks}
+                    {authButtons}
                 </div>
             </div>
-            <Collapse open={openNav}>
-                {navList}
-                <div>
-                    {!currUser ? (
-                        <div className="flex items-center gap-x-1">
-                            <Button
-                                fullWidth
-                                variant="text"
-                                size="sm"
-                                className="border-2 "
-                                onClick={handelLogin}
-                            >
-                                <span>Log In</span>
-                            </Button>
-
-                            <Button
-                                fullWidth
-                                variant="text"
-                                size="sm"
-                                className="text-black border-2"
-                                onClick={handelSignup}
-                            >
-                                <span className="">Sign up</span>
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="text-black">
-                            <Button
-                                fullWidth
-                                variant="gradient"
-                                size="sm"
-                                className=" text-black border-2"
-                                onClick={handelLogout}
-                            >
-                                <span>Log out</span>
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </Collapse>
-        </Navbar>
+        </nav>
     )
 }
 
-export default MyNavbar
+export default Navigation

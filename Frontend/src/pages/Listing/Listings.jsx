@@ -1,70 +1,155 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useContext } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faFire,
-    faBed,
-    faMountainCity,
-    faMountain,
-    faPersonSwimming,
-    faCampground,
-    faTractor,
-    faSnowflake,
-} from "@fortawesome/free-solid-svg-icons"
-import { faFortAwesome } from "@fortawesome/free-brands-svg-icons"
 import { Link } from "react-router-dom"
 import { ScaleLoader } from "react-spinners"
 import { UserContext } from "../../contexts/userContext"
 import useListingStore from "../../../Store/listing"
 import { useListingApi } from "../../../hooks/listingApi"
 import useTagStore from "../../../Store/tagStore"
+import {
+    IconMapPin,
+    IconWorld,
+    IconFlame,
+    IconBed,
+    IconBuildingSkyscraper,
+    IconMountain,
+    IconBuildingCastle,
+    IconPool,
+    IconTent,
+    IconTractor,
+    IconSnowflake,
+    IconHash,
+} from "@tabler/icons-react"
+
+const FILTER_TAGS = [
+    { id: "trending", label: "Trending", icon: IconFlame },
+    { id: "rooms", label: "Rooms", icon: IconBed },
+    {
+        id: "iconic-cities",
+        label: "Iconic cities",
+        icon: IconBuildingSkyscraper,
+    },
+    { id: "mountains", label: "Mountains", icon: IconMountain },
+    { id: "castles", label: "Castles", icon: IconBuildingCastle },
+    { id: "amazing-pools", label: "Amazing pools", icon: IconPool },
+    { id: "camping", label: "Camping", icon: IconTent },
+    { id: "farms", label: "Farms", icon: IconTractor },
+    { id: "arctic", label: "Arctic", icon: IconSnowflake },
+]
+
+const TAX_RATE = 0.18 // 18% GST
+
+const PriceDisplay = ({ price, showWithTax }) => {
+    const displayedPrice = showWithTax
+        ? (price + price * TAX_RATE).toLocaleString("en-IN")
+        : price.toLocaleString("en-IN")
+
+    return (
+        <div className="flex items-center gap-2">
+            <span>₹{displayedPrice}</span>
+            <span className="text-sm text-gray-500">
+                ({showWithTax ? "Including GST" : "Excluding GST"})
+            </span>
+        </div>
+    )
+}
+
+const TagFilter = ({ tag, isActive, onClick }) => {
+    const Icon = tag.icon
+    const { selectedTags } = useTagStore()
+
+
+    return (
+        <div
+            className={`filter flex flex-col items-center cursor-pointer transition-colors
+        ${isActive ? "!text-red-600" : "text-gray-600"} hover:text-blue-500`}
+            onClick={() => onClick(tag.label)}
+        >
+            <Icon size={24} />
+            <p className="text-sm mt-1">{tag.label}</p>
+        </div>
+    )
+}
+
+const ListingCard = ({ listing, showWithTax }) => (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+        <Link to={`/listings/${listing._id}`} className="block">
+            <img
+                src={listing.image.url}
+                className="w-full h-72 object-cover hover:opacity-90 transition-opacity"
+                alt={listing.title}
+                loading="lazy"
+            />
+            <div className="p-4">
+                <h5 className="text-xl font-semibold mb-2">{listing.title}</h5>
+                <div className="space-y-3">
+                    <PriceDisplay
+                        price={listing.price}
+                        showWithTax={showWithTax}
+                    />
+
+                    <div className="flex items-center gap-2">
+                        <IconMapPin size={20} />
+                        <span>{listing.location}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <IconWorld size={20} />
+                        <span>{listing.country}</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mt-4">
+                        {listing.tags
+                            .filter((tag) => tag !== "null")
+                            .map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1"
+                                >
+                                    <IconHash size={16} />
+                                    {tag}
+                                </span>
+                            ))}
+                    </div>
+                </div>
+            </div>
+        </Link>
+    </div>
+)
 
 const Listings = () => {
-    const filterListings = useListingStore((state) => state.filterListings)
-    const allListings = useListingStore((state) => state.allListings)
-    const filterListingsOnTag = useListingStore(
-        (state) => state.filterListingsOnTag
-    )
-    const selectedTags = useTagStore((state) => state.selectedTags)
-    const tagClick = useTagStore((state) => state.tagClick)
-    const clearTag = useTagStore((state) => state.clearTag)
+    const { filterListings, allListings, filterListingsOnTag } =
+        useListingStore()
+    const { selectedTags, tagClick } = useTagStore()
     const [showWithTax, setShowWithTax] = useState(false)
     const [loading, setLoading] = useState(true)
     const { currUser, checkCurrUser } = useContext(UserContext)
     const { getAllListings } = useListingApi()
 
-    const taxRate = 0.18 // 18% GST
-
-    // Fetch listings from the backend
     useEffect(() => {
-        if (!currUser) checkCurrUser()
-        getAllListings(setLoading)
+        const initializePage = async () => {
+            if (!currUser) {
+                await checkCurrUser()
+            }
+            await getAllListings(setLoading)
+        }
 
-        //Clear all tags when refresh
-        // return () => {
-        //     clearTag()
-        // }
+        initializePage()
     }, [])
 
-    const handleTagClick = (tag) => {
-        tagClick(tag)
+    const handleTagClick =async (tag) => {
+        console.log(tag)
+        
+        
+        await tagClick(tag)
+        console.log(selectedTags)
         filterListingsOnTag()
-    }
-
-    // const filterListings = (listingTags) => {
-    //     return (
-    //         activeTags.length === 0 ||
-    //         activeTags.every((tag) => listingTags.includes(tag))
-    //     )
-    // }
-
-    const toggleTaxDisplay = () => {
-        setShowWithTax(!showWithTax)
     }
 
     if (loading) {
         return (
             <div className="flex justify-center items-center h-1/2">
-                <ScaleLoader color={"#000000"} loading={loading} size={15} />
+                <ScaleLoader color="#000000" loading={loading} size={15} />
             </div>
         )
     }
@@ -72,157 +157,49 @@ const Listings = () => {
     if (!loading && allListings?.length === 0) {
         return (
             <div className="flex justify-center items-center h-1/2">
-                <p>Something is wrong , try to refresh the page</p>
+                <p>No listings found. Please try refreshing the page.</p>
             </div>
         )
     }
 
     return (
-        // <FontAwesomeIcon icon="fa-brands fa-fort-awesome" />
-        <div>
-            <div
-                id="filters"
-                className="flex justify-around gap-2 flex-wrap mt-7 mb-8"
-            >
-                {[
-                    "Trending",
-                    "Rooms",
-                    "Iconic cities",
-                    "Mountains",
-                    "Castles",
-                    "Amazing pools",
-                    "Camping",
-                    "Farms",
-                    "Arctic",
-                ].map((tag) => (
-                    <div
-                        key={tag}
-                        className={`filter flex flex-col items-center ${
-                            selectedTags.includes(tag) ? "active" : ""
-                        }`}
-                        onClick={() => handleTagClick(tag)}
-                    >
-                        <FontAwesomeIcon
-                            icon={
-                                tag === "Trending"
-                                    ? faFire
-                                    : tag === "Rooms"
-                                    ? faBed
-                                    : tag === "Iconic cities"
-                                    ? faMountainCity
-                                    : tag === "Mountains"
-                                    ? faMountain
-                                    : tag === "Castles"
-                                    ? faFortAwesome
-                                    : tag === "Amazing pools"
-                                    ? faPersonSwimming
-                                    : tag === "Camping"
-                                    ? faCampground
-                                    : tag === "Farms"
-                                    ? faTractor
-                                    : faSnowflake
-                            }
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div className="flex flex-wrap gap-6">
+                    {FILTER_TAGS.map((tag) => (
+                        <TagFilter
+                            key={tag.id}
+                            tag={tag}
+                            isActive={selectedTags.includes(tag.label)}
+                            onClick={handleTagClick}
                         />
-                        <p>{tag.charAt(0).toUpperCase() + tag.slice(1)}</p>
-                    </div>
-                ))}
-                <div className="tax-toggle ">
-                    <div className="form-check-reverse flex gap-2 border-2 rounded-md px-3 form-switch">
-                        <input
-                            className="form-check-input"
-                            type="checkbox"
-                            role="switch"
-                            id="flexSwitchCheckDefault"
-                            checked={showWithTax}
-                            onChange={toggleTaxDisplay}
-                        />
-                        <label
-                            className="form-check-label"
-                            htmlFor="flexSwitchCheckDefault"
-                        >
-                            {showWithTax
-                                ? "Price with Tax"
-                                : "Price without Tax"}
-                        </label>
-                    </div>
+                    ))}
+                </div>
+
+                <div className="flex items-center border-2 rounded-md px-4 py-2">
+                    <input
+                        type="checkbox"
+                        id="taxToggle"
+                        className="form-checkbox h-4 w-4 text-blue-600"
+                        checked={showWithTax}
+                        onChange={() => setShowWithTax(!showWithTax)}
+                    />
+                    <label htmlFor="taxToggle" className="ml-2 text-sm">
+                        {showWithTax
+                            ? "Show Price with Tax"
+                            : "Show Price without Tax"}
+                    </label>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3 px-4">
-                {filterListings
-                    // .filter((listing) => filterListings(listing?.tags))
-                    .map((listing) => {
-                        const originalPrice = listing?.price
-                        const displayedPrice = showWithTax
-                            ? (
-                                  originalPrice +
-                                  originalPrice * taxRate
-                              ).toLocaleString("en-IN")
-                            : originalPrice.toLocaleString("en-IN")
-
-                        return (
-                            <div
-                                key={listing?._id}
-                                className="bg-white rounded-lg shadow-md overflow-hidden"
-                            >
-                                <Link
-                                    to={`/listings/${listing?._id}`}
-                                    className="block hover:opacity-80 transition"
-                                >
-                                    <img
-                                        src={listing?.image.url}
-                                        className="w-full h-72 object-cover"
-                                        alt="Image is processing"
-                                    />
-                                    <div className="p-4">
-                                        <h5 className="text-xl font-semibold mb-2">
-                                            {listing?.title}
-                                        </h5>
-                                        <p className="text-gray-700">
-                                            &#8377;
-                                            <span
-                                                id={`price-${listing?._id}`}
-                                                data-original-price={
-                                                    originalPrice
-                                                }
-                                            >
-                                                {displayedPrice}
-                                            </span>
-                                            <i className="tax-info text-sm text-gray-500">
-                                                (
-                                                {showWithTax
-                                                    ? "Including GST"
-                                                    : "Excluding GST"}
-                                                )
-                                            </i>
-                                            <br />
-                                            <i className="fa-solid fa-location-dot text-gray-600"></i>{" "}
-                                            {listing?.location}
-                                            <br />
-                                            <i className="fa-solid fa-globe text-gray-600"></i>{" "}
-                                            {listing?.country}
-                                            <br />
-                                            <br />
-                                            <span className="tags flex flex-wrap gap-2">
-                                                {listing?.tags.map(
-                                                    (tag) =>
-                                                        tag !== "null" && (
-                                                            <span
-                                                                key={tag}
-                                                                className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full flex items-center gap-1"
-                                                            >
-                                                                <i className="fa-light fa-hashtag"></i>{" "}
-                                                                {tag}
-                                                            </span>
-                                                        )
-                                                )}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </Link>
-                            </div>
-                        )
-                    })}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filterListings.map((listing) => (
+                    <ListingCard
+                        key={listing._id}
+                        listing={listing}
+                        showWithTax={showWithTax}
+                    />
+                ))}
             </div>
         </div>
     )

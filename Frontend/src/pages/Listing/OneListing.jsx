@@ -1,401 +1,386 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { ScaleLoader, PropagateLoader, PacmanLoader } from "react-spinners"
-import "../../rating.css"
-import checkUserSession from "../../utils/auth"
-import { FlashMessageContext } from "../../utils/flashMessageContext"
 import { UserContext } from "../../contexts/userContext"
+import { FlashMessageContext } from "../../utils/flashMessageContext"
+import {
+    IconStar,
+    IconHash,
+    IconMapPin,
+    IconWorld,
+    IconEdit,
+    IconTrash,
+    IconMessage,
+} from "@tabler/icons-react"
+import "../../rating.css"
 
-const OneListing = () => {
+const ADMIN_ID = "66a343a50ff99cdefc1a4657"
+
+const ReviewForm = ({
+    onSubmit,
+    rating,
+    setRating,
+    content,
+    setContent,
+    isLoading,
+    showSignupLink,
+}) => (
+    <form onSubmit={onSubmit} className="space-y-4">
+        <div className="flex gap-2 mb-4">
+            {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRating(value)}
+                    className={`p-2 rounded ${
+                        rating === value ? "text-yellow-500" : "text-gray-300"
+                    }`}
+                >
+                    <IconStar
+                        size={24}
+                        fill={rating >= value ? "currentColor" : "none"}
+                    />
+                </button>
+            ))}
+        </div>
+
+        <div className="space-y-2">
+            <label htmlFor="review" className="block text-sm font-medium">
+                Your Review
+            </label>
+            <textarea
+                id="review"
+                value={content || ""}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full border-2 rounded-md p-2 min-h-[100px]"
+                required
+            />
+        </div>
+
+        {showSignupLink && (
+            <Link to="/signup" className="text-blue-600 hover:underline block">
+                Sign up to leave a review
+            </Link>
+        )}
+
+        <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+            {isLoading ? "Submitting..." : "Submit Review"}
+        </button>
+    </form>
+)
+
+const Review = ({ review, onDelete, canDelete, isDeleting }) => (
+    <div className="p-4 bg-gray-50 rounded-lg shadow">
+        <div className="flex justify-between items-start mb-2">
+            <div className="flex gap-1">
+                {[...Array(5)].map((_, i) => (
+                    <IconStar
+                        key={i}
+                        size={20}
+                        className={
+                            i < review.rating
+                                ? "text-yellow-500"
+                                : "text-gray-300"
+                        }
+                        fill={i < review.rating ? "currentColor" : "none"}
+                    />
+                ))}
+            </div>
+            <span className="text-sm text-gray-500">
+                {new Date(review.createdAt).toLocaleDateString()}
+            </span>
+        </div>
+
+        <p className="font-medium text-gray-700 mb-1">
+            By: {review.owner?.name}
+        </p>
+        <p className="text-gray-600">{review.content}</p>
+
+        {canDelete && (
+            <button
+                onClick={() => onDelete(review)}
+                disabled={isDeleting}
+                className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+            >
+                {isDeleting ? "Deleting..." : "Delete"}
+            </button>
+        )}
+    </div>
+)
+
+const ListingDetail = () => {
     const navigate = useNavigate()
     const { id } = useParams()
     const [listing, setListing] = useState(null)
-    const [reviewContent, setReviewContent] = useState(null)
+    const [reviews, setReviews] = useState([])
+    const [reviewContent, setReviewContent] = useState("")
     const [rating, setRating] = useState(3)
-    const [allReviews, setAllReviews] = useState({})
-    const [loading, setLoading] = useState(true)
-    const [showSignup, setShowSignup] = useState(false)
-    const [submitLoader, setsubmitLoader] = useState(false)
-    const [deleteLoader1, setDeleteLoader1] = useState(false)
-    const [deleteLoader2, setDeleteLoader2] = useState(false)
-    const {
-        showSuccessMessage,
-        showErrorMessage,
-        showWarningMessage,
-        clearFlashMessage,
-    } = useContext(FlashMessageContext)
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isDeletingReview, setIsDeletingReview] = useState({})
+    const [isDeletingListing, setIsDeletingListing] = useState(false)
+    const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+
     const { currUser, checkCurrUser } = useContext(UserContext)
+    const { showSuccessMessage, showErrorMessage } =
+        useContext(FlashMessageContext)
 
     useEffect(() => {
-        if (!currUser) checkCurrUser()
+        const fetchListingDetails = async () => {
+            if (!currUser) await checkCurrUser()
 
-        fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`)
-            .then((response) => response.json())
-            .then((data) => {
+            try {
+                const response = await fetch(
+                    `${process.env.VITE_API_BASE_URL}/listings/${id}`
+                )
+                const data = await response.json()
+
                 setListing(data)
-                setAllReviews(data.reviews)
-            })
-            .catch((e) => {
-                console.log("Error:", e)
-                showErrorMessage(e.message || "Unknown error")
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+                setReviews(data.reviews)
+            } catch (error) {
+                showErrorMessage(error.message || "Failed to load listing")
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        fetchListingDetails()
     }, [id])
 
-    const deleteListing = () => {
-        let isDelete = false
-        setDeleteLoader1(true)
-        // DeleteListing(listing?._id)
-        fetch(`${process.env.VITE_API_BASE_URL}/listings/${listing?._id}`, {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-        })
-            .then(() => {
-                isDelete = true
-                showSuccessMessage("Listing Deleted")
-            })
-            .catch((error) => {
-                showErrorMessage(error.message || "Unknown error")
-                console.log(error)
-            })
-            .finally(() => {
-                setDeleteLoader1(false)
-                if (isDelete) navigate("/listings")
-            })
-    }
+    const handleDelete = async () => {
+        setIsDeletingListing(true)
 
-    const handelDeleteReview = (e, review) => {
-        e.preventDefault()
-        setDeleteLoader2((prev) => ({ ...prev, [review._id]: true }))
-        fetch(
-            `${process.env.VITE_API_BASE_URL}/listings/${listing?._id}/reviews/${review._id}`,
-            {
+        try {
+            await fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}`, {
                 method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 credentials: "include",
-            }
-        )
-            .then((response) => {
-                if (!response.ok) {
-                    response.json().then((data) => {
-                        showErrorMessage(data.message)
-                        throw new Error(data.message)
-                    })
-                }
-                setAllReviews((pvs) => pvs.filter((e) => e._id != review._id))
-                showSuccessMessage("Review Deleted")
             })
-            .catch((e) => {
-                console.log("Error submitting review:", e)
-                showErrorMessage(e.message || "Unknown error")
-            })
-            .finally(() => {
-                setDeleteLoader2((prev) => ({ ...prev, [review._id]: false }))
-            })
+
+            showSuccessMessage("Listing deleted successfully")
+            navigate("/listings")
+        } catch (error) {
+            showErrorMessage(error.message || "Failed to delete listing")
+        } finally {
+            setIsDeletingListing(false)
+        }
     }
 
-    const handleSubmitReview = (e) => {
+    const handleReviewSubmit = async (e) => {
         e.preventDefault()
-        // Post the review to the API
 
         if (!rating || !reviewContent) {
-            showErrorMessage("Fill all fields ")
+            showErrorMessage("Please fill all fields")
             return
         }
 
         if (!currUser) {
-            showErrorMessage("For submit revive must be logged in ")
-            setShowSignup(true)
+            showErrorMessage("Please log in to submit a review")
+            setShowSignupPrompt(true)
             return
         }
-        setsubmitLoader(true)
 
-        fetch(`${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ rating, content: reviewContent }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.json().then((data) => {
-                        throw new Error(data.message)
-                    })
+        setIsSubmitting(true)
+
+        try {
+            const response = await fetch(
+                `${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ rating, content: reviewContent }),
                 }
-                return response.json()
-            })
-            .then((data) => {
-                const newReview = {
-                    ...data.review,
-                    owner: { _id: currUser.userId, name: currUser.name },
-                }
+            )
 
-                setAllReviews((pvs) => [...pvs, newReview])
-                showSuccessMessage("Review added")
+            const data = await response.json()
 
-                setReviewContent("")
-                setRating(3)
-            })
-            .catch((e) => {
-                console.log("Error submitting review:", e)
-                showErrorMessage(e.message || "Unknown error")
-            })
-            .finally(() => {
-                setsubmitLoader(false)
-            })
+            if (!response.ok) throw new Error(data.message)
+
+            const newReview = {
+                ...data.review,
+                owner: { _id: currUser.userId, name: currUser.name },
+            }
+
+            setReviews((prev) => [...prev, newReview])
+            setReviewContent("")
+            setRating(3)
+            showSuccessMessage("Review added successfully")
+        } catch (error) {
+            showErrorMessage(error.message || "Failed to submit review")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
-    const handelEditForm = () => {
-        navigate(`/listings/${listing?._id}/edit`, { state: listing })
+    const handleReviewDelete = async (review) => {
+        setIsDeletingReview((prev) => ({ ...prev, [review._id]: true }))
+
+        try {
+            const response = await fetch(
+                `${process.env.VITE_API_BASE_URL}/listings/${id}/reviews/${review._id}`,
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                }
+            )
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.message)
+            }
+
+            setReviews((prev) => prev.filter((r) => r._id !== review._id))
+            showSuccessMessage("Review deleted successfully")
+        } catch (error) {
+            showErrorMessage(error.message || "Failed to delete review")
+        } finally {
+            setIsDeletingReview((prev) => ({ ...prev, [review._id]: false }))
+        }
     }
 
-    if (loading) {
+    if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-1/2">
-                <ScaleLoader color={"#000000"} loading={loading} size={15} />
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
             </div>
         )
     }
 
+    const canModifyListing =
+        currUser &&
+        (currUser.userId === listing?.owner?._id ||
+            currUser.userId === ADMIN_ID)
+
     return (
-        <div className="container mx-auto mt-10 flex flex-col w-[90%] ">
-            <div className="w-full md:w-2/3 mx-auto">
-                <h3 className="text-2xl font-semibold mb-4">Listing Details</h3>
+        <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                {listing?.image && (
+                    <img
+                        src={listing.image.url}
+                        alt={listing.title}
+                        className="w-full h-[400px] object-cover"
+                    />
+                )}
 
-                <div className="card bg-white shadow-lg">
-                    {listing?.image && (
-                        <img
-                            src={listing?.image.url}
-                            className="w-full h-64 object-cover"
-                            alt="Image loading..."
-                        />
-                    )}
-                    <div className="p-4">
-                        <h5 className="text-xl font-bold mb-2">
-                            {listing?.title}
-                        </h5>
+                <div className="p-6">
+                    <h1 className="text-2xl font-bold mb-2">
+                        {listing?.title}
+                    </h1>
+                    <p className="text-gray-600 mb-4">
+                        Hosted by {listing?.owner?.name}
+                    </p>
 
-                        <p className="text-gray-500">
-                            Owned by <i>{listing?.owner?.name}</i>
-                        </p>
+                    <div className="space-y-4">
                         <p className="text-gray-700">{listing?.description}</p>
-                        <p className="text-lg font-semibold mt-2">
-                            ₹ {listing?.price?.toLocaleString("en-IN")}
-                        </p>
-                        <p className="mt-2">
-                            <i className="fas fa-location-dot"></i>{" "}
-                            {listing?.location}
-                        </p>
-                        <p className="mt-2">
-                            <i className="fas fa-globe"></i> {listing?.country}
+
+                        <div className="flex items-center gap-2">
+                            <IconMapPin className="text-gray-500" />
+                            <span>{listing?.location}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <IconWorld className="text-gray-500" />
+                            <span>{listing?.country}</span>
+                        </div>
+
+                        <p className="text-xl font-semibold">
+                            ₹{listing?.price?.toLocaleString("en-IN")}
                         </p>
 
-                        <div className="flex flex-wrap gap-2 mt-4">
-                            {listing?.tags &&
-                                listing?.tags.map(
-                                    (tag, index) =>
-                                        tag !== "null" && (
-                                            <span
-                                                key={index}
-                                                className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
-                                            >
-                                                <i className="fas fa-hashtag"></i>{" "}
-                                                {tag}
-                                            </span>
-                                        )
-                                )}
+                        <div className="flex flex-wrap gap-2">
+                            {listing?.tags
+                                ?.filter((tag) => tag !== "null")
+                                .map((tag, index) => (
+                                    <span
+                                        key={index}
+                                        className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm"
+                                    >
+                                        <IconHash size={16} />
+                                        {tag}
+                                    </span>
+                                ))}
                         </div>
                     </div>
-                </div>
 
-                <div className="mt-6 flex space-x-4">
-                    {currUser &&
-                    listing?.owner &&
-                    (listing?.owner._id.toString() === currUser.userId ||
-                        currUser.userId === "66a343a50ff99cdefc1a4657") ? (
-                        <>
-                            <p
-                                className="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600 cursor-pointer"
-                                onClick={handelEditForm}
-                            >
-                                Edit
-                            </p>
-
-                            <button
-                                className="bg-red-500 text-white px-4 py-2 rounded-md shadow hover:bg-red-600 min-w-20"
-                                onClick={deleteListing}
-                            >
-                                {deleteLoader1 ? (
-                                    <PacmanLoader size={10} />
-                                ) : (
-                                    "Delete"
-                                )}
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            {/* <a
-                                href={`/listings/${listing?._id}/book`}
-                                className="bg-green-500 text-white px-4 py-2 rounded-md shadow hover:bg-green-600"
-                            >
-                                Book
-                            </a> */}
+                    <div className="flex gap-4 mt-6">
+                        {canModifyListing ? (
+                            <>
+                                <button
+                                    onClick={() =>
+                                        navigate(`/listings/${id}/edit`, {
+                                            state: listing,
+                                        })
+                                    }
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                >
+                                    <IconEdit size={20} />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    disabled={isDeletingListing}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                                >
+                                    <IconTrash size={20} />
+                                    {isDeletingListing
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                </button>
+                            </>
+                        ) : (
                             <Link
-                                to={`/chats`}
-                                className="bg-purple-500 text-white px-4 py-2 rounded-md shadow hover:bg-purple-600"
+                                to="/chats"
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
                             >
+                                <IconMessage size={20} />
                                 Chat with {listing?.owner?.name}
                             </Link>
-                        </>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <hr className="my-8" />
+            <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Reviews</h2>
 
-            {/* review */}
-            <div className="w-full md:w-2/3 mx-auto">
-                <h3 className="text-xl font-semibold mb-4">Leave a Review</h3>
-                <form onSubmit={handleSubmitReview} className="space-y-4">
-                    <fieldset className="starability-slot">
-                        <legend className="text-sm font-medium text-gray-700">
-                            Your Opinion
-                        </legend>
-                        {[...Array(5)].map((_, i) => (
-                            <React.Fragment key={i + 1}>
-                                <input
-                                    type="radio"
-                                    id={`first-rate${i + 1}`}
-                                    name="rating"
-                                    value={i + 1}
-                                    checked={rating === i + 1}
-                                    onChange={() => setRating(i + 1)}
-                                />
-                                <label htmlFor={`first-rate${i + 1}`}>
-                                    {i + 1} stars.
-                                </label>
-                            </React.Fragment>
-                        ))}
-                    </fieldset>
-
-                    <div>
-                        <label
-                            htmlFor="body"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Review
-                        </label>
-                        <textarea
-                            className="mt-1 px-2 block w-full border-black border-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            name="content"
-                            id="body"
-                            value={reviewContent || ""}
-                            onChange={(e) => {
-                                setReviewContent(e.target.value)
-                            }}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        {showSignup && (
-                            <Link
-                                to="/signup"
-                                className="text-red-600 hover:underline"
-                            >
-                                Click here to sign up
-                            </Link>
-                        )}
-                    </div>
-
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600">
-                        {submitLoader ? (
-                            <PropagateLoader size={10} />
-                        ) : (
-                            "Submit Review"
-                        )}
-                    </button>
-                </form>
+                <ReviewForm
+                    onSubmit={handleReviewSubmit}
+                    rating={rating}
+                    setRating={setRating}
+                    content={reviewContent}
+                    setContent={setReviewContent}
+                    isLoading={isSubmitting}
+                    showSignupLink={showSignupPrompt}
+                />
 
                 <div className="mt-8 space-y-4">
-                    <h3 className="text-xl font-semibold">
-                        {allReviews?.length > 0
-                            ? "All Reviews"
-                            : "No reviews yet , do you wanna give ?"}
-                    </h3>
-                    {allReviews?.length > 0 &&
-                        allReviews.map((review, idx) => (
-                            <div
-                                key={idx}
-                                className="p-4 bg-gray-100 rounded-md shadow"
-                            >
-                                <div className="flex gap-2 w-full justify-between">
-                                    <div className=" flex ">
-                                        {[...Array(5)].map((_, i) => (
-                                            <span
-                                                key={i}
-                                                className={
-                                                    review.rating >= i + 1
-                                                        ? "text-yellow-500"
-                                                        : "text-gray-500"
-                                                }
-                                            >
-                                                <p className="text-xl">★</p>
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <p className="text-right text-sm font-semibold text-gray-700">
-                                        {new Date(
-                                            review.createdAt
-                                        ).toLocaleDateString("en-IN", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "numeric",
-                                        })}
-                                    </p>
-                                </div>
-                                <h5 className="text-sm font-bold text-gray-700">
-                                    By: {review.owner?.name}
-                                </h5>
-                                <p className="text-sm">{review.content}</p>
-                                {currUser &&
-                                (currUser?.userId?.toString() ===
-                                    review?.owner?._id?.toString() ||
-                                    currUser?.userId?.toString() ===
-                                        "66a343a50ff99cdefc1a4657") ? (
-                                    <form
-                                        onSubmit={(e) => {
-                                            handelDeleteReview(e, review)
-                                        }}
-                                        method="post"
-                                    >
-                                        <button className="bg-red-500 text-white min-w-16 text-sm px-2 py-2 rounded-md shadow mt-2">
-                                            {deleteLoader2[review._id] ? (
-                                                <PacmanLoader
-                                                    size={10}
-                                                    className="pr-1"
-                                                />
-                                            ) : (
-                                                "Delete"
-                                            )}
-                                        </button>
-                                    </form>
-                                ) : null}
-                            </div>
-                        ))}
+                    {reviews?.length > 0 ? (
+                        reviews.map((review) => (
+                            <Review
+                                key={review._id}
+                                review={review}
+                                onDelete={handleReviewDelete}
+                                canDelete={
+                                    currUser &&
+                                    (currUser.userId === review.owner?._id ||
+                                        currUser.userId === ADMIN_ID)
+                                }
+                                isDeleting={isDeletingReview[review._id]}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-gray-500 italic">
+                            No reviews yet. Be the first to review!
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
     )
 }
 
-export default OneListing
+export default ListingDetail
