@@ -22,6 +22,7 @@ const Login = () => {
     const { currUser, setCurrUserAndCookies, checkCurrUser } =
         useContext(UserContext)
     const [isPasswordShow, setIsPasswordShow] = useState(false)
+    const [isRiveLoading, setIsRiveLoading] = useState(true)
 
     const navigate = useNavigate()
 
@@ -29,6 +30,11 @@ const Login = () => {
         src: "/animated_login_screen.riv", // Path to your Rive file
         stateMachines: "Login Machine", // Exact name of the state machine in your Rive file
         autoplay: true,
+        onLoad: () => {
+            setIsRiveLoading(false)
+            console.log("came")
+        },
+        onLoadError: () => setIsRiveLoading(false),
     })
 
     useEffect(() => {
@@ -110,6 +116,12 @@ const Login = () => {
             <div className="w-full max-w-md p-8  bg-white rounded-xl shadow-lg gap-4">
                 <div className="mb-4">
                     <div className="w-full ">
+                        {isRiveLoading && (
+                            <div className="w-full flex justify-center items-center">
+                                {" "}
+                                <BeatLoader color="#b3dbd3" />
+                            </div>
+                        )}
                         <RiveComponent className="h-72 w-full " />
                     </div>
                 </div>
