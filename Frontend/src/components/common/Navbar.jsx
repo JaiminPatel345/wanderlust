@@ -118,10 +118,10 @@ const Navigation = () => {
                     <IconPlus size={20} />
                     Add Listing
                 </NavLink>
-                <NavLink to="/chats" className="flex items-center gap-2">
+                {/* <NavLink to="/chats" className="flex items-center gap-2">
                     <IconMessages size={20} />
                     Chats
-                </NavLink>
+                </NavLink> */}
             </div>
         </div>
     )

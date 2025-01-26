@@ -332,13 +332,15 @@ const ListingDetail = () => {
                                 </button>
                             </>
                         ) : (
-                            <Link
-                                to="/chats"
-                                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-                            >
-                                <IconMessage size={20} />
-                                Chat with {listing?.owner?.name}
-                            </Link>
+                            //TODO
+                            // <Link
+                            //     to="/chats"
+                            //     className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+                            // >
+                            //     <IconMessage size={20} />
+                            //     Chat with {listing?.owner?.name}
+                            // </Link>
+                            <></>
                         )}
                     </div>
                 </div>
