@@ -2,6 +2,7 @@ const User = require("../models/user.js");
 const { hashPassword, validatePassword, isValidPasswordFormat, generateResetToken, hashToken } = require("../utilities/passwordUtils.js");
 const { generateOTP, saveOTP, sendOTPEmail } = require("../utilities/otpUtils.js");
 const { AppError, formatResponse } = require("../utilities/errorHandler.js");
+const { generateSignature } = require("../utilities/cloudinaryUtils.js");
 
 // User signup
 module.exports.signup = async (req, res) => {
@@ -336,5 +337,169 @@ module.exports.changePassword = async (req, res) => {
         res.status(500).json({
             message: "An error occurred while changing your password"
         });
+    }
+};
+
+// Get Cloudinary upload signature
+module.exports.getCloudinarySignature = (req, res) => {
+    try {
+        const userId = req.session.user?.userId;
+        
+        if (!userId) {
+            throw new AppError("Not authorized", 401);
+        }
+        
+        // Check if Cloudinary environment variables are available
+        if (!process.env.CLOUD_NAME || !process.env.CLOUD_API_KEY || !process.env.CLOUD_API_SECRET) {
+            console.error("Missing Cloudinary environment variables:", {
+                CLOUD_NAME: !!process.env.CLOUD_NAME, 
+                CLOUD_API_KEY: !!process.env.CLOUD_API_KEY, 
+                CLOUD_API_SECRET: !!process.env.CLOUD_API_SECRET
+            });
+            throw new AppError("Server configuration error", 500);
+        }
+        
+        // Generate a unique public ID based on user ID
+        // This will allow overwriting the image when user updates profile
+        const publicId = `user_profiles/user_${userId}`;
+        
+        // Parameters for the upload
+        // These will be included in the signature
+        const params = {
+            public_id: publicId,
+            folder: 'user_profiles',
+            overwrite: true
+        };
+        
+        // Generate signature
+        const signatureData = generateSignature(params);
+        
+        console.log("Generated Cloudinary signature data for upload");
+        
+        res.status(200).json(
+            formatResponse(true, "Signature generated successfully", signatureData)
+        );
+    } catch (error) {
+        console.error("Error generating Cloudinary signature:", error);
+        throw new AppError("Failed to generate upload signature", 500);
+    }
+};
+
+// Update user profile
+module.exports.updateProfile = async (req, res) => {
+    const { profilePhoto } = req.body;
+    const userId = req.session.user?.userId;
+
+    if (!userId) {
+        throw new AppError("Not authorized", 401);
+    }
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePhoto },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            throw new AppError("User not found", 404);
+        }
+
+        // Update session with the new profile photo
+        req.session.user = {
+            ...req.session.user,
+            profilePhoto: updatedUser.profilePhoto
+        };
+
+        res.status(200).json(
+            formatResponse(true, "Profile updated successfully", {
+                user: {
+                    userId: updatedUser._id,
+                    email: updatedUser.email,
+                    name: updatedUser.name,
+                    profilePhoto: updatedUser.profilePhoto
+                }
+            })
+        );
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        throw new AppError("Failed to update profile", 500);
+    }
+};
+
+// Get user profile
+module.exports.getProfile = async (req, res) => {
+    const userId = req.session.user?.userId;
+
+    if (!userId) {
+        throw new AppError("Not authorized", 401);
+    }
+
+    try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+
+        res.status(200).json(
+            formatResponse(true, "Profile retrieved successfully", {
+                user: {
+                    userId: user._id,
+                    email: user.email,
+                    name: user.name,
+                    profilePhoto: user.profilePhoto
+                }
+            })
+        );
+    } catch (error) {
+        console.error("Error getting profile:", error);
+        throw new AppError("Failed to get profile", 500);
+    }
+};
+
+// Update user name
+module.exports.updateName = async (req, res) => {
+    const { name } = req.body;
+    const userId = req.session.user?.userId;
+
+    if (!userId) {
+        throw new AppError("Not authorized", 401);
+    }
+
+    if (!name || name.trim() === '') {
+        throw new AppError("Name cannot be empty", 400);
+    }
+
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { name },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            throw new AppError("User not found", 404);
+        }
+
+        // Update session with the new name
+        req.session.user = {
+            ...req.session.user,
+            name: updatedUser.name
+        };
+
+        res.status(200).json(
+            formatResponse(true, "Name updated successfully", {
+                user: {
+                    userId: updatedUser._id,
+                    email: updatedUser.email,
+                    name: updatedUser.name,
+                    profilePhoto: updatedUser.profilePhoto
+                }
+            })
+        );
+    } catch (error) {
+        console.error("Error updating name:", error);
+        throw new AppError("Failed to update name", 500);
     }
 };

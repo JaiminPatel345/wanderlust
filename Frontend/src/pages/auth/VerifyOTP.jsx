@@ -166,8 +166,16 @@ const VerifyOTP = () => {
             
             if (trigSuccess) trigSuccess.fire();
             
+            // Check if this is a new user (needs profile setup)
+            const isNewUser = response.data?.isNewUser;
+
             setTimeout(() => {
-                navigate("/");
+                // Redirect to profile setup for new users, otherwise to home
+                if (isNewUser) {
+                    navigate("/profile-setup");
+                } else {
+                    navigate("/");
+                }
             }, 1000);
         } catch (error) {
             console.error("OTP verification error:", error);

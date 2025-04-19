@@ -20,4 +20,13 @@ router.route("/reset-password").post(asyncWrap(userController.resetPassword))
 // Change password (requires authentication)
 router.route("/change-password").post(isLoggedIn, asyncWrap(userController.changePassword))
 
+// Profile management routes
+router.route("/profile")
+    .get(isLoggedIn, asyncWrap(userController.getProfile))
+    .put(isLoggedIn, asyncWrap(userController.updateProfile))
+
+router.route("/profile/name").put(isLoggedIn, asyncWrap(userController.updateName))
+
+router.route("/cloudinary-signature").get(isLoggedIn, asyncWrap(userController.getCloudinarySignature))
+
 module.exports = router

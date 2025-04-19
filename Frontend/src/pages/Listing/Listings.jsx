@@ -138,11 +138,9 @@ const Listings = () => {
     }, [])
 
     const handleTagClick =async (tag) => {
-        console.log(tag)
         
         
         await tagClick(tag)
-        console.log(selectedTags)
         filterListingsOnTag()
     }
 

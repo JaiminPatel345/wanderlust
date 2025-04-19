@@ -74,18 +74,24 @@ module.exports.verifyOTP = async (req, res) => {
             userId: user._id,
             email: user.email,
             name: user.name,
+            profilePhoto: user.profilePhoto || ''
         };
         
         req.session.user = { ...data };
     }
+
+    // Check if this is a new user (no profile photo yet)
+    const isNewUser = !user.profilePhoto || user.profilePhoto === '';
 
     res.status(200).json(
         formatResponse(true, "Email verified successfully", {
             user: {
                 userId: user._id,
                 email: user.email,
-                name: user.name
-            }
+                name: user.name,
+                profilePhoto: user.profilePhoto || ''
+            },
+            isNewUser
         })
     );
 };

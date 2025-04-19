@@ -48,7 +48,8 @@ export const UserProvider = ({ children }) => {
             userId: userData.userId,
             email: userData.email,
             name: userData.name,
-            isValidatedEmail: userData.isValidatedEmail
+            isValidatedEmail: userData.isValidatedEmail,
+            profilePhoto: userData.profilePhoto || ''
         };
         
         const encryptedUser = encryptData(userInfo);
@@ -62,6 +63,22 @@ export const UserProvider = ({ children }) => {
         } else {
             return false;
         }
+    }
+
+    const updateUserProfile = (profileData) => {
+        if (!currUser) return false;
+        
+        const updatedUser = { ...currUser, ...profileData };
+        setCurrUser(updatedUser);
+        
+        const encryptedUser = encryptData(updatedUser);
+        if (encryptedUser) {
+            Cookies.set("user", encryptedUser, {
+                expires: 1, // 1 day
+            });
+            return true;
+        }
+        return false;
     }
 
     const checkCurrUser = () => {
@@ -89,6 +106,7 @@ export const UserProvider = ({ children }) => {
                 checkCurrUser,
                 logout,
                 setCurrUserAndCookies,
+                updateUserProfile
             }}
         >
             {children}

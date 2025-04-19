@@ -18,6 +18,10 @@ const userSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    profilePhoto: {
+        type: String,
+        default: "",
+    },
     passwordResetToken: String,
     passwordResetExpires: Date,
     
