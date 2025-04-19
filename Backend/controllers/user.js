@@ -1,127 +1,148 @@
 const User = require("../models/user.js");
 const { hashPassword, validatePassword, isValidPasswordFormat, generateResetToken, hashToken } = require("../utilities/passwordUtils.js");
+const { generateOTP, saveOTP, sendOTPEmail } = require("../utilities/otpUtils.js");
+const { AppError, formatResponse } = require("../utilities/errorHandler.js");
 
 // User signup
 module.exports.signup = async (req, res) => {
-    try {
-        const { email, password, name } = req.body;
+    const { email, password, name } = req.body;
 
-        if (!email || !password || !name) {
-            return res.status(422).json({
-                message: "Email, password, and name are required",
-            });
-        }
-
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({
-                message: "Email already in use",
-            });
-        }
-
-        // Validate password format
-        if (!isValidPasswordFormat(password)) {
-            return res.status(400).json({
-                message: "Password should be at least 6 characters and contain both letters and numbers",
-            });
-        }
-
-        // Hash the password
-        const hashedPassword = await hashPassword(password);
-
-        // Create new user
-        const newUser = new User({
-            email,
-            name,
-            password: hashedPassword,
-        });
-
-        // Save user to database
-        const savedUser = await newUser.save();
-        
-        // Create session data
-        const data = {
-            userId: savedUser._id,
-            email: savedUser.email,
-            name: savedUser.name,
-        };
-        
-        req.session.user = { ...data };
-        
-        res.status(201).json({
-            user: data
-        });
-    } catch (error) {
-        console.error("Signup error:", error);
-        res.status(500).json({
-            success: false,
-            message: "An error occurred during signup",
-            error: error.message,
-        });
+    if (!email || !password || !name) {
+        throw new AppError("Email, password, and name are required", 422);
     }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        throw new AppError("Email already in use", 409);
+    }
+
+    // Validate password format
+    if (!isValidPasswordFormat(password)) {
+        throw new AppError("Password should be at least 6 characters and contain both letters and numbers", 400);
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
+    // Create new user
+    const newUser = new User({
+        email,
+        name,
+        password: hashedPassword,
+        isValidatedEmail: false,
+    });
+
+    // Save user to database
+    const savedUser = await newUser.save();
+    
+    // Create session data
+    const data = {
+        userId: savedUser._id,
+        email: savedUser.email,
+        name: savedUser.name,
+        isValidatedEmail: savedUser.isValidatedEmail,
+    };
+    
+    // Generate OTP
+    const otp = generateOTP();
+    
+    // Save OTP to Redis
+    const otpSaved = await saveOTP(email, otp);
+    if (!otpSaved) {
+        // If OTP couldn't be saved, delete the user and throw an error
+        await User.findByIdAndDelete(savedUser._id);
+        throw new AppError("Failed to generate verification code", 500);
+    }
+    
+    // Send OTP via email
+    const mailSent = await sendOTPEmail(email, otp, name);
+    if (!mailSent.success) {
+        // If email couldn't be sent, delete the user and OTP, then throw an error
+        await User.findByIdAndDelete(savedUser._id);
+        // No need to manually delete OTP from Redis as it will expire
+        throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
+    }
+    
+    // Only set session if everything succeeded
+    req.session.user = { ...data };
+    
+    res.status(201).json(
+        formatResponse(true, "User registered successfully. Please verify your email.", {
+            user: data,
+            requireVerification: true
+        })
+    );
 };
 
 // User login
 module.exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(422).json({
-                message: "Email and password are required",
-            });
-        }
-
-        // Find user by email
-        const user = await User.findOne({ email });
-        
-        // Check if user exists
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid credentials",
-            });
-        }
-
-        // Validate password
-        const isPasswordValid = await validatePassword(password, user.password);
-        
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid credentials",
-            });
-        }
-
-        // Create session data
-        const data = {
-            userId: user._id,
-            email: user.email,
-            name: user.name,
-        };
-        
-        req.session.user = { ...data };
-        
-        req.session.save((err) => {
-            if (err) {
-                console.error("Error saving session:", err);
-            } else {
-                console.log("Session saved successfully");
-            }
-        });
-        
-        return res.status(200).json({
-            user: data
-        });
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({
-            success: false,
-            message: "An error occurred during login",
-            error: error.message,
-        });
+    if (!email || !password) {
+        throw new AppError("Email and password are required", 422);
     }
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    
+    // Check if user exists
+    if (!user) {
+        throw new AppError("Invalid credentials", 401);
+    }
+
+    // Validate password
+    const isPasswordValid = await validatePassword(password, user.password);
+    
+    if (!isPasswordValid) {
+        throw new AppError("Invalid credentials", 401);
+    }
+
+    // Check if email is verified
+    if (!user.isValidatedEmail) {
+        // Generate new OTP
+        const otp = generateOTP();
+        
+        // Save OTP to Redis
+        const otpSaved = await saveOTP(email, otp);
+        if (!otpSaved) {
+            throw new AppError("Failed to generate verification code", 500);
+        }
+        
+        // Send OTP via email
+        const mailSent = await sendOTPEmail(email, otp, user.name);
+        if (!mailSent.success) {
+            throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
+        }
+        
+        return res.status(403).json(
+            formatResponse(false, "Email not verified. A new verification code has been sent.", {
+                requireVerification: true,
+                email: user.email
+            })
+        );
+    }
+
+    // Create session data
+    const data = {
+        userId: user._id,
+        email: user.email,
+        name: user.name,
+    };
+    
+    req.session.user = { ...data };
+    
+    req.session.save((err) => {
+        if (err) {
+            console.error("Error saving session:", err);
+        } else {
+            console.log("Session saved successfully");
+        }
+    });
+    
+    return res.status(200).json(
+        formatResponse(true, "Login successful", { user: data })
+    );
 };
 
 // User logout

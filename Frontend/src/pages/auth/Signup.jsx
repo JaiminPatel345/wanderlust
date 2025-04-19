@@ -6,6 +6,7 @@ import { UserContext } from "../../contexts/userContext"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 import { FaEye } from "react-icons/fa"
 import { FaEyeSlash } from "react-icons/fa6"
+import { post } from "../../utils/api"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -102,56 +103,42 @@ const Signup = () => {
         }
         setSignupLoader(true)
 
-        await fetch(`${process.env.VITE_API_BASE_URL}/signup`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
+        try {
+            const response = await post("/signup", {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-            }),
-            credentials: "include",
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.json().then((data) => {
-                        showErrorMessage(data.message)
-                        throw {
-                            message: data.message,
-                            error: data.error,
-                        }
-                    })
-                }
-                return response.json()
             })
-            .then((data) => {
-                // Assuming the token is included in the response data
-                if (data) {
-                    setCurrUserAndCookies(data) //set cookies
+            
+            // If the response is successful and requires verification
+            if (response.success && response.data && response.data.requireVerification) {
+                // Set user data in cookies/state
+                setCurrUserAndCookies(response)
+                
+                showSuccessMessage(response.message || `Account created! Please verify your email.`)
+                if (trigSuccess) trigSuccess.fire()
+                
+                // Redirect to verify OTP page
+                setTimeout(() => {
+                    navigate("/verify-otp", { state: { email: formData.email } })
+                }, 1000)
+            } else {
+                // Normal flow if no verification needed (unlikely with current design)
+                setCurrUserAndCookies(response)
+                showSuccessMessage(`Hi ${response.data?.user?.name || 'there'} 👋`)
+                if (trigSuccess) trigSuccess.fire()
 
-                    showSuccessMessage(`Hi  ${data.user.name} 👋`)
-                    if (trigSuccess) trigSuccess.fire()
-
-                    setTimeout(() => {
-                        window.history.go(-1)
-                    }, 500)
-                } else {
-                    throw {
-                        message: data.message,
-                        error: data.error,
-                    }
-                }
-            })
-            .catch((error) => {
-                console.log(error)
-                if (trigFail) trigFail.fire()
-                showErrorMessage(error?.message || "Unknown error")
-            })
-            .finally(() => {
-                setSignupLoader(false)
-            })
+                setTimeout(() => {
+                    window.history.go(-1)
+                }, 500)
+            }
+        } catch (error) {
+            console.error("Signup error:", error)
+            if (trigFail) trigFail.fire()
+            showErrorMessage(error.message || "Unknown error")
+        } finally {
+            setSignupLoader(false)
+        }
     }
 
     return (

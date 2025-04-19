@@ -14,15 +14,13 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
+    isValidatedEmail: {
+        type: Boolean,
+        default: false,
+    },
     passwordResetToken: String,
     passwordResetExpires: Date,
-    chats: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Chat",
-            require: true,
-        },
-    ],
+    
 })
 
 module.exports = mongoose.model("User", userSchema)

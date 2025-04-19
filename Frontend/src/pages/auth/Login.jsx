@@ -6,6 +6,7 @@ import { UserContext } from "../../contexts/userContext"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 import { FaEye } from "react-icons/fa"
 import { FaEyeSlash } from "react-icons/fa6"
+import { post } from "../../utils/api"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -62,10 +63,10 @@ const Login = () => {
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         if (formData.email.length === 0 || formData.password.length === 0) {
-            showErrorMessage("Email or Password can't be empty ")
+            showErrorMessage("Email or Password can't be empty")
             if (trigFail) trigFail.fire()
             return
         }
@@ -73,41 +74,36 @@ const Login = () => {
         setLoginLoader(true)
         if (isHandsUp) isHandsUp.value = false
 
-        fetch(`${process.env.VITE_API_BASE_URL}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-            credentials: "include", // Ensure cookies are sent with the request
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    return response.json().then((data) => {
-                        console.log(data)
-
-                        throw new Error(`${data.message}`)
-                    })
-                }
-                return response.json()
-            })
-            .then((data) => {
-                setCurrUserAndCookies(data)
-                showSuccessMessage(`Hi  ${data.user.name} 👋`)
-                if (trigSuccess) trigSuccess.fire()
-
-                setTimeout(() => {
-                    window.history.go(-1)
-                }, 1000)
-            })
-            .catch((error) => {
-                console.log("error in login : ", error)
+        try {
+            const response = await post("/login", formData)
+            
+            // Check if email verification is required (backend returns success:false with requireVerification flag)
+            if (response.data && response.data.requireVerification) {
+                showWarningMessage(response.message || "Please verify your email to continue")
                 if (trigFail) trigFail.fire()
-                showErrorMessage(error.message || "Unknown error")
-            })
-            .finally(() => {
-                setLoginLoader(false)
-            })
+                
+                // Redirect to verify OTP page
+                setTimeout(() => {
+                    navigate("/verify-otp", { state: { email: formData.email } })
+                }, 1000)
+                return
+            }
+            
+            // Normal login flow
+            setCurrUserAndCookies(response)
+            showSuccessMessage(response.message || `Welcome back!`)
+            if (trigSuccess) trigSuccess.fire()
+
+            setTimeout(() => {
+                window.history.go(-1)
+            }, 1000)
+        } catch (error) {
+            console.error("Login error:", error)
+            if (trigFail) trigFail.fire()
+            showErrorMessage(error.message || "Unknown error")
+        } finally {
+            setLoginLoader(false)
+        }
     }
 
     return (

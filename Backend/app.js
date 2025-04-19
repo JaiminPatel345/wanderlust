@@ -8,6 +8,7 @@ const http = require("http")
 const app = express()
 const server = http.createServer(app)
 const helmet = require("helmet")
+const { handleError } = require('./utilities/errorHandler')
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config()
@@ -18,7 +19,7 @@ const redisStore = require("./redis")
 const listingsRoutes = require("./routes/listing.js")
 const reviewsRoutes = require("./routes/review.js")
 const usersRoutes = require("./routes/user.js")
-const chatsRoutes = require("./routes/chat.js")
+const otpRoutes = require("./routes/otp.js")
 const port = process.env.PORT || 3000
 
 // Database connection
@@ -114,7 +115,7 @@ app.use((req, res, next) => {
 })
 app.use("/listings/:id/reviews", reviewsRoutes)
 app.use("/listings", listingsRoutes)
-app.use("/chats", chatsRoutes)
+app.use("/otp", otpRoutes)
 app.use("/", usersRoutes)
 
 // Socket.io for chat
@@ -128,14 +129,8 @@ app.use("/", usersRoutes)
 // })
 
 app.use((err, req, res, next) => {
-    console.log("Error at last ", err)
-    if (res.headersSent) {
-        return // If headers are already sent, delegate to the default error handler
-    }
-    res.status(err.statusCode || 500).json({
-        message: err.message
-    })
-})
+    handleError(err, res);
+});
 
 // Start server
 app.listen(port, () => console.log(`Listening on port ${port}`))

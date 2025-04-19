@@ -36,24 +36,31 @@ export const UserProvider = ({ children }) => {
     }
 
     const setCurrUserAndCookies = (data) => {
-        const encryptedUser = encryptData({
-            userId: data.user.userId,
-            email: data.user.email,
-            name: data.user.name,
-        })
+        // Handle the new API response format
+        const userData = data.data && data.data.user ? data.data.user : data.user;
+        
+        if (!userData) {
+            console.error("Invalid user data format", data);
+            return false;
+        }
+        
+        const userInfo = {
+            userId: userData.userId,
+            email: userData.email,
+            name: userData.name,
+            isValidatedEmail: userData.isValidatedEmail
+        };
+        
+        const encryptedUser = encryptData(userInfo);
 
         if (encryptedUser) {
             Cookies.set("user", encryptedUser, {
                 expires: 1, // 1 day
-            })
-            setCurrUser({
-                userId: data.user.userId,
-                email: data.user.email,
-                name: data.user.name,
-            })
-            return true
+            });
+            setCurrUser(userInfo);
+            return true;
         } else {
-            return false
+            return false;
         }
     }
 
