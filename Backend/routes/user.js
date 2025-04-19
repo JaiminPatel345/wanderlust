@@ -29,4 +29,12 @@ router.route("/profile/name").put(isLoggedIn, asyncWrap(userController.updateNam
 
 router.route("/cloudinary-signature").get(isLoggedIn, asyncWrap(userController.getCloudinarySignature))
 
+// Bookmark routes
+router.route("/bookmarks")
+    .get(isLoggedIn, asyncWrap(userController.getBookmarks))
+
+router.route("/bookmarks/:listingId")
+    .post(isLoggedIn, asyncWrap(userController.addBookmark))
+    .delete(isLoggedIn, asyncWrap(userController.removeBookmark))
+
 module.exports = router

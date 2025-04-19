@@ -11,8 +11,11 @@ import {
     IconEdit,
     IconTrash,
     IconMessage,
+    IconBookmark,
+    IconBookmarkFilled,
 } from "@tabler/icons-react"
 import "../../rating.css"
+import { toggleBookmark, isListingBookmarked } from "../../utils/bookmarkUtils"
 
 const ADMIN_ID = "66a343a50ff99cdefc1a4657"
 
@@ -124,6 +127,7 @@ const ListingDetail = () => {
     const [isDeletingReview, setIsDeletingReview] = useState({})
     const [isDeletingListing, setIsDeletingListing] = useState(false)
     const [showSignupPrompt, setShowSignupPrompt] = useState(false)
+    const [isBookmarked, setIsBookmarked] = useState(false)
 
     const { currUser, checkCurrUser } = useUserStore()
     const { showSuccessMessage, showErrorMessage } =
@@ -141,6 +145,16 @@ const ListingDetail = () => {
 
                 setListing(data)
                 setReviews(data.reviews)
+                
+                // Check if this listing is bookmarked
+                if (currUser) {
+                    try {
+                        const bookmarkStatus = await isListingBookmarked(id);
+                        setIsBookmarked(bookmarkStatus);
+                    } catch (error) {
+                        console.error("Error checking bookmark status:", error);
+                    }
+                }
             } catch (error) {
                 showErrorMessage(error.message || "Failed to load listing")
             } finally {
@@ -149,7 +163,7 @@ const ListingDetail = () => {
         }
 
         fetchListingDetails()
-    }, [id])
+    }, [id, currUser])
 
     const handleDelete = async () => {
         setIsDeletingListing(true)
@@ -242,6 +256,36 @@ const ListingDetail = () => {
         }
     }
 
+    const handleBookmark = async () => {
+        if (!currUser) {
+            showErrorMessage("Please log in to bookmark a listing")
+            navigate("/login")
+            return
+        }
+
+        // Optimistically update UI first
+        setIsBookmarked(!isBookmarked)
+        
+        try {
+            // Then make the API call
+            const response = await toggleBookmark(id, isBookmarked);
+            
+            if (!response.success) {
+                // Only revert UI if there was a real error (not "already bookmarked")
+                if (!response.message.includes("already bookmarked")) {
+                    setIsBookmarked(isBookmarked);
+                    showErrorMessage(response.message || "Failed to update bookmark status");
+                }
+            } else {
+                showSuccessMessage(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
+            }
+        } catch (error) {
+            // If failed, revert the UI change
+            setIsBookmarked(isBookmarked);
+            showErrorMessage("Failed to update bookmark status");
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh]">
@@ -290,6 +334,30 @@ const ListingDetail = () => {
                         <p className="text-xl font-semibold">
                             ₹{listing?.price?.toLocaleString("en-IN")}
                         </p>
+                        
+                        {currUser && (
+                            <button
+                                onClick={handleBookmark}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                                    isBookmarked 
+                                        ? "bg-rose-100 text-rose-600 hover:bg-rose-200" 
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                                aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
+                            >
+                                {isBookmarked ? (
+                                    <>
+                                        <IconBookmarkFilled size={20} />
+                                        <span>Bookmarked</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <IconBookmark size={20} />
+                                        <span>Bookmark</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
 
                         <div className="flex flex-wrap gap-2">
                             {listing?.tags

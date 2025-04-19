@@ -20,6 +20,8 @@ import {
     IconSnowflake,
     IconHash,
 } from "@tabler/icons-react"
+import ListingCard from "../../components/ListingCard"
+import { toggleBookmark } from "../../utils/bookmarkUtils"
 
 const FILTER_TAGS = [
     { id: "trending", label: "Trending", icon: IconFlame },
@@ -71,52 +73,6 @@ const TagFilter = ({ tag, isActive, onClick }) => {
     )
 }
 
-const ListingCard = ({ listing, showWithTax }) => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-        <Link to={`/listings/${listing._id}`} className="block">
-            <img
-                src={listing.image.url}
-                className="w-full h-72 object-cover hover:opacity-90 transition-opacity"
-                alt={listing.title}
-                loading="lazy"
-            />
-            <div className="p-4">
-                <h5 className="text-xl font-semibold mb-2">{listing.title}</h5>
-                <div className="space-y-3">
-                    <PriceDisplay
-                        price={listing.price}
-                        showWithTax={showWithTax}
-                    />
-
-                    <div className="flex items-center gap-2">
-                        <IconMapPin size={20} />
-                        <span>{listing.location}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <IconWorld size={20} />
-                        <span>{listing.country}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mt-4">
-                        {listing.tags
-                            .filter((tag) => tag !== "null")
-                            .map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1"
-                                >
-                                    <IconHash size={16} />
-                                    {tag}
-                                </span>
-                            ))}
-                    </div>
-                </div>
-            </div>
-        </Link>
-    </div>
-)
-
 const Listings = () => {
     const { filterListings, allListings, filterListingsOnTag } =
         useListingStore()
@@ -125,6 +81,7 @@ const Listings = () => {
     const [loading, setLoading] = useState(true)
     const { currUser, checkCurrUser } = useUserStore()
     const { getAllListings } = useListingApi()
+    const [bookmarkedListings, setBookmarkedListings] = useState([]);
 
     useEffect(() => {
         const initializePage = async () => {
@@ -132,17 +89,76 @@ const Listings = () => {
                 await checkCurrUser()
             }
             await getAllListings(setLoading)
+            // If user is logged in, fetch their bookmarks to know which listings are bookmarked
+            if (currUser) {
+                try {
+                    const response = await fetch('/api/bookmarks', {
+                        credentials: 'include',
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.bookmarks) {
+                            setBookmarkedListings(data.bookmarks.map(bookmark => bookmark._id));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching bookmarks:', error);
+                }
+            }
         }
 
         initializePage()
-    }, [])
+    }, [currUser])
 
-    const handleTagClick =async (tag) => {
-        
-        
+    const handleTagClick = async (tag) => {
         await tagClick(tag)
         filterListingsOnTag()
     }
+
+    // Handle bookmark toggle with optimistic UI update
+    const handleToggleBookmark = async (listingId, newBookmarkStatus) => {
+        if (!currUser) {
+            showErrorMessage("Please log in to bookmark listings");
+            navigate("/login");
+            return;
+        }
+        
+        // Optimistically update UI
+        if (newBookmarkStatus) {
+            setBookmarkedListings(prev => [...prev, listingId]);
+        } else {
+            setBookmarkedListings(prev => prev.filter(id => id !== listingId));
+        }
+        
+        // Make API call in the background
+        try {
+            const response = await toggleBookmark(listingId, !newBookmarkStatus);
+            
+            // If API call failed, revert the UI change
+            if (!response.success) {
+                // Revert the optimistic update
+                if (newBookmarkStatus) {
+                    setBookmarkedListings(prev => prev.filter(id => id !== listingId));
+                } else {
+                    setBookmarkedListings(prev => [...prev, listingId]);
+                }
+                
+                // Show error message only for actual error conditions, not for "already bookmarked" case
+                if (!response.message.includes("already bookmarked")) {
+                    showErrorMessage(response.message || "Failed to update bookmark");
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling bookmark:', error);
+            // Revert the optimistic update
+            if (newBookmarkStatus) {
+                setBookmarkedListings(prev => prev.filter(id => id !== listingId));
+            } else {
+                setBookmarkedListings(prev => [...prev, listingId]);
+            }
+            showErrorMessage("Failed to update bookmark status");
+        }
+    };
 
     if (loading) {
         return (
@@ -196,6 +212,8 @@ const Listings = () => {
                         key={listing._id}
                         listing={listing}
                         showWithTax={showWithTax}
+                        isBookmarked={bookmarkedListings.includes(listing._id)}
+                        onToggleBookmark={handleToggleBookmark}
                     />
                 ))}
             </div>

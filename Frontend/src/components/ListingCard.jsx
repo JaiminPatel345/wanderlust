@@ -1,0 +1,173 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { IconBookmark, IconBookmarkFilled, IconMapPin, IconWorld, IconHash } from '@tabler/icons-react';
+import { toggleBookmark } from '../utils/bookmarkUtils';
+import { FlashMessageContext } from '../utils/flashMessageContext';
+import useUserStore from '../../Store/userStore';
+
+const TAX_RATE = 0.18; // 18% GST
+
+const PriceDisplay = ({ price, showWithTax = false }) => {
+  const displayedPrice = showWithTax
+    ? (price + price * TAX_RATE).toLocaleString('en-IN')
+    : price.toLocaleString('en-IN');
+
+  return (
+    <div className="flex items-center gap-2">
+      <span>₹{displayedPrice}</span>
+      <span className="text-sm text-gray-500">
+        ({showWithTax ? 'Including GST' : 'Excluding GST'})
+      </span>
+    </div>
+  );
+};
+
+PriceDisplay.propTypes = {
+  price: PropTypes.number.isRequired,
+  showWithTax: PropTypes.bool
+};
+
+const ListingCard = ({ listing, showWithTax = false, isBookmarked = false, onToggleBookmark }) => {
+  const [bookmarked, setBookmarked] = useState(isBookmarked);
+  const [isBookmarkProcessing, setIsBookmarkProcessing] = useState(false);
+  const { showSuccessMessage, showErrorMessage } = React.useContext(FlashMessageContext);
+  const navigate = useNavigate();
+  const { currUser } = useUserStore();
+
+  // Update bookmarked state when isBookmarked prop changes
+  useEffect(() => {
+    setBookmarked(isBookmarked);
+  }, [isBookmarked]);
+
+  const handleBookmarkClick = async (e) => {
+    e.preventDefault(); // Prevent navigation to listing details
+    e.stopPropagation(); // Prevent event bubbling
+    
+    // Check if user is logged in
+    if (!currUser) {
+      showErrorMessage("Please log in to bookmark listings");
+      navigate("/login");
+      return;
+    }
+    
+    if (isBookmarkProcessing) return;
+    
+    // Optimistically update UI
+    setBookmarked(!bookmarked);
+    setIsBookmarkProcessing(true);
+    
+    try {
+      // If a custom handler is provided, use it
+      if (onToggleBookmark) {
+        onToggleBookmark(listing._id, !bookmarked);
+        setIsBookmarkProcessing(false);
+        return;
+      }
+      
+      // Otherwise use the default toggle functionality
+      const response = await toggleBookmark(listing._id, bookmarked);
+      
+      if (!response.success) {
+        // Only revert UI and show error for real errors (not "already bookmarked")
+        if (!response.message.includes("already bookmarked")) {
+          setBookmarked(bookmarked);
+          showErrorMessage(response.message || "Failed to update bookmark");
+        }
+      } else {
+        showSuccessMessage(bookmarked ? "Removed from bookmarks" : "Added to bookmarks");
+      }
+    } catch (error) {
+      // Revert UI state if operation fails
+      console.error('Error toggling bookmark:', error);
+      setBookmarked(bookmarked);
+      showErrorMessage("Failed to update bookmark status");
+    } finally {
+      setIsBookmarkProcessing(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative">
+      {/* Bookmark button */}
+      <button
+        className="absolute top-3 right-3 z-10 bg-white rounded-full p-1 shadow-md hover:scale-110 transition-transform"
+        onClick={handleBookmarkClick}
+        disabled={isBookmarkProcessing}
+        aria-label={bookmarked ? "Remove from bookmarks" : "Save to bookmarks"}
+      >
+        {bookmarked ? (
+          <IconBookmarkFilled size={22} className="text-rose-500" />
+        ) : (
+          <IconBookmark size={22} className="text-gray-600" />
+        )}
+      </button>
+
+      <Link to={`/listings/${listing._id}`} className="block">
+        <img
+          src={listing.image.url}
+          className="w-full h-64 object-cover hover:opacity-90 transition-opacity"
+          alt={listing.title}
+          loading="lazy"
+        />
+        <div className="p-4">
+          <h5 className="text-xl font-semibold mb-2">{listing.title}</h5>
+          <div className="space-y-3">
+            <PriceDisplay price={listing.price} showWithTax={showWithTax} />
+
+            <div className="flex items-center gap-2">
+              <IconMapPin size={20} className="flex-shrink-0" />
+              <span className="truncate">{listing.location}</span>
+            </div>
+
+            {listing.country && (
+              <div className="flex items-center gap-2">
+                <IconWorld size={20} className="flex-shrink-0" />
+                <span className="truncate">{listing.country}</span>
+              </div>
+            )}
+
+            {listing.tags && listing.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {listing.tags
+                  .filter((tag) => tag !== "null" && tag)
+                  .slice(0, 3) // Limit to first 3 tags
+                  .map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-1 text-sm"
+                    >
+                      <IconHash size={14} />
+                      {tag}
+                    </span>
+                  ))}
+                {listing.tags.filter(t => t !== "null" && t).length > 3 && (
+                  <span className="text-sm text-gray-500">+{listing.tags.filter(t => t !== "null" && t).length - 3} more</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+};
+
+ListingCard.propTypes = {
+  listing: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    location: PropTypes.string.isRequired,
+    country: PropTypes.string,
+    image: PropTypes.shape({
+      url: PropTypes.string.isRequired
+    }).isRequired,
+    tags: PropTypes.arrayOf(PropTypes.string)
+  }).isRequired,
+  showWithTax: PropTypes.bool,
+  isBookmarked: PropTypes.bool,
+  onToggleBookmark: PropTypes.func
+};
+
+export default ListingCard; 

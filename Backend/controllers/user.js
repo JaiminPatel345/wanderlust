@@ -3,6 +3,7 @@ const { hashPassword, validatePassword, isValidPasswordFormat, generateResetToke
 const { generateOTP, saveOTP, sendOTPEmail } = require("../utilities/otpUtils.js");
 const { AppError, formatResponse } = require("../utilities/errorHandler.js");
 const { generateSignature } = require("../utilities/cloudinaryUtils.js");
+const Listing = require("../models/listing.js");
 
 // User signup
 module.exports.signup = async (req, res) => {
@@ -512,5 +513,117 @@ module.exports.updateName = async (req, res) => {
     } catch (error) {
         console.error("Error updating name:", error);
         throw new AppError("Failed to update name", 500);
+    }
+};
+
+// Bookmark controller functions
+module.exports.getBookmarks = async (req, res) => {
+    try {
+        const userId = req.session.user.userId;
+        const user = await User.findById(userId).populate('bookmarks');
+        
+        if (!user) {
+            return res.status(404).json({ 
+                success: false,
+                message: "User not found" 
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            bookmarks: user.bookmarks
+        });
+    } catch (error) {
+        console.error("Error fetching bookmarks:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+module.exports.addBookmark = async (req, res) => {
+    try {
+        const userId = req.session.user.userId;
+        const { listingId } = req.params;
+        
+        // Check if listing exists
+        const listing = await Listing.findById(listingId);
+        if (!listing) {
+            return res.status(404).json({
+                success: false,
+                message: "Listing not found"
+            });
+        }
+        
+        // Add bookmark if not already added
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        // Check if already bookmarked
+        if (user.bookmarks.includes(listingId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Listing already bookmarked"
+            });
+        }
+        
+        // Add to bookmarks
+        user.bookmarks.push(listingId);
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: "Bookmark added successfully"
+        });
+    } catch (error) {
+        console.error("Error adding bookmark:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+module.exports.removeBookmark = async (req, res) => {
+    try {
+        const userId = req.session.user.userId;
+        const { listingId } = req.params;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        // Check if bookmark exists
+        if (!user.bookmarks.includes(listingId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Bookmark not found"
+            });
+        }
+        
+        // Remove from bookmarks
+        user.bookmarks = user.bookmarks.filter(id => id.toString() !== listingId);
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: "Bookmark removed successfully"
+        });
+    } catch (error) {
+        console.error("Error removing bookmark:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
     }
 };
