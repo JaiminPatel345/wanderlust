@@ -3,7 +3,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
 import useUserStore from "../../../Store/userStore";
-import { useRive, useStateMachineInput } from "@rive-app/react-canvas";
 
 const VerifyOTP = () => {
     const [verifyLoader, setVerifyLoader] = useState(false);
@@ -14,7 +13,6 @@ const VerifyOTP = () => {
         clearFlashMessage,
     } = useContext(FlashMessageContext);
     const { currUser, verifyOTP, resendOTP } = useUserStore();
-    const [isRiveLoading, setIsRiveLoading] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -37,22 +35,7 @@ const VerifyOTP = () => {
     // OTP input values
     const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
     
-    // Rive animation
-    const { RiveComponent, rive } = useRive({
-        src: "/animated_login_screen.riv",
-        stateMachines: "Login Machine",
-        autoplay: true,
-        onLoad: () => {
-            setIsRiveLoading(false);
-        },
-        onLoadError: () => setIsRiveLoading(false),
-    });
-    
-    // Retrieve State Machine Inputs for animation
-    const isHandsUp = useStateMachineInput(rive, "Login Machine", "isHandsUp");
-    const trigSuccess = useStateMachineInput(rive, "Login Machine", "trigSuccess");
-    const trigFail = useStateMachineInput(rive, "Login Machine", "trigFail");
-    const numLook = useStateMachineInput(rive, "Login Machine", "numLook");
+    const [isVerifying, setIsVerifying] = useState(false);
     
     useEffect(() => {
         // If email is not available, redirect to login
@@ -61,9 +44,9 @@ const VerifyOTP = () => {
             return;
         }
         
-        // If already logged in and verified, redirect to home
-        if (currUser && currUser.isValidatedEmail) {
-            navigate("/");
+        // If already logged in and verified, and not currently verifying, redirect to home
+        if (currUser && currUser.isValidatedEmail && !isVerifying) {
+            navigate("/", { replace: true });
         }
         
         // Focus first input when component mounts
@@ -72,7 +55,7 @@ const VerifyOTP = () => {
         }
         
         window.scrollTo(0, 0);
-    }, [email, currUser, navigate]);
+    }, [email, currUser, navigate, isVerifying]);
     
     // Handle OTP input change
     const handleOtpChange = (index, value) => {
@@ -83,11 +66,6 @@ const VerifyOTP = () => {
         const newOtpValues = [...otpValues];
         newOtpValues[index] = value;
         setOtpValues(newOtpValues);
-        
-        // Update animation
-        if (numLook) {
-            numLook.value = newOtpValues.join("").length;
-        }
         
         // Move to next input if current is filled
         if (value.length === 1 && index < 5) {
@@ -113,11 +91,6 @@ const VerifyOTP = () => {
         }
         
         setOtpValues(newOtpValues);
-        
-        // Update animation
-        if (numLook) {
-            numLook.value = newOtpValues.join("").length;
-        }
         
         // Focus on the appropriate field
         const nextIndex = Math.min(5, index + pastedChars.length);
@@ -146,12 +119,12 @@ const VerifyOTP = () => {
         const otpString = otpValues.join("");
         if (otpString.length !== 6) {
             showErrorMessage("Please enter the complete 6-digit verification code");
-            if (trigFail) trigFail.fire();
             return;
         }
         
+        // Set verification flag to prevent unwanted redirects
+        setIsVerifying(true);
         setVerifyLoader(true);
-        if (isHandsUp) isHandsUp.value = false;
         
         try {
             const result = await verifyOTP(email, otpString);
@@ -159,26 +132,22 @@ const VerifyOTP = () => {
             if (result.success) {
                 showSuccessMessage("Email verified successfully!");
                 
-                if (trigSuccess) trigSuccess.fire();
-                
-                setTimeout(() => {
-                    // Redirect to profile setup for new users, otherwise to home
-                    if (result.isNewUser) {
-                        navigate("/profile-setup");
-                    } else {
-                        navigate("/");
-                    }
-                }, 1000);
+                // Direct navigation without setTimeout
+                if (result.isNewUser) {
+                    navigate("/profile-setup", { replace: true });
+                } else {
+                    navigate("/", { replace: true });
+                }
             } else {
-                if (trigFail) trigFail.fire();
                 showErrorMessage(result.error || "Verification failed");
             }
         } catch (error) {
             console.error("OTP verification error:", error);
-            if (trigFail) trigFail.fire();
             showErrorMessage(error.message || "Verification failed");
         } finally {
             setVerifyLoader(false);
+            // Reset verification flag
+            setIsVerifying(false);
         }
     };
     
@@ -204,19 +173,8 @@ const VerifyOTP = () => {
     };
     
     return (
-        <div className="flex justify-center items-center">
-            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg gap-4 mt-16">
-                <div className="mb-4">
-                    <div className="w-full">
-                        {isRiveLoading && (
-                            <div className="w-full flex justify-center items-center">
-                                <BeatLoader color="#b3dbd3" />
-                            </div>
-                        )}
-                        <RiveComponent className="h-72 w-full" />
-                    </div>
-                </div>
-
+        <div className="flex justify-center items-center min-h-[70vh]">
+            <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg gap-4">
                 <div>
                     <h2 className="text-3xl font-extrabold text-gray-900 mb-4 text-center">
                         Verify Your Email
@@ -239,8 +197,6 @@ const VerifyOTP = () => {
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
                                     onKeyDown={(e) => handleKeyDown(index, e)}
                                     onPaste={(e) => handlePaste(e, index)}
-                                    onFocus={() => isHandsUp && (isHandsUp.value = true)}
-                                    onBlur={() => isHandsUp && (isHandsUp.value = false)}
                                 />
                             ))}
                         </div>

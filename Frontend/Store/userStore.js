@@ -16,7 +16,6 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('islogin response:', data);
       
       if (response.ok && data.success) {
         set({ currUser: data.data.user, loading: false });
@@ -166,7 +165,12 @@ const useUserStore = create((set) => ({
       console.log('signup response:', data);
       
       if (response.ok && data.success) {
-        set({ currUser: data.data.user, loading: false });
+        // Only set current user if no verification is required
+        if (!data.data.requireVerification) {
+          set({ currUser: data.data.user, loading: false });
+        } else {
+          set({ loading: false });
+        }
         return { 
           success: true,
           requireVerification: data.data.requireVerification

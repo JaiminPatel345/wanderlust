@@ -13,11 +13,40 @@ import {
     IconMessage,
     IconBookmark,
     IconBookmarkFilled,
+    IconCurrencyRupee,
+    IconCurrencyDollar,
+    IconTax,
 } from "@tabler/icons-react"
 import "../../rating.css"
 import { toggleBookmark, isListingBookmarked } from "../../utils/bookmarkUtils"
 
 const ADMIN_ID = "66a343a50ff99cdefc1a4657"
+const TAX_RATE = 0.18 // 18% GST
+const USD_CONVERSION_RATE = 0.012 // 1 INR = 0.012 USD (approx)
+
+// Price display component
+const PriceDisplay = ({ price, showWithTax = false, showInUSD = false }) => {
+    // Calculate price with tax if needed
+    const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
+    
+    // Convert to USD if needed
+    const displayPrice = showInUSD 
+        ? (priceWithTax * USD_CONVERSION_RATE).toLocaleString('en-US', { maximumFractionDigits: 2 })
+        : priceWithTax.toLocaleString('en-IN');
+    
+    // Currency symbol and icon
+    const CurrencyIcon = showInUSD ? IconCurrencyDollar : IconCurrencyRupee;
+    
+    return (
+        <div className="flex items-center gap-1">
+            <CurrencyIcon size={22} className="text-gray-700" />
+            <span className="text-xl font-semibold">{displayPrice}</span>
+            {showWithTax && (
+                <span className="text-sm text-gray-500 ml-1">(Incl. tax)</span>
+            )}
+        </div>
+    );
+};
 
 const ReviewForm = ({
     onSubmit,
@@ -128,6 +157,9 @@ const ListingDetail = () => {
     const [isDeletingListing, setIsDeletingListing] = useState(false)
     const [showSignupPrompt, setShowSignupPrompt] = useState(false)
     const [isBookmarked, setIsBookmarked] = useState(false)
+    // Add state for price display options
+    const [showWithTax, setShowWithTax] = useState(false)
+    const [showInUSD, setShowInUSD] = useState(false)
 
     const { currUser, checkCurrUser } = useUserStore()
     const { showSuccessMessage, showErrorMessage } =
@@ -311,12 +343,46 @@ const ListingDetail = () => {
                 )}
 
                 <div className="p-6">
-                    <h1 className="text-2xl font-bold mb-2">
-                        {listing?.title}
-                    </h1>
-                    <p className="text-gray-600 mb-4">
-                        Hosted by {listing?.owner?.name}
-                    </p>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h1 className="text-2xl font-bold mb-2">
+                                {listing?.title}
+                            </h1>
+                            <p className="text-gray-600 mb-4">
+                                Hosted by {listing?.owner?.name}
+                            </p>
+                        </div>
+                        
+                        {/* Price display options */}
+                        <div className="flex items-center gap-1">
+                            <div className="flex border rounded-md overflow-hidden">
+                                <button
+                                    onClick={() => setShowInUSD(false)}
+                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${!showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                    title="Show in Rupees"
+                                >
+                                    <IconCurrencyRupee size={16} />
+                                    <span className="hidden sm:inline">INR</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowInUSD(true)}
+                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                    title="Show in Dollars"
+                                >
+                                    <IconCurrencyDollar size={16} />
+                                    <span className="hidden sm:inline">USD</span>
+                                </button>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setShowWithTax(!showWithTax)}
+                                className={`p-1.5 rounded-md border flex items-center justify-center ${showWithTax ? 'bg-blue-50 border-blue-200' : 'bg-white'}`}
+                                title={showWithTax ? "Price includes tax" : "Price excludes tax"}
+                            >
+                                <IconTax size={18} className={showWithTax ? 'text-blue-500' : 'text-gray-400'} />
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="space-y-4">
                         <p className="text-gray-700">{listing?.description}</p>
@@ -331,9 +397,14 @@ const ListingDetail = () => {
                             <span>{listing?.country}</span>
                         </div>
 
-                        <p className="text-xl font-semibold">
-                            ₹{listing?.price?.toLocaleString("en-IN")}
-                        </p>
+                        {/* Updated price display */}
+                        {listing?.price && (
+                            <PriceDisplay 
+                                price={listing.price} 
+                                showWithTax={showWithTax} 
+                                showInUSD={showInUSD} 
+                            />
+                        )}
                         
                         {currUser && (
                             <button

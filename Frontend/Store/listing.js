@@ -4,6 +4,8 @@ import useTagStore from "./tagStore.js"
 const useListingStore = create((set, get) => ({
     allListings: [],
     filterListings: [],
+    searchResults: [],
+    isSearching: false,
 
     setListings: (listings) => set({ allListings: listings }),
     setFilterListings: (listings) => set({ filterListings: listings }),
@@ -35,6 +37,7 @@ const useListingStore = create((set, get) => ({
             } else {
                 await state.filterListingsOnTag()
             }
+            set({ searchResults: [] })
             return
         }
 
@@ -50,11 +53,50 @@ const useListingStore = create((set, get) => ({
                 listing.title.toLowerCase().includes(searchTermLower) ||
                 listing.price.toString().includes(searchTerm) ||
                 listing.location.toLowerCase().includes(searchTermLower) ||
-                listing.country.toLowerCase().includes(searchTermLower)
+                listing.country.toLowerCase().includes(searchTermLower) ||
+                listing.tags.some(tag => tag.toLowerCase().includes(searchTermLower))
         )
 
         set({ filterListings: tempListings })
     },
+
+    searchListingsBackend: async (searchTerm) => {
+        if (!searchTerm || searchTerm.trim() === '') {
+            set({ searchResults: [], isSearching: false }) 
+            return
+        }
+
+        set({ isSearching: true })
+        
+        try {
+            const response = await fetch(`${process.env.VITE_API_BASE_URL}/listings/search?query=${encodeURIComponent(searchTerm)}`)
+            
+            if (!response.ok) {
+                throw new Error('Search request failed')
+            }
+            
+            const results = await response.json()
+            set({ searchResults: results, isSearching: false })
+            
+            // When "view all results" is clicked, we'll update filterListings
+            return results
+        } catch (error) {
+            console.error('Error searching listings:', error)
+            set({ isSearching: false })
+            // Fall back to frontend search if backend fails
+            const { filterListingOnTyping } = get()
+            await filterListingOnTyping(searchTerm)
+            return []
+        }
+    },
+    
+    clearSearchResults: () => {
+        set({ searchResults: [], isSearching: false })
+    },
+    
+    setSearchResultsAsFilter: (results) => {
+        set({ filterListings: results || [] })
+    }
 }))
 
 export default useListingStore

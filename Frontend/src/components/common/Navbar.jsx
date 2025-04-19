@@ -5,6 +5,7 @@ import useListingStore from '../../../Store/listing';
 import useUserStore from '../../../Store/userStore';
 import UpdateNameModal from './UpdateNameModal';
 import UpdatePhotoModal from './UpdatePhotoModal';
+import SearchDropdown from '../SearchDropdown';
 import {
   IconBookmarks,
   IconCamera,
@@ -47,13 +48,24 @@ const NavButton = ({
   </button>);
 };
 
-const SearchBar = ({value, onChange}) => (
-    <div className="flex gap-2 max-w-md w-full">
+const SearchBar = ({value, onChange, onFocus}) => (
+    <div className="flex gap-2 w-full">
       <div className="relative flex-1">
         <input
             type="search"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              e.stopPropagation();
+              onChange(e.target.value);
+            }}
+            onFocus={(e) => {
+              e.stopPropagation();
+              if (onFocus && value.trim()) onFocus();
+            }}
+            onKeyDown={(e) => {
+              // Prevent dropdown from capturing key events intended for input
+              e.stopPropagation();
+            }}
             placeholder="Search listings..."
             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
             aria-label="Search listings"
@@ -210,10 +222,15 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNameModal, setShowNameModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   
   // Use Zustand stores instead of Context
   const { currUser, loading, logout, checkCurrUser } = useUserStore();
-  const filterListingOnTyping = useListingStore((state) => state.filterListingOnTyping);
+  const { 
+    filterListingOnTyping, 
+    searchListingsBackend, 
+    clearSearchResults 
+  } = useListingStore();
 
   // Check for current user on component mount
   useEffect(() => {
@@ -231,14 +248,28 @@ const Navigation = () => {
 
   // Reset search query and close menu when location changes
   useEffect(() => {
-    setSearchQuery('');
+    // Only reset search query when navigating away from listings page
+    if (location.pathname !== '/listings') {
+      setSearchQuery('');
+    }
     setIsOpen(false);
   }, [location.pathname]);
-
-  // Filter listings when search query changes
+  
+  // Update search behavior to use backend search with debounce
   useEffect(() => {
-    filterListingOnTyping(searchQuery);
-  }, [searchQuery, filterListingOnTyping]);
+    const debounceTimer = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        await searchListingsBackend(searchQuery);
+        setShowSearchDropdown(true);
+      } else {
+        clearSearchResults();
+        setShowSearchDropdown(false);
+        filterListingOnTyping(''); // Reset frontend filtering when search is cleared
+      }
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, searchListingsBackend, clearSearchResults, filterListingOnTyping]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -276,6 +307,23 @@ const Navigation = () => {
 
   const handleUpdatePhoto = () => {
     setShowPhotoModal(true);
+  };
+
+  // Handle search query change
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+  };
+  
+  // Handle close of search dropdown
+  const handleCloseSearch = () => {
+    setShowSearchDropdown(false);
+  };
+  
+  // Handle view all results
+  const handleViewAllResults = () => {
+    setShowSearchDropdown(false);
+    // Don't clear the search query when showing all results
+    // setSearchQuery('');
   };
 
   const mobileMenuButton = (<button
@@ -415,13 +463,15 @@ const Navigation = () => {
                     </Link>
 
                     {/* Search Bar - Only shown on homepage */}
-                    {location.pathname === '/' &&
-                        (<div className="hidden md:block flex-1 max-w-2xl mx-4">
-                          <SearchBar
-                              value={searchQuery}
-                              onChange={setSearchQuery}
-                          />
-                        </div>)}
+                    {(location.pathname === "/" || location.pathname === "/listings") && (
+                      <div className="hidden md:flex flex-1 justify-center">
+                        <SearchBar
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
+                        />
+                      </div>
+                    )}
 
                     {/* Navigation Links & Auth Buttons - Hidden on mobile */}
                     <div className="hidden md:flex md:items-center md:gap-4">
@@ -434,9 +484,13 @@ const Navigation = () => {
                   </div>
 
                   {/* Mobile Search Bar - Only shown on homepage */}
-                  {location.pathname === '/' && (
-                    <div className="md:hidden py-2">
-                      <SearchBar value={searchQuery} onChange={setSearchQuery}/>
+                  {(location.pathname === "/" || location.pathname === "/listings") && (
+                    <div className="md:hidden flex px-1 pb-2">
+                      <SearchBar 
+                        value={searchQuery} 
+                        onChange={handleSearchChange}
+                        onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
+                      />
                     </div>
                   )}
 
@@ -452,7 +506,7 @@ const Navigation = () => {
               
               {/* Add padding based on navbar height and state */}
               <div className={`${isOpen ? 'h-screen' : ''}`}>
-                <div className={`${location.pathname === '/' ? 'h-24' : 'h-16'} transition-all duration-300`}></div>
+                <div className={`${(location.pathname === '/' || location.pathname === '/listings') ? 'h-28' : 'h-16'} transition-all duration-300`}></div>
               </div>
             </div>
         )}
@@ -468,6 +522,14 @@ const Navigation = () => {
             isOpen={showPhotoModal}
             onClose={() => setShowPhotoModal(false)}
         />
+
+        {/* Search Dropdown */}
+        {showSearchDropdown && (
+          <SearchDropdown
+            searchQuery={searchQuery}
+            onClose={handleCloseSearch}
+          />
+        )}
       </>
   );
 };

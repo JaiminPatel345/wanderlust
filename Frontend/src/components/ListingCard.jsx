@@ -1,34 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { IconBookmark, IconBookmarkFilled, IconMapPin, IconWorld, IconHash } from '@tabler/icons-react';
+import { IconBookmark, IconBookmarkFilled, IconMapPin, IconWorld, IconHash, IconCurrencyRupee, IconCurrencyDollar } from '@tabler/icons-react';
 import { toggleBookmark } from '../utils/bookmarkUtils';
 import { FlashMessageContext } from '../utils/flashMessageContext';
 import useUserStore from '../../Store/userStore';
 
 const TAX_RATE = 0.18; // 18% GST
+const USD_CONVERSION_RATE = 0.012; // 1 INR = 0.012 USD (approx)
 
-const PriceDisplay = ({ price, showWithTax = false }) => {
-  const displayedPrice = showWithTax
-    ? (price + price * TAX_RATE).toLocaleString('en-IN')
-    : price.toLocaleString('en-IN');
-
+const PriceDisplay = ({ price, showWithTax = false, showInUSD = false }) => {
+  // Calculate price with tax if needed
+  const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
+  
+  // Convert to USD if needed
+  const displayPrice = showInUSD 
+    ? (priceWithTax * USD_CONVERSION_RATE).toLocaleString('en-US', { maximumFractionDigits: 2 })
+    : priceWithTax.toLocaleString('en-IN');
+  
+  // Currency symbol and icon
+  const CurrencyIcon = showInUSD ? IconCurrencyDollar : IconCurrencyRupee;
+  const currencySymbol = showInUSD ? '$' : '₹';
+  
   return (
-    <div className="flex items-center gap-2">
-      <span>₹{displayedPrice}</span>
-      <span className="text-sm text-gray-500">
-        ({showWithTax ? 'Including GST' : 'Excluding GST'})
-      </span>
+    <div className="flex items-center gap-1">
+      <CurrencyIcon size={18} className="text-gray-600 flex-shrink-0" />
+      <span className="font-medium">{displayPrice}</span>
+      {showWithTax && (
+        <span className="text-xs text-gray-500 ml-1">(Incl. tax)</span>
+      )}
     </div>
   );
 };
 
 PriceDisplay.propTypes = {
   price: PropTypes.number.isRequired,
-  showWithTax: PropTypes.bool
+  showWithTax: PropTypes.bool,
+  showInUSD: PropTypes.bool
 };
 
-const ListingCard = ({ listing, showWithTax = false, isBookmarked = false, onToggleBookmark }) => {
+const ListingCard = ({ listing, showWithTax = false, showInUSD = false, isBookmarked = false, onToggleBookmark }) => {
   const [bookmarked, setBookmarked] = useState(isBookmarked);
   const [isBookmarkProcessing, setIsBookmarkProcessing] = useState(false);
   const { showSuccessMessage, showErrorMessage } = React.useContext(FlashMessageContext);
@@ -113,7 +124,7 @@ const ListingCard = ({ listing, showWithTax = false, isBookmarked = false, onTog
         <div className="p-4">
           <h5 className="text-xl font-semibold mb-2">{listing.title}</h5>
           <div className="space-y-3">
-            <PriceDisplay price={listing.price} showWithTax={showWithTax} />
+            <PriceDisplay price={listing.price} showWithTax={showWithTax} showInUSD={showInUSD} />
 
             <div className="flex items-center gap-2">
               <IconMapPin size={20} className="flex-shrink-0" />
@@ -166,6 +177,7 @@ ListingCard.propTypes = {
     tags: PropTypes.arrayOf(PropTypes.string)
   }).isRequired,
   showWithTax: PropTypes.bool,
+  showInUSD: PropTypes.bool,
   isBookmarked: PropTypes.bool,
   onToggleBookmark: PropTypes.func
 };

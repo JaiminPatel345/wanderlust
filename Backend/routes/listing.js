@@ -11,6 +11,9 @@ const multer = require("multer")
 const { storage } = require("../utilities/cloudConfig.js")
 const upload = multer({ storage })
 
+// Search route
+router.get("/search", asyncWrap(listingController.searchListings))
+
 // Route for all listings
 router
     .route("/")

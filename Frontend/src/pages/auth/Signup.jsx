@@ -6,6 +6,7 @@ import useUserStore from "../../../Store/userStore"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 import { FaEye } from "react-icons/fa"
 import { FaEyeSlash } from "react-icons/fa6"
+import { FaCheck, FaTimes } from "react-icons/fa"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -27,6 +28,17 @@ const Signup = () => {
     const { currUser, register } = useUserStore()
     const [isPasswordShow, setIsPasswordShow] = useState(false)
     const [isRiveLoading, setIsRiveLoading] = useState(true)
+    const [isPasswordFocused, setIsPasswordFocused] = useState(false)
+    
+    // Password validation states
+    const [passwordValidation, setPasswordValidation] = useState({
+        minLength: false,
+        hasLetter: false,
+        hasNumber: false
+    })
+
+    // Add a state to track if we're in the registration process
+    const [isRegistering, setIsRegistering] = useState(false);
 
     const { RiveComponent, rive } = useRive({
         src: "/animated_login_screen.riv", // Path to your Rive file
@@ -39,11 +51,23 @@ const Signup = () => {
     })
 
     useEffect(() => {
-        if (currUser) {
-            navigate(-1) // Go back to the previous page
+        // Only redirect if we're not in the middle of registration
+        // and the user is already logged in
+        if (currUser && currUser.isValidatedEmail && !isRegistering) {
+            navigate('/', { replace: true })
         }
         window.scrollTo(0, 0)
-    }, [currUser, navigate])
+    }, [currUser, navigate, isRegistering]) // Include all dependencies
+
+    // Check password requirements whenever password changes
+    useEffect(() => {
+        const password = formData.password
+        setPasswordValidation({
+            minLength: password.length >= 6,
+            hasLetter: /[a-zA-Z]/.test(password),
+            hasNumber: /[0-9]/.test(password)
+        })
+    }, [formData.password])
 
     const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
     const isHandsUp = useStateMachineInput(rive, "Login Machine", "isHandsUp")
@@ -80,12 +104,14 @@ const Signup = () => {
             valid = false
         }
 
-        // Password validation (length and strength check)
-        if (!formData.password || formData.password.length < 6) {
-            formErrors.password = "Password must be at least 6 characters long"
+        // Enhanced password validation
+        const { minLength, hasLetter, hasNumber } = passwordValidation
+        if (!minLength || !hasLetter || !hasNumber) {
+            formErrors.password = "Password doesn't meet requirements"
             valid = false
         }
-        if (Object.entries(formErrors > 0)) setErrors(formErrors)
+        
+        if (Object.entries(formErrors).length > 0) setErrors(formErrors)
         return valid
     }
 
@@ -100,6 +126,9 @@ const Signup = () => {
             if (trigFail) trigFail.fire()
             return
         }
+        
+        // Set registration flag to prevent unwanted redirects
+        setIsRegistering(true)
         setSignupLoader(true)
 
         try {
@@ -110,18 +139,22 @@ const Signup = () => {
             })
             
             if (result.success) {
-                showSuccessMessage(`Hi ${formData.name || 'there'} 👋`)
-                if (trigSuccess) trigSuccess.fire()
-                
-                // Check if verification is required
                 if (result.requireVerification) {
-                    setTimeout(() => {
-                        navigate("/verify-otp", { state: { email: formData.email } })
-                    }, 1000)
+                    // Show OTP-specific message
+                    showSuccessMessage(`Verification code sent to ${formData.email}`)
+                    if (trigSuccess) trigSuccess.fire()
+                    
+                    // Direct navigation to verify-otp without delay or intermediate redirects
+                    navigate("/verify-otp", { 
+                        state: { email: formData.email },
+                        replace: true // Replace current route in history to prevent back navigation issues
+                    })
                 } else {
-                    setTimeout(() => {
-                        window.history.go(-1)
-                    }, 500)
+                    showSuccessMessage(`Hi ${formData.name || 'there'} 👋`)
+                    if (trigSuccess) trigSuccess.fire()
+                    
+                    // Navigate to home page if no verification needed
+                    navigate("/", { replace: true })
                 }
             } else {
                 if (trigFail) trigFail.fire()
@@ -133,8 +166,23 @@ const Signup = () => {
             showErrorMessage(error.message || "Unknown error")
         } finally {
             setSignupLoader(false)
+            // Reset registration flag
+            setIsRegistering(false)
         }
     }
+
+    // Animation class for validation items
+    const getAnimationClass = (isValid) => {
+        return isValid 
+            ? "transform scale-100 opacity-100 transition-all duration-300" 
+            : "transform scale-95 opacity-80 transition-all duration-300"
+    }
+
+    // Check if all password requirements are met
+    const allRequirementsMet = 
+        passwordValidation.minLength && 
+        passwordValidation.hasLetter && 
+        passwordValidation.hasNumber
 
     return (
         <div className="flex justify-center items-center">
@@ -237,18 +285,24 @@ const Signup = () => {
                                     className={`w-full px-3 py-2 pr-10 border ${
                                         errors.password
                                             ? "border-red-500"
+                                            : allRequirementsMet && formData.password.length > 0
+                                              ? "border-green-500"
                                             : "border-gray-300"
                                     } rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-300`}
                                     value={formData.password}
                                     onChange={handleChange}
-                                    onFocus={() =>
-                                        isHandsUp &&
-                                        !isPasswordShow &&
-                                        (isHandsUp.value = true)
-                                    }
-                                    onBlur={() =>
-                                        isHandsUp && (isHandsUp.value = false)
-                                    }
+                                    onFocus={() => {
+                                        if (isHandsUp && !isPasswordShow) {
+                                            isHandsUp.value = true
+                                        }
+                                        setIsPasswordFocused(true)
+                                    }}
+                                    onBlur={() => {
+                                        if (isHandsUp) {
+                                            isHandsUp.value = false
+                                        }
+                                        setIsPasswordFocused(false)
+                                    }}
                                     required
                                 />
                                 <span
@@ -264,6 +318,44 @@ const Signup = () => {
                                     )}
                                 </span>
                             </div>
+                            
+                            {/* Password requirements */}
+                            {(isPasswordFocused || formData.password) && (
+                                <div className="mt-2 bg-gray-50 p-3 rounded-md border border-gray-200 space-y-2 transition-all duration-300 ease-in-out">
+                                    <h3 className="text-sm font-medium text-gray-700 mb-1">Password requirements:</h3>
+                                    <div className={`flex items-center gap-2 ${getAnimationClass(passwordValidation.minLength)}`}>
+                                        {passwordValidation.minLength ? (
+                                            <FaCheck className="text-green-500" />
+                                        ) : (
+                                            <FaTimes className="text-red-500" />
+                                        )}
+                                        <span className={`text-sm ${passwordValidation.minLength ? 'text-green-600' : 'text-gray-600'}`}>
+                                            At least 6 characters
+                                        </span>
+                                    </div>
+                                    <div className={`flex items-center gap-2 ${getAnimationClass(passwordValidation.hasLetter)}`}>
+                                        {passwordValidation.hasLetter ? (
+                                            <FaCheck className="text-green-500" />
+                                        ) : (
+                                            <FaTimes className="text-red-500" />
+                                        )}
+                                        <span className={`text-sm ${passwordValidation.hasLetter ? 'text-green-600' : 'text-gray-600'}`}>
+                                            At least one letter
+                                        </span>
+                                    </div>
+                                    <div className={`flex items-center gap-2 ${getAnimationClass(passwordValidation.hasNumber)}`}>
+                                        {passwordValidation.hasNumber ? (
+                                            <FaCheck className="text-green-500" />
+                                        ) : (
+                                            <FaTimes className="text-red-500" />
+                                        )}
+                                        <span className={`text-sm ${passwordValidation.hasNumber ? 'text-green-600' : 'text-gray-600'}`}>
+                                            At least one number
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                            
                             {errors.password && (
                                 <p className="text-red-500 text-sm mt-1">
                                     {errors.password}

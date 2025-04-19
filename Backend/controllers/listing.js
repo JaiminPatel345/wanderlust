@@ -14,6 +14,37 @@ module.exports.index = (req, res) => {
         });
 };
 
+// Search listings by query
+module.exports.searchListings = (req, res) => {
+    const { query } = req.query;
+    
+    if (!query || query.trim() === '') {
+        // If query is empty, return all listings
+        return this.index(req, res);
+    }
+    
+    const searchRegex = new RegExp(query, 'i'); // Case insensitive search
+    
+    Listing.find({
+        $or: [
+            { title: searchRegex },
+            { description: searchRegex },
+            { location: searchRegex },
+            { country: searchRegex },
+            { tags: searchRegex }
+        ]
+    })
+    .then(listings => {
+        res.json(listings);
+    })
+    .catch(err => {
+        res.status(500).json({
+            message: "Error searching listings",
+            error: err.message
+        });
+    });
+};
+
 // Show a specific listing
 module.exports.singleListing = (req, res) => {
     const {

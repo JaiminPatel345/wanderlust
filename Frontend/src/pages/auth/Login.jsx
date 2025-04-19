@@ -21,6 +21,7 @@ const Login = () => {
     const { currUser, login } = useUserStore()
     const [isPasswordShow, setIsPasswordShow] = useState(false)
     const [isRiveLoading, setIsRiveLoading] = useState(true)
+    const [isLoggingIn, setIsLoggingIn] = useState(false)
 
     const navigate = useNavigate()
 
@@ -35,19 +36,13 @@ const Login = () => {
     })
 
     useEffect(() => {
-        if (currUser) {
-            // Check if there's a valid previous page to go back to
-            const previousPath = document.referrer;
-            const isSameDomain = previousPath && previousPath.includes(window.location.origin);
-
-            if (isSameDomain) {
-                navigate(-1); // Go back if coming from within your app
-            } else {
-                navigate('/'); // Redirect to your app's homepage instead
-            }
+        // Only redirect if we're not in the middle of login
+        // and the user is already logged in
+        if (currUser && currUser.isValidatedEmail && !isLoggingIn) {
+            navigate('/', { replace: true });
         }
         window.scrollTo(0, 0);
-    }, [currUser, navigate]);
+    }, [currUser, navigate, isLoggingIn]); // Include all dependencies
 
     // Retrieve State Machine Inputs
     const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
@@ -76,6 +71,8 @@ const Login = () => {
             return
         }
 
+        // Set login flag to prevent unwanted redirects
+        setIsLoggingIn(true)
         setLoginLoader(true)
         if (isHandsUp) isHandsUp.value = false
 
@@ -86,19 +83,19 @@ const Login = () => {
                 showSuccessMessage(`Welcome back!`)
                 if (trigSuccess) trigSuccess.fire()
 
-                setTimeout(() => {
-                    window.history.go(-1)
-                }, 1000)
+                // Navigate to home page with replace to avoid intermediate redirects
+                navigate("/", { replace: true })
             } else {
                 // Check if email verification is required
                 if (result.requireVerification) {
-                    showWarningMessage(result.error || "Please verify your email to continue")
+                    showWarningMessage(`Verification code sent to ${formData.email}`)
                     if (trigFail) trigFail.fire()
                     
-                    // Redirect to verify OTP page
-                    setTimeout(() => {
-                        navigate("/verify-otp", { state: { email: formData.email } })
-                    }, 1000)
+                    // Direct navigation to verify OTP page
+                    navigate("/verify-otp", { 
+                        state: { email: formData.email },
+                        replace: true
+                    })
                 } else {
                     if (trigFail) trigFail.fire()
                     showErrorMessage(result.error || "Login failed")
@@ -110,6 +107,8 @@ const Login = () => {
             showErrorMessage(error.message || "Unknown error")
         } finally {
             setLoginLoader(false)
+            // Reset login flag
+            setIsLoggingIn(false)
         }
     }
 

@@ -27,8 +27,8 @@ const validatePassword = async (password, hash) => {
  * @returns {boolean} - True if password meets requirements, false otherwise
  */
 const isValidPasswordFormat = (password) => {
-    // Minimum 8 characters, at least one letter and one number
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    // Minimum 6 characters, at least one letter and one number
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
     return passwordRegex.test(password);
 };
 

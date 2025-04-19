@@ -57,14 +57,15 @@ module.exports.signup = async (req, res) => {
         throw new AppError("Failed to generate verification code", 500);
     }
     
+    //TODO: uncomment 
     // Send OTP via email
-    const mailSent = await sendOTPEmail(email, otp, name);
-    if (!mailSent.success) {
-        // If email couldn't be sent, delete the user and OTP, then throw an error
-        await User.findByIdAndDelete(savedUser._id);
-        // No need to manually delete OTP from Redis as it will expire
-        throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
-    }
+    // const mailSent = await sendOTPEmail(email, otp, name);
+    // if (!mailSent.success) {
+    //     // If email couldn't be sent, delete the user and OTP, then throw an error
+    //     await User.findByIdAndDelete(savedUser._id);
+    //     // No need to manually delete OTP from Redis as it will expire
+    //     throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
+    // }
     
     // Only set session if everything succeeded
     req.session.user = { ...data };
