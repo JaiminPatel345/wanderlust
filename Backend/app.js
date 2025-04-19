@@ -23,7 +23,7 @@ const port = process.env.PORT || 3000
 
 // Database connection
 main()
-    .then(() => console.log(`Connection successful. port : ${port}`))
+    .then(() => console.log(`Database Connection successful.`))
     .catch((err) => console.log(err))
 
 async function main() {
@@ -45,9 +45,7 @@ app.use(
 );
 
 const corsOptions = {
-    origin: function (origin, callback) {
-        callback(null, true); // Allows all origins
-    },
+    origin: process.env.REACT_APP_API_URL || "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     exposedHeaders: ["set-cookie"],

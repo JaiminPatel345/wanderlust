@@ -32,7 +32,6 @@ const Login = () => {
         autoplay: true,
         onLoad: () => {
             setIsRiveLoading(false)
-            console.log("came")
         },
         onLoadError: () => setIsRiveLoading(false),
     })
@@ -65,7 +64,7 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        if (formData.email.length == 0 || formData.password.length == 0) {
+        if (formData.email.length === 0 || formData.password.length === 0) {
             showErrorMessage("Email or Password can't be empty ")
             if (trigFail) trigFail.fire()
             return

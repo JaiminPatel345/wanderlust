@@ -19,7 +19,7 @@ import Chat from "./pages/Chat"
 
 const Layout = () => {
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen overflow-x-hidden">
             <FlashMessageDisplay />
             <MyNavbar />
             <div className="container mx-auto flex-grow mb-12">
@@ -42,17 +42,7 @@ const router = createBrowserRouter(
             <Route path="/listings/:id" element={<OneListing />} />
             <Route path="/listings/:id/edit" element={<EditListing />} />
         </Route>
-    ),
-    {
-        future: {
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-            v7_fetcherPersist: true,
-            v7_normalizeFormMethod: true,
-            v7_partialHydration: true,
-            v7_skipActionErrorRevalidation: true,
-        },
-    }
+    )
 )
 
 function App() {

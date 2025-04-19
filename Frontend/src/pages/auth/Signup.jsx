@@ -34,7 +34,6 @@ const Signup = () => {
         autoplay: true,
         onLoad: () => {
             setIsRiveLoading(false)
-            console.log("came")
         },
         onLoadError: () => setIsRiveLoading(false),
     })
