@@ -60,7 +60,6 @@ export const uploadToCloudinary = async (file, signatureData) => {
     try {
         const cloudName = signatureData.cloud_name;
         const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-        console.log('Sending request to:', url);
         
         // Use fetch instead of XMLHttpRequest
         const response = await fetch(url, {

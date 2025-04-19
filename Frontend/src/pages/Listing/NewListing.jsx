@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useContext } from "react"
+import React, { useEffect, useState, useContext, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
-import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
 import useUserStore from "../../../Store/userStore"
+import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from "../../utils/cloudinaryUtils"
+import { IconUpload, IconPhoto, IconTrash } from "@tabler/icons-react"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -11,35 +12,31 @@ const NewListing = () => {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        image: "",
         price: 1200,
         country: "",
         location: "",
         tags: [],
     })
     const [imageFile, setImageFile] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
     const {
         showSuccessMessage,
         showErrorMessage,
-        showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
     const { currUser, checkCurrUser } = useUserStore()
+    const fileInputRef = useRef(null)
 
     useEffect(() => {
-        if (!currUser) checkCurrUser()
-    }, [])
-
-    function isUrlValid(string) {
-        try {
-            new URL(string)
-            return true
-        } catch (err) {
-            return false
+        const checkUser = async () => {
+            if (!currUser) {
+                await checkCurrUser()
+            }
         }
-    }
+        checkUser()
+    }, [])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -74,7 +71,7 @@ const NewListing = () => {
         }))
     }
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault()
         if (
             !formData.title ||
@@ -87,45 +84,36 @@ const NewListing = () => {
             return
         }
 
-        if (!formData.image && !imageFile) {
-            showErrorMessage(
-                "Please provide either an image URL or upload an image"
-            )
+        if (!imageFile) {
+            showErrorMessage("Please upload an image for your listing")
             window.scrollTo(0, 0)
             return
         }
 
-        if (formData.image && !isUrlValid(formData.image)) {
-            showErrorMessage("Invalid image URL")
-            window.scrollTo(0, 0)
-            return
-        }
         setSubmitLoader(true)
 
-        const data = {
-            ...formData,
-            tagsArray: formData.tags,
-            image: imageFile || formData.image,
-        }
+        try {
+            const data = {
+                ...formData,
+                tagsArray: formData.tags,
+                image: imageFile,
+            }
 
-        sendData(data)
-            .then((response) => {
-                showSuccessMessage(`Listing added successfully`)
-                navigate(`/listings/${response._id}`)
-            })
-            .catch((e) => {
-                showErrorMessage(e.message || "Unknown error")
-                window.scrollTo(0, 0)
-            })
-            .finally(() => {
-                setSubmitLoader(false)
-            })
+            const response = await sendData(data)
+            showSuccessMessage(`Listing added successfully`)
+            navigate(`/listings/${response._id}`)
+        } catch (error) {
+            showErrorMessage(error.message || "Failed to create listing")
+            window.scrollTo(0, 0)
+        } finally {
+            setSubmitLoader(false)
+        }
     }
 
     const sendData = async (data) => {
         try {
             const response = await fetch(
-                `${process.env.VITE_API_BASE_URL}/listings`,
+                `${import.meta.env.VITE_API_BASE_URL}/listings`,
                 {
                     method: "POST",
                     headers: {
@@ -137,94 +125,179 @@ const NewListing = () => {
             )
 
             if (!response.ok) {
-                const data = await response.json()
-                throw new Error(data.message)
+                const errorData = await response.json()
+                throw new Error(errorData.message || "Failed to create listing")
             }
             return response.json()
         } catch (error) {
-            console.log(error)
-
-            throw new Error(error.message)
+            console.error("Error creating listing:", error)
+            throw error
         }
     }
 
     const handleImageUpload = async (event) => {
         const file = event.target.files[0]
         if (!file) return
-        clearFlashMessage()
+        
+        // Validate the image file
+        const validation = validateImageFile(file)
+        if (!validation.valid) {
+            showErrorMessage(validation.message)
+            return
+        }
+        
+        // Create a preview of the selected image
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            setImagePreview(e.target.result)
+        }
+        reader.readAsDataURL(file)
+        
         setImageLoader(true)
-        const payload = new FormData()
-        payload.append("file", file)
-        payload.append("upload_preset", "ml_default")
-        console.log(payload)
+        clearFlashMessage()
 
         try {
-            const res = await fetch(
-                `https://api.cloudinary.com/v1_1/${process.env.CLOUD_NAME}/image/upload`,
-                {
-                    method: "POST",
-                    body: payload,
-                }
-            )
-            const data = await res.json()
-
-            setImageFile(data.secure_url)
-            showSuccessMessage("Image uploaded")
-            setFormData((pvs) => ({
-                ...pvs,
-                image: "",
-            }))
+            // Get signature from backend
+            const signatureData = await getCloudinarySignature()
+            
+            if (!signatureData || !signatureData.cloud_name || !signatureData.api_key) {
+                throw new Error("Failed to get upload credentials")
+            }
+            
+            // Upload to Cloudinary with signature
+            const imageUrl = await uploadToCloudinary(file, signatureData)
+            
+            if (!imageUrl) {
+                throw new Error("No image URL returned from upload")
+            }
+            
+            // Set the returned URL
+            setImageFile(imageUrl)
+            showSuccessMessage("Image uploaded successfully")
         } catch (error) {
-            console.log("Image upload failed:", error)
-            showErrorMessage(error.message || "Unknown error")
+            console.error("Image upload failed:", error)
+            showErrorMessage(error.message || "Failed to upload image")
+            // Reset the file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ""
+            }
+            setImagePreview(null)
+        } finally {
+            setImageLoader(false)
         }
-        setImageLoader(false)
+    }
+    
+    const removeImage = () => {
+        setImageFile(null)
+        setImagePreview(null)
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
     }
 
     if (!currUser) {
         //You are not login page
         return (
-            <div className="flex ">
-                <div>
-                    <h1 className="text-3xl text-center">
-                        To add new Listing you must be{" "}
+            <div className="flex justify-center items-center mt-16">
+                <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
+                    <h1 className="text-3xl font-semibold mb-4">
+                        Authentication Required
+                    </h1>
+                    <p className="mb-6 text-gray-600">
+                        You must be logged in to create a new listing.
+                    </p>
+                    <div className="flex flex-col gap-4">
                         <Link
                             to="/login"
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="px-4 py-2 bg-rose-500 text-white font-medium rounded-md hover:bg-rose-600 transition-colors"
                         >
-                            Logged In
-                        </Link>{" "}
-                    </h1>
-                    <p>
-                        new User ? click{" "}
+                            Log In
+                        </Link>
                         <Link
                             to="/signup"
-                            className="text-blue-500 hover:underline"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 font-medium rounded-md hover:bg-gray-200 transition-colors"
                         >
-                            here
-                        </Link>{" "}
-                        to signup
-                    </p>
+                            Sign Up
+                        </Link>
+                    </div>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="flex justify-center items-center min-h-screen ">
+        <div className="flex justify-center items-center min-h-screen py-8">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
-                <h2 className="text-2xl font-bold mb-6">New Listing</h2>
+                <h2 className="text-2xl font-bold mb-6">Create New Listing</h2>
 
                 <form
                     id="new-listing-form"
                     onSubmit={handleSubmit}
                     className="space-y-6"
                 >
-                    {/* Form fields for title, description, image, price, country, location */}
+                    {/* Image Upload Section */}
+                    <div className="mb-8">
+                        <label
+                            className="block text-sm font-medium text-gray-700 mb-2"
+                        >
+                            Listing Image
+                        </label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                            {!imagePreview ? (
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="flex flex-col items-center justify-center h-48 cursor-pointer hover:bg-gray-50 transition-colors rounded-md"
+                                >
+                                    <IconPhoto size={48} className="text-gray-400 mb-2" />
+                                    <p className="text-sm text-gray-500 mb-1">Click to upload an image</p>
+                                    <p className="text-xs text-gray-400">JPG, PNG or GIF (max. 5MB)</p>
+                                    
+                                    {imageLoader && (
+                                        <div className="mt-4">
+                                            <PulseLoader size={8} color="#f43f5e" />
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <img 
+                                        src={imagePreview} 
+                                        alt="Listing preview" 
+                                        className="max-h-64 mx-auto rounded-md"
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={removeImage}
+                                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
+                                        title="Remove image"
+                                    >
+                                        <IconTrash size={16} className="text-red-500" />
+                                    </button>
+                                    
+                                    {imageLoader && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
+                                            <PulseLoader size={10} color="#ffffff" />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleImageUpload}
+                                disabled={imageLoader}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Title */}
                     <div>
                         <label
                             htmlFor="title"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Title
                         </label>
@@ -233,80 +306,38 @@ const NewListing = () => {
                             id="title"
                             name="title"
                             placeholder="Add a catchy title"
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                             value={formData.title}
                             onChange={handleChange}
                             required
                         />
                     </div>
 
+                    {/* Description */}
                     <div>
                         <label
                             htmlFor="description"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Description
                         </label>
                         <textarea
                             name="description"
                             id="description"
-                            placeholder="Give a brief description about the hotel"
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                            placeholder="Give a brief description about the listing"
+                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500 min-h-[100px]"
                             value={formData.description}
                             onChange={handleChange}
                             required
                         ></textarea>
                     </div>
 
-                    <div>
-                        <label
-                            htmlFor="image"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Image URL
-                        </label>
-                        <input
-                            type="text"
-                            name="image"
-                            id="image"
-                            placeholder="Add an image URL"
-                            className={`mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 ${
-                                imageFile ? "bg-green-100" : ""
-                            }`}
-                            value={imageFile || formData.image}
-                            onChange={handleChange}
-                            disabled={imageFile !== null}
-                        />
-                    </div>
-
-                    <div className="text-center text-gray-500">
-                        <p>OR</p>
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="fileImage"
-                            className="block text-sm font-medium text-gray-700"
-                        >
-                            Upload Image
-                        </label>
-                        <input
-                            type="file"
-                            name="fileImage"
-                            id="fileImage"
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
-                            onChange={handleImageUpload}
-                        />
-                        <p className="mt-2 text-sm text-green-600">
-                            {imageLoader ? <PulseLoader size={5} /> : ""}
-                        </p>
-                    </div>
-
+                    {/* Price & Country */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label
                                 htmlFor="price"
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-medium text-gray-700 mb-1"
                             >
                                 Price
                             </label>
@@ -316,7 +347,7 @@ const NewListing = () => {
                                 id="price"
                                 value={formData.price}
                                 required
-                                className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                                 onChange={handleChange}
                             />
                         </div>
@@ -324,7 +355,7 @@ const NewListing = () => {
                         <div>
                             <label
                                 htmlFor="country"
-                                className="block text-sm font-medium text-gray-700"
+                                className="block text-sm font-medium text-gray-700 mb-1"
                             >
                                 Country
                             </label>
@@ -334,16 +365,17 @@ const NewListing = () => {
                                 id="country"
                                 placeholder="India"
                                 required
-                                className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                                 onChange={handleChange}
                             />
                         </div>
                     </div>
 
+                    {/* Location */}
                     <div>
                         <label
                             htmlFor="location"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Location
                         </label>
@@ -353,16 +385,16 @@ const NewListing = () => {
                             id="location"
                             placeholder="Vadodara, Gujarat"
                             required
-                            className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                             onChange={handleChange}
                         />
                     </div>
 
-                    {/* Tags section */}
+                    {/* Tags */}
                     <div>
                         <label
                             htmlFor="tags"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 mb-1"
                         >
                             Tags
                         </label>
@@ -370,7 +402,7 @@ const NewListing = () => {
                             name="tags"
                             id="tags"
                             onChange={handleTagChange}
-                            className="mt-1 block w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                            className="w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                         >
                             <option value="null">--Select Tags--</option>
                             <option value="Trending">Trending</option>
@@ -387,7 +419,7 @@ const NewListing = () => {
                             {formData.tags.map((tag, index) => (
                                 <div
                                     key={index}
-                                    className="flex items-center bg-gray-300 px-3 py-1 rounded-md"
+                                    className="flex items-center bg-gray-200 px-3 py-1 rounded-md"
                                 >
                                     <span>{tag}</span>
                                     <button
@@ -402,14 +434,22 @@ const NewListing = () => {
                         </div>
                     </div>
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
-                        className="w-full bg-rose-500 text-white py-3 rounded-md hover:bg-rose-600 transition-colors"
+                        disabled={submitLoader || !imageFile}
+                        className={`w-full py-3 rounded-md text-white transition-colors ${
+                            !imageFile 
+                                ? 'bg-gray-400 cursor-not-allowed' 
+                                : submitLoader 
+                                    ? 'bg-rose-400' 
+                                    : 'bg-rose-500 hover:bg-rose-600'
+                        }`}
                     >
                         {submitLoader ? (
-                            <BeatLoader size={10} />
+                            <BeatLoader size={10} color="white" />
                         ) : (
-                            "Add to List"
+                            "Create Listing"
                         )}
                     </button>
                 </form>
