@@ -129,6 +129,7 @@ module.exports.login = async (req, res) => {
         userId: user._id,
         email: user.email,
         name: user.name,
+        profilePhoto: user.profilePhoto || ''
     };
     
     req.session.user = { ...data };
@@ -174,7 +175,17 @@ module.exports.logout = (req, res) => {
 
 // Check if user is logged in
 module.exports.isLogin = (req, res) => {
-    res.send(req.session.user);
+    if (!req.session.user) {
+        return res.status(401).json(
+            formatResponse(false, "Not logged in", null)
+        );
+    }
+    
+    return res.status(200).json(
+        formatResponse(true, "User is logged in", { 
+            user: req.session.user 
+        })
+    );
 };
 
 // Request password reset

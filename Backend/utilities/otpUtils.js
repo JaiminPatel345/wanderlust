@@ -18,6 +18,7 @@ const generateOTP = () => {
 // Save OTP to Redis with expiration
 const saveOTP = async (email, otp) => {
     try {
+        console.log(`OTP for ${email} is ${otp}`);
         const key = `otp:${email}`;
         await redisClient.set(key, otp);
         await redisClient.expire(key, OTP_EXPIRY_TIME);

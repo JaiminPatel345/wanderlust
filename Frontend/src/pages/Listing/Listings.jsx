@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useEffect, useContext } from "react"
+import React, { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { ScaleLoader } from "react-spinners"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 import useListingStore from "../../../Store/listing"
 import { useListingApi } from "../../../hooks/listingApi"
 import useTagStore from "../../../Store/tagStore"
@@ -123,7 +123,7 @@ const Listings = () => {
     const { selectedTags, tagClick } = useTagStore()
     const [showWithTax, setShowWithTax] = useState(false)
     const [loading, setLoading] = useState(true)
-    const { currUser, checkCurrUser } = useContext(UserContext)
+    const { currUser, checkCurrUser } = useUserStore()
     const { getAllListings } = useListingApi()
 
     useEffect(() => {

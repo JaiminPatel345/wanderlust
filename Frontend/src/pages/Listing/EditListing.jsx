@@ -3,7 +3,7 @@ import React, { useContext, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 import { Link } from "react-router-dom"
 
 const EditListing = () => {
@@ -18,7 +18,7 @@ const EditListing = () => {
     const [imageFile, setImageFile] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
     const [imageLoader, setImageLoader] = useState(false)
-    const { currUser, checkCurrUser } = useContext(UserContext)
+    const { currUser, checkCurrUser } = useUserStore()
     const { state } = useLocation()
     const listing = state
 

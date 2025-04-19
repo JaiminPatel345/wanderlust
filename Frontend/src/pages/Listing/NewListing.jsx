@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import checkUserSession from "../../utils/auth"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 
 const NewListing = () => {
     const navigate = useNavigate()
@@ -26,7 +26,7 @@ const NewListing = () => {
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
-    const { currUser, checkCurrUser } = useContext(UserContext)
+    const { currUser, checkCurrUser } = useUserStore()
 
     useEffect(() => {
         if (!currUser) checkCurrUser()

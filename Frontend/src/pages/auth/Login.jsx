@@ -2,11 +2,10 @@ import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 import { FaEye } from "react-icons/fa"
 import { FaEyeSlash } from "react-icons/fa6"
-import { post } from "../../utils/api"
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -17,11 +16,9 @@ const Login = () => {
         showSuccessMessage,
         showErrorMessage,
         showWarningMessage,
-        clearFlashMessage,
     } = useContext(FlashMessageContext)
     const [loginLoader, setLoginLoader] = useState(false)
-    const { currUser, setCurrUserAndCookies, checkCurrUser } =
-        useContext(UserContext)
+    const { currUser, login } = useUserStore()
     const [isPasswordShow, setIsPasswordShow] = useState(false)
     const [isRiveLoading, setIsRiveLoading] = useState(true)
 
@@ -39,10 +36,18 @@ const Login = () => {
 
     useEffect(() => {
         if (currUser) {
-            navigate(-1) // Redirect to homepage or any default route
+            // Check if there's a valid previous page to go back to
+            const previousPath = document.referrer;
+            const isSameDomain = previousPath && previousPath.includes(window.location.origin);
+
+            if (isSameDomain) {
+                navigate(-1); // Go back if coming from within your app
+            } else {
+                navigate('/'); // Redirect to your app's homepage instead
+            }
         }
-        window.scrollTo(0, 0)
-    }, [currUser, navigate])
+        window.scrollTo(0, 0);
+    }, [currUser, navigate]);
 
     // Retrieve State Machine Inputs
     const isChecking = useStateMachineInput(rive, "Login Machine", "isChecking")
@@ -75,28 +80,30 @@ const Login = () => {
         if (isHandsUp) isHandsUp.value = false
 
         try {
-            const response = await post("/login", formData)
+            const result = await login(formData.email, formData.password)
             
-            // Check if email verification is required (backend returns success:false with requireVerification flag)
-            if (response.data && response.data.requireVerification) {
-                showWarningMessage(response.message || "Please verify your email to continue")
-                if (trigFail) trigFail.fire()
-                
-                // Redirect to verify OTP page
-                setTimeout(() => {
-                    navigate("/verify-otp", { state: { email: formData.email } })
-                }, 1000)
-                return
-            }
-            
-            // Normal login flow
-            setCurrUserAndCookies(response)
-            showSuccessMessage(response.message || `Welcome back!`)
-            if (trigSuccess) trigSuccess.fire()
+            if (result.success) {
+                showSuccessMessage(`Welcome back!`)
+                if (trigSuccess) trigSuccess.fire()
 
-            setTimeout(() => {
-                window.history.go(-1)
-            }, 1000)
+                setTimeout(() => {
+                    window.history.go(-1)
+                }, 1000)
+            } else {
+                // Check if email verification is required
+                if (result.requireVerification) {
+                    showWarningMessage(result.error || "Please verify your email to continue")
+                    if (trigFail) trigFail.fire()
+                    
+                    // Redirect to verify OTP page
+                    setTimeout(() => {
+                        navigate("/verify-otp", { state: { email: formData.email } })
+                    }, 1000)
+                } else {
+                    if (trigFail) trigFail.fire()
+                    showErrorMessage(result.error || "Login failed")
+                }
+            }
         } catch (error) {
             console.error("Login error:", error)
             if (trigFail) trigFail.fire()

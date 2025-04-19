@@ -1,9 +1,8 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
-import { UserContext } from "../../contexts/userContext";
+import useUserStore from "../../../Store/userStore";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
-import { put } from "../../utils/api";
 import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from "../../utils/cloudinaryUtils";
 import { IconCamera, IconUpload, IconCheck } from "@tabler/icons-react";
 
@@ -16,7 +15,7 @@ const ProfileSetup = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
     
-    const { currUser, updateUserProfile } = useContext(UserContext);
+    const { currUser, updatePhoto } = useUserStore();
     const { showSuccessMessage, showErrorMessage, clearFlashMessage } = useContext(FlashMessageContext);
     
     useEffect(() => {
@@ -65,9 +64,7 @@ const ProfileSetup = () => {
         
         try {
             // Get upload signature from backend
-            console.log("Fetching Cloudinary signature from backend...");
             const signatureData = await getCloudinarySignature();
-            console.log("Received signature data:", signatureData ? "✓" : "✗");
             
             if (!signatureData || !signatureData.cloud_name || !signatureData.api_key) {
                 console.error("Invalid signature data received:", signatureData);
@@ -75,25 +72,18 @@ const ProfileSetup = () => {
             }
             
             // Upload to Cloudinary
-            console.log("Selected file:", selectedFile);
-            console.log("Uploading to Cloudinary...");
-            
             const imageUrl = await uploadToCloudinary(selectedFile, signatureData);
             
             if (!imageUrl) {
                 throw new Error("No image URL returned from upload");
             }
             
-            console.log("Successfully uploaded image, URL:", imageUrl);
+            // Update user profile with the uploaded image URL using Zustand store
+            const result = await updatePhoto(imageUrl);
             
-            // Update user profile with the uploaded image URL
-            console.log("Updating user profile on backend...");
-            const response = await put("/profile", {
-                profilePhoto: imageUrl
-            });
-            
-            // Update local user context
-            updateUserProfile({ profilePhoto: imageUrl });
+            if (!result.success) {
+                throw new Error(result.error || "Failed to update profile photo");
+            }
             
             showSuccessMessage("Profile photo uploaded successfully!");
             

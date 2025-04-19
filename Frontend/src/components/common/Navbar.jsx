@@ -1,24 +1,22 @@
 /* eslint-disable react/prop-types */
-import React, {useContext, useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
-import {UserContext} from '../../contexts/userContext';
 import useListingStore from '../../../Store/listing';
+import useUserStore from '../../../Store/userStore';
 import UpdateNameModal from './UpdateNameModal';
 import UpdatePhotoModal from './UpdatePhotoModal';
 import {
   IconBookmarks,
+  IconCamera,
+  IconChevronDown,
   IconCompass,
+  IconEdit,
+  IconLogout,
   IconMenu2,
   IconPlus,
   IconSearch,
-  IconX,
-  IconUser,
   IconUserCircle,
-  IconLogout,
-  IconSettings,
-  IconEdit,
-  IconChevronDown,
-  IconCamera,
+  IconX,
 } from '@tabler/icons-react';
 
 const NavLink = ({to, children, disabled = false, className = ''}) => (<Link
@@ -67,11 +65,10 @@ const SearchBar = ({value, onChange}) => (
       </div>
     </div>);
 
-const UserProfileDropdown = ({ user, onLogout, onUpdateName, onUpdatePhoto }) => {
+const UserProfileDropdown = ({user, onLogout, onUpdateName, onUpdatePhoto}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-  
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -79,26 +76,23 @@ const UserProfileDropdown = ({ user, onLogout, onUpdateName, onUpdatePhoto }) =>
         setIsOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
+
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
-  
+
   const handleOption = (action) => {
     setIsOpen(false);
-    
+
     switch (action) {
       case 'logout':
         onLogout();
-        break;
-      case 'settings':
-        // TODO: Navigate to settings page when implemented
         break;
       case 'update-name':
         onUpdateName();
@@ -110,71 +104,104 @@ const UserProfileDropdown = ({ user, onLogout, onUpdateName, onUpdatePhoto }) =>
         break;
     }
   };
-  
+
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button 
-        onClick={toggleDropdown}
-        className="flex items-center focus:outline-none"
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-      >
-        {user.profilePhoto ? (
-          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-100">
-            <img 
-              src={user.profilePhoto} 
-              alt={user.name} 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-            <IconUserCircle size={24} className="text-gray-500" />
-          </div>
+      <div className="relative" ref={dropdownRef}>
+        <button
+            onClick={toggleDropdown}
+            className="flex items-center focus:outline-none"
+            aria-expanded={isOpen}
+            aria-haspopup="true"
+        >
+          {user.profilePhoto ? (
+              <div
+                  className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-100">
+                <img
+                    src={user.profilePhoto}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                />
+              </div>
+          ) : (
+              <div
+                  className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <IconUserCircle size={24} className="text-gray-500"/>
+              </div>
+          )}
+          <IconChevronDown
+              size={16}
+              className={`ml-1 text-gray-600 transition-transform ${isOpen
+                  ? 'rotate-180'
+                  : ''}`}
+          />
+        </button>
+
+        {isOpen && (
+            <div
+                className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+              <div className="px-4 py-3 border-b border-gray-200">
+                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+              </div>
+
+              <div className="py-1">
+                <button
+                    onClick={() => handleOption('update-photo')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <IconCamera size={16} className="mr-2"/>
+                  Update Photo
+                </button>
+
+                <button
+                    onClick={() => handleOption('update-name')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <IconEdit size={16} className="mr-2"/>
+                  Update Name
+                </button>
+
+                <button
+                    onClick={() => handleOption('logout')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <IconLogout size={16} className="mr-2"/>
+                  Log out
+                </button>
+              </div>
+            </div>
         )}
-        <IconChevronDown 
-          size={16} 
-          className={`ml-1 text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-        />
-      </button>
-      
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
-          </div>
-          
-          <div className="py-1">
-            <button
-              onClick={() => handleOption('update-photo')}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <IconCamera size={16} className="mr-2" />
-              Update Photo
-            </button>
-            
-            <button
-              onClick={() => handleOption('update-name')}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <IconEdit size={16} className="mr-2" />
-              Update Name
-            </button>
-            
-            <button
-              onClick={() => handleOption('logout')}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <IconLogout size={16} className="mr-2" />
-              Log out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
   );
 };
+
+// Add CSS for the spinner
+const spinnerStyles = {
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '60px',
+    width: '100%',
+    backgroundColor: 'white',
+  },
+  spinner: {
+    width: '30px',
+    height: '30px',
+    border: '3px solid rgba(0, 0, 0, 0.1)',
+    borderRadius: '50%',
+    borderTop: '3px solid #3498db',
+    animation: 'spin 1s linear infinite',
+  },
+};
+
+// Add keyframes for the spinner animation
+const spinnerKeyframes = `
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`;
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -183,35 +210,52 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNameModal, setShowNameModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const {currUser, logout, checkCurrUser} = useContext(UserContext);
+  
+  // Use Zustand stores instead of Context
+  const { currUser, loading, logout, checkCurrUser } = useUserStore();
   const filterListingOnTyping = useListingStore((state) => state.filterListingOnTyping);
 
+  // Log authentication state (for debugging)
   useEffect(() => {
+    console.log('Current authentication state:', { currUser, loading });
+  }, [currUser, loading]);
+
+  // Check for current user on component mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      await checkCurrUser();
+    };
+    
+    fetchUser();
+    
+    // Close mobile menu on window resize
     const handleResize = () => window.innerWidth >= 768 && setIsOpen(false);
     window.addEventListener('resize', handleResize);
-    checkCurrUser();
-
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Reset search query and close menu when location changes
   useEffect(() => {
     setSearchQuery('');
     setIsOpen(false);
   }, [location.pathname]);
 
+  // Filter listings when search query changes
   useEffect(() => {
     filterListingOnTyping(searchQuery);
-  }, [searchQuery]);
+  }, [searchQuery, filterListingOnTyping]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      navigate('/');
+    }
   };
 
   const handleUpdateName = () => {
     setShowNameModal(true);
   };
-  
+
   const handleUpdatePhoto = () => {
     setShowPhotoModal(true);
   };
@@ -226,7 +270,7 @@ const Navigation = () => {
 
   const navigationLinks = (
       <div className={` ${isOpen ? 'flex' : 'hidden'} md:flex flex-row`}>
-        
+
         <div className="flex flex-col md:flex-row md:items-center md:gap-4">
           <NavLink to="/listings/new" className="flex items-center gap-2">
             <IconPlus size={20}/>
@@ -243,153 +287,169 @@ const Navigation = () => {
             Bookmarks
           </NavLink>
         </div>
-        
+
       </div>);
 
-  const authButtons = (
+  // Render auth buttons conditionally
+  const renderAuthButtons = () => {
+    if (loading) {
+      return null; // Don't show auth buttons while loading
+    }
+    
+    return (
       <div className={`${isOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0`}>
         <div className="flex flex-col md:flex-row gap-2">
           {currUser ? (
-            // User profile dropdown (for desktop) or inline options (for mobile)
-            <>
-              {/* Desktop view - show dropdown */}
-              <div className="hidden md:block">
-                <UserProfileDropdown 
-                  user={currUser} 
-                  onLogout={handleLogout} 
-                  onUpdateName={handleUpdateName}
-                  onUpdatePhoto={handleUpdatePhoto}
-                />
-              </div>
-              
-              {/* Mobile view - show options inline */}
-              <div className="md:hidden">
-                <div className="flex items-center gap-2 px-3 py-2 mb-2">
-                  {currUser.profilePhoto ? (
-                    <div className="w-8 h-8 rounded-full overflow-hidden">
-                      <img 
-                        src={currUser.profilePhoto} 
-                        alt={currUser.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      <IconUserCircle size={24} className="text-gray-500" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{currUser.name}</p>
-                    <p className="text-xs text-gray-500">{currUser.email}</p>
-                  </div>
+              // User profile dropdown (for desktop) or inline options (for mobile)
+              <>
+                {/* Desktop view - show dropdown */}
+                <div className="hidden md:block">
+                  <UserProfileDropdown
+                      user={currUser}
+                      onLogout={handleLogout}
+                      onUpdateName={handleUpdateName}
+                      onUpdatePhoto={handleUpdatePhoto}
+                  />
                 </div>
-                
-                <button
-                  onClick={handleUpdatePhoto}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
-                >
-                  <IconCamera size={16} className="mr-2" />
-                  Update Photo
-                </button>
-                
-                <button
-                  onClick={handleUpdateName}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
-                >
-                  <IconEdit size={16} className="mr-2" />
-                  Update Name
-                </button>
-                
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md"
-                >
-                  <IconLogout size={16} className="mr-2" />
-                  Log out
-                </button>
-              </div>
-            </>
+
+                {/* Mobile view - show options inline */}
+                <div className="md:hidden">
+                  <div className="flex items-center gap-2 px-3 py-2 mb-2">
+                    {currUser.profilePhoto ? (
+                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                          <img
+                              src={currUser.profilePhoto}
+                              alt={currUser.name}
+                              className="w-full h-full object-cover"
+                          />
+                        </div>
+                    ) : (
+                        <div
+                            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          <IconUserCircle size={24} className="text-gray-500"/>
+                        </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{currUser.name}</p>
+                      <p className="text-xs text-gray-500">{currUser.email}</p>
+                    </div>
+                  </div>
+
+                  <button
+                      onClick={handleUpdatePhoto}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
+                  >
+                    <IconCamera size={16} className="mr-2"/>
+                    Update Photo
+                  </button>
+
+                  <button
+                      onClick={handleUpdateName}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
+                  >
+                    <IconEdit size={16} className="mr-2"/>
+                    Update Name
+                  </button>
+
+                  <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md"
+                  >
+                    <IconLogout size={16} className="mr-2"/>
+                    Log out
+                  </button>
+                </div>
+              </>
           ) : (
-            <>
-              <NavButton
-                  onClick={() => navigate('/login')}
-                  variant="outline"
-              >
-                Log in
-              </NavButton>
-              <NavButton
-                  onClick={() => navigate('/signup')}
-                  variant="primary"
-              >
-                Sign up
-              </NavButton>
-            </>
+              <>
+                <NavButton
+                    onClick={() => navigate('/login')}
+                    variant="outline"
+                >
+                  Log in
+                </NavButton>
+                <NavButton
+                    onClick={() => navigate('/signup')}
+                    variant="primary"
+                >
+                  Sign up
+                </NavButton>
+              </>
           )}
         </div>
-      </div>);
+      </div>
+    );
+  };
 
   return (
-    <>
-      <nav className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
-            {/* Logo */}
-            <Link
-                to="/"
-                className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
-            >
-              <IconCompass size={28}/>
-              <span className="hidden md:block font-medium">
-                    Explore
-              </span>
-            </Link>
-
-            {/* Search Bar - Hidden on mobile, shown on larger screens */}
-            {location.pathname === '/' &&
-                (<div className="hidden md:block flex-1 max-w-2xl mx-4">
-                  <SearchBar
-                      value={searchQuery}
-                      onChange={setSearchQuery}
-                  />
-                </div>)}
-
-            {/* Navigation Links & Auth Buttons - Hidden on mobile */}
-            <div className="hidden md:flex md:items-center md:gap-4">
-              {location.pathname === '/' && navigationLinks}
-              {authButtons}
+      <>
+        {loading ? (
+            <div style={spinnerStyles.loadingContainer}>
+              <div style={spinnerStyles.spinner}></div>
+              <style>{spinnerKeyframes}</style>
             </div>
+        ) : (
+            <nav className="sticky top-0 z-50 bg-white shadow-sm">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16 gap-4">
+                  {/* Logo */}
+                  <Link
+                      to="/"
+                      className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
+                  >
+                    <IconCompass size={28}/>
+                    <span className="hidden md:block font-medium">
+                      Explore
+                    </span>
+                  </Link>
 
-            {/* Mobile menu button */}
-            {mobileMenuButton}
-          </div>
+                  {/* Search Bar - Hidden on mobile, shown on larger screens */}
+                  {location.pathname === '/' &&
+                      (<div className="hidden md:block flex-1 max-w-2xl mx-4">
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={setSearchQuery}
+                        />
+                      </div>)}
 
-          {/* Mobile Search Bar */}
-          <div className="md:hidden py-2">
-            <SearchBar value={searchQuery} onChange={setSearchQuery}/>
-          </div>
+                  {/* Navigation Links & Auth Buttons - Hidden on mobile */}
+                  <div className="hidden md:flex md:items-center md:gap-4">
+                    {location.pathname === '/' && navigationLinks}
+                    {renderAuthButtons()}
+                  </div>
 
-          {/* Mobile Navigation Links & Auth Buttons */}
-          <div
-              className={`md:hidden pb-4 ${isOpen ? 'block' : 'hidden'}`}
-          >
-            {navigationLinks}
-            {authButtons}
-          </div>
-        </div>
-      </nav>
-      
-      {/* Name Update Modal */}
-      <UpdateNameModal 
-        isOpen={showNameModal}
-        onClose={() => setShowNameModal(false)}
-      />
-      
-      {/* Photo Update Modal */}
-      <UpdatePhotoModal 
-        isOpen={showPhotoModal}
-        onClose={() => setShowPhotoModal(false)}
-      />
-    </>
+                  {/* Mobile menu button */}
+                  {mobileMenuButton}
+                </div>
+
+                {/* Mobile Search Bar */}
+                <div className="md:hidden py-2">
+                  <SearchBar value={searchQuery} onChange={setSearchQuery}/>
+                </div>
+
+                {/* Mobile Navigation Links & Auth Buttons */}
+                <div
+                    className={`md:hidden pb-4 ${isOpen ? 'block' : 'hidden'}`}
+                >
+                  {navigationLinks}
+                  {renderAuthButtons()}
+                </div>
+              </div>
+            </nav>
+        )}
+
+        {/* Name Update Modal */}
+        <UpdateNameModal
+            isOpen={showNameModal}
+            onClose={() => setShowNameModal(false)}
+        />
+
+        {/* Photo Update Modal */}
+        <UpdatePhotoModal
+            isOpen={showPhotoModal}
+            onClose={() => setShowPhotoModal(false)}
+        />
+      </>
   );
 };
 

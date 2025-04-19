@@ -1,11 +1,10 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useContext, useRef } from 'react';
-import { UserContext } from '../../contexts/userContext';
+import React, { useState, useRef, useContext } from 'react';
 import { FlashMessageContext } from '../../utils/flashMessageContext';
-import { put } from '../../utils/api';
 import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from '../../utils/cloudinaryUtils';
 import { BeatLoader } from 'react-spinners';
 import { IconX, IconCamera, IconUpload, IconCheck } from '@tabler/icons-react';
+import useUserStore from '../../../Store/userStore';
 
 const UpdatePhotoModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
@@ -13,7 +12,7 @@ const UpdatePhotoModal = ({ isOpen, onClose }) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const fileInputRef = useRef(null);
     
-    const { currUser, updateUserProfile } = useContext(UserContext);
+    const { currUser, updatePhoto } = useUserStore();
     const { showSuccessMessage, showErrorMessage } = useContext(FlashMessageContext);
     
     const handleImageChange = (e) => {
@@ -51,17 +50,15 @@ const UpdatePhotoModal = ({ isOpen, onClose }) => {
             // Upload to Cloudinary
             const imageUrl = await uploadToCloudinary(selectedFile, signatureData);
             
-            // Update user profile with the uploaded image URL - use correct path without 'user/'
-            const response = await put("/profile", {
-                profilePhoto: imageUrl
-            });
+            // Update user profile with the uploaded image URL using Zustand store
+            const result = await updatePhoto(imageUrl);
             
-            // Update local user context
-            updateUserProfile({ profilePhoto: imageUrl });
-            
-            showSuccessMessage("Profile photo updated successfully!");
-            onClose();
-            
+            if (result.success) {
+                showSuccessMessage("Profile photo updated successfully!");
+                onClose();
+            } else {
+                showErrorMessage(result.error || "Failed to update profile photo");
+            }
         } catch (error) {
             console.error("Profile photo upload error:", error);
             showErrorMessage(error.message || "Failed to update profile photo");

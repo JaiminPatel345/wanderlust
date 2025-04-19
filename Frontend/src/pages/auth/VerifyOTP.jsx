@@ -2,9 +2,8 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
-import { UserContext } from "../../contexts/userContext";
+import useUserStore from "../../../Store/userStore";
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas";
-import { post } from "../../utils/api";
 
 const VerifyOTP = () => {
     const [verifyLoader, setVerifyLoader] = useState(false);
@@ -14,7 +13,7 @@ const VerifyOTP = () => {
         showErrorMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext);
-    const { currUser, setCurrUserAndCookies } = useContext(UserContext);
+    const { currUser, verifyOTP, resendOTP } = useUserStore();
     const [isRiveLoading, setIsRiveLoading] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
@@ -155,28 +154,25 @@ const VerifyOTP = () => {
         if (isHandsUp) isHandsUp.value = false;
         
         try {
-            const response = await post("/otp/verify", {
-                email,
-                otp: otpString
-            });
+            const result = await verifyOTP(email, otpString);
             
-            // Success - update user data and redirect
-            setCurrUserAndCookies(response);
-            showSuccessMessage(response.message || "Email verified successfully!");
-            
-            if (trigSuccess) trigSuccess.fire();
-            
-            // Check if this is a new user (needs profile setup)
-            const isNewUser = response.data?.isNewUser;
-
-            setTimeout(() => {
-                // Redirect to profile setup for new users, otherwise to home
-                if (isNewUser) {
-                    navigate("/profile-setup");
-                } else {
-                    navigate("/");
-                }
-            }, 1000);
+            if (result.success) {
+                showSuccessMessage("Email verified successfully!");
+                
+                if (trigSuccess) trigSuccess.fire();
+                
+                setTimeout(() => {
+                    // Redirect to profile setup for new users, otherwise to home
+                    if (result.isNewUser) {
+                        navigate("/profile-setup");
+                    } else {
+                        navigate("/");
+                    }
+                }, 1000);
+            } else {
+                if (trigFail) trigFail.fire();
+                showErrorMessage(result.error || "Verification failed");
+            }
         } catch (error) {
             console.error("OTP verification error:", error);
             if (trigFail) trigFail.fire();
@@ -192,8 +188,13 @@ const VerifyOTP = () => {
         setResendLoader(true);
         
         try {
-            const response = await post("/otp/resend", { email });
-            showSuccessMessage(response.message || "A new verification code has been sent to your email");
+            const result = await resendOTP(email);
+            
+            if (result.success) {
+                showSuccessMessage(result.message || "A new verification code has been sent to your email");
+            } else {
+                showErrorMessage(result.error || "Failed to resend verification code");
+            }
         } catch (error) {
             console.error("Resend OTP error:", error);
             showErrorMessage(error.message || "Failed to resend verification code");
@@ -205,7 +206,16 @@ const VerifyOTP = () => {
     return (
         <div className="flex justify-center items-center">
             <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg gap-4 mt-16">
-                
+                <div className="mb-4">
+                    <div className="w-full">
+                        {isRiveLoading && (
+                            <div className="w-full flex justify-center items-center">
+                                <BeatLoader color="#b3dbd3" />
+                            </div>
+                        )}
+                        <RiveComponent className="h-72 w-full" />
+                    </div>
+                </div>
 
                 <div>
                     <h2 className="text-3xl font-extrabold text-gray-900 mb-4 text-center">
@@ -249,20 +259,20 @@ const VerifyOTP = () => {
                             <button
                                 onClick={handleResendOTP}
                                 disabled={resendLoader}
-                                className="text-indigo-600 hover:underline font-medium"
+                                className="text-indigo-600 hover:underline font-medium disabled:text-gray-400"
                             >
                                 {resendLoader ? "Sending..." : "Resend"}
                             </button>
                         </p>
                     </div>
 
-                    <div className="mt-6 text-center">
-                        <Link
-                            to="/login"
-                            className="text-sm text-gray-600 hover:text-gray-900"
-                        >
-                            Return to Login
-                        </Link>
+                    <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600">
+                            Back to{" "}
+                            <Link to="/login" className="text-indigo-600 hover:underline font-medium">
+                                Login
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

@@ -1,15 +1,15 @@
 /* eslint-disable react/prop-types */
-import React, { useState, useContext, useEffect } from 'react';
-import { UserContext } from '../../contexts/userContext';
+import React, { useState, useEffect } from 'react';
 import { FlashMessageContext } from '../../utils/flashMessageContext';
-import { put } from '../../utils/api';
+import { useContext } from 'react';
 import { BeatLoader } from 'react-spinners';
 import { IconX } from '@tabler/icons-react';
+import useUserStore from '../../../Store/userStore';
 
 const UpdateNameModal = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
-    const { currUser, updateUserProfile } = useContext(UserContext);
+    const { currUser, updateName } = useUserStore();
     const { showSuccessMessage, showErrorMessage } = useContext(FlashMessageContext);
     
     useEffect(() => {
@@ -29,10 +29,13 @@ const UpdateNameModal = ({ isOpen, onClose }) => {
         setLoading(true);
         
         try {
-            const response = await put('/profile/name', { name });
-            updateUserProfile({ name });
-            showSuccessMessage('Name updated successfully');
-            onClose();
+            const result = await updateName(name);
+            if (result.success) {
+                showSuccessMessage('Name updated successfully');
+                onClose();
+            } else {
+                showErrorMessage(result.error || 'Failed to update name');
+            }
         } catch (error) {
             console.error('Error updating name:', error);
             showErrorMessage(error.message || 'Failed to update name');

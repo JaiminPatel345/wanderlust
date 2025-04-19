@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
 import {
     IconStar,
@@ -125,7 +125,7 @@ const ListingDetail = () => {
     const [isDeletingListing, setIsDeletingListing] = useState(false)
     const [showSignupPrompt, setShowSignupPrompt] = useState(false)
 
-    const { currUser, checkCurrUser } = useContext(UserContext)
+    const { currUser, checkCurrUser } = useUserStore()
     const { showSuccessMessage, showErrorMessage } =
         useContext(FlashMessageContext)
 

@@ -2,11 +2,10 @@ import React, { useState, useEffect, useContext } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { BeatLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import { UserContext } from "../../contexts/userContext"
+import useUserStore from "../../../Store/userStore"
 import { useRive, useStateMachineInput } from "@rive-app/react-canvas"
 import { FaEye } from "react-icons/fa"
 import { FaEyeSlash } from "react-icons/fa6"
-import { post } from "../../utils/api"
 
 const Signup = () => {
     const [formData, setFormData] = useState({
@@ -25,7 +24,7 @@ const Signup = () => {
         showWarningMessage,
         clearFlashMessage,
     } = useContext(FlashMessageContext)
-    const { currUser, setCurrUserAndCookies } = useContext(UserContext)
+    const { currUser, register } = useUserStore()
     const [isPasswordShow, setIsPasswordShow] = useState(false)
     const [isRiveLoading, setIsRiveLoading] = useState(true)
 
@@ -104,33 +103,29 @@ const Signup = () => {
         setSignupLoader(true)
 
         try {
-            const response = await post("/signup", {
+            const result = await register({
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
             })
             
-            // If the response is successful and requires verification
-            if (response.success && response.data && response.data.requireVerification) {
-                // Set user data in cookies/state
-                setCurrUserAndCookies(response)
-                
-                showSuccessMessage(response.message || `Account created! Please verify your email.`)
+            if (result.success) {
+                showSuccessMessage(`Hi ${formData.name || 'there'} 👋`)
                 if (trigSuccess) trigSuccess.fire()
                 
-                // Redirect to verify OTP page
-                setTimeout(() => {
-                    navigate("/verify-otp", { state: { email: formData.email } })
-                }, 1000)
+                // Check if verification is required
+                if (result.requireVerification) {
+                    setTimeout(() => {
+                        navigate("/verify-otp", { state: { email: formData.email } })
+                    }, 1000)
+                } else {
+                    setTimeout(() => {
+                        window.history.go(-1)
+                    }, 500)
+                }
             } else {
-                // Normal flow if no verification needed (unlikely with current design)
-                setCurrUserAndCookies(response)
-                showSuccessMessage(`Hi ${response.data?.user?.name || 'there'} 👋`)
-                if (trigSuccess) trigSuccess.fire()
-
-                setTimeout(() => {
-                    window.history.go(-1)
-                }, 500)
+                if (trigFail) trigFail.fire()
+                showErrorMessage(result.error || "Registration failed")
             }
         } catch (error) {
             console.error("Signup error:", error)
@@ -276,7 +271,11 @@ const Signup = () => {
                             )}
                         </div>
 
-                        <button className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-300 ease-in-out">
+                        <button
+                            className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md 
+                    hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 
+                    focus:ring-offset-2 transition duration-300 ease-in-out"
+                        >
                             {signupLoader ? (
                                 <BeatLoader size={10} color="white" />
                             ) : (
@@ -287,12 +286,12 @@ const Signup = () => {
                 </div>
 
                 <p className="text-center text-sm text-gray-600 mt-4">
-                    Already registered?{" "}
+                    Already have an account?{" "}
                     <Link
                         to="/login"
                         className="text-indigo-600 hover:underline font-medium"
                     >
-                        Click here to log in
+                        Log in
                     </Link>
                 </p>
             </div>
