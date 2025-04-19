@@ -215,11 +215,6 @@ const Navigation = () => {
   const { currUser, loading, logout, checkCurrUser } = useUserStore();
   const filterListingOnTyping = useListingStore((state) => state.filterListingOnTyping);
 
-  // Log authentication state (for debugging)
-  useEffect(() => {
-    console.log('Current authentication state:', { currUser, loading });
-  }, [currUser, loading]);
-
   // Check for current user on component mount
   useEffect(() => {
     const fetchUser = async () => {
@@ -232,7 +227,7 @@ const Navigation = () => {
     const handleResize = () => window.innerWidth >= 768 && setIsOpen(false);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [checkCurrUser]);
 
   // Reset search query and close menu when location changes
   useEffect(() => {
@@ -244,6 +239,29 @@ const Navigation = () => {
   useEffect(() => {
     filterListingOnTyping(searchQuery);
   }, [searchQuery, filterListingOnTyping]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isOpen]);
+
+  // Check if current route is VerifyOTP or ProfileSetup page
+  const shouldHideNavbar = ['/verify-otp', '/profile-setup'].some(path => 
+    location.pathname.includes(path)
+  );
+
+  // If we should hide the navbar, return null
+  if (shouldHideNavbar) {
+    return null;
+  }
 
   const handleLogout = async () => {
     const result = await logout();
@@ -262,32 +280,24 @@ const Navigation = () => {
 
   const mobileMenuButton = (<button
       onClick={() => setIsOpen(!isOpen)}
-      className="md:hidden p-2 rounded-md hover:bg-gray-100"
+      className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
       aria-label="Toggle menu"
   >
     {isOpen ? <IconX size={24}/> : <IconMenu2 size={24}/>}
   </button>);
 
   const navigationLinks = (
-      <div className={` ${isOpen ? 'flex' : 'hidden'} md:flex flex-row`}>
+      <div className={`${isOpen ? 'flex flex-col gap-2 py-2' : 'hidden'} md:flex md:flex-row md:items-center md:gap-4`}>
+        <NavLink to="/listings/new" className="flex items-center gap-2 hover:text-rose-600">
+          <IconPlus size={20}/>
+          Add Listing
+        </NavLink>
 
-        <div className="flex flex-col md:flex-row md:items-center md:gap-4">
-          <NavLink to="/listings/new" className="flex items-center gap-2">
-            <IconPlus size={20}/>
-            Add Listing
-          </NavLink>
-        </div>
-
-        {/*bookmarks Listings*/}
-        <div className="flex flex-col md:flex-row md:items-center md:gap-4">
-          <NavLink to={'/bookmarks'}
-                   className="flex items-center gap-2  hover:text-blue-600 "
-          >
-            <IconBookmarks size={20}/>
-            Bookmarks
-          </NavLink>
-        </div>
-
+        <NavLink to="/bookmarks" className="flex items-center gap-2 hover:text-rose-600">
+          <IconBookmarks size={20}/>
+          Bookmarks
+        </NavLink>
+        
       </div>);
 
   // Render auth buttons conditionally
@@ -313,10 +323,10 @@ const Navigation = () => {
                 </div>
 
                 {/* Mobile view - show options inline */}
-                <div className="md:hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 mb-2">
+                <div className="md:hidden bg-gray-50 rounded-lg p-3 mt-2">
+                  <div className="flex items-center gap-2 px-2 py-2 mb-2 border-b border-gray-200 pb-2">
                     {currUser.profilePhoto ? (
-                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
                           <img
                               src={currUser.profilePhoto}
                               alt={currUser.name}
@@ -325,7 +335,7 @@ const Navigation = () => {
                         </div>
                     ) : (
                         <div
-                            className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
                           <IconUserCircle size={24} className="text-gray-500"/>
                         </div>
                     )}
@@ -337,7 +347,7 @@ const Navigation = () => {
 
                   <button
                       onClick={handleUpdatePhoto}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
                   >
                     <IconCamera size={16} className="mr-2"/>
                     Update Photo
@@ -345,7 +355,7 @@ const Navigation = () => {
 
                   <button
                       onClick={handleUpdateName}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
                   >
                     <IconEdit size={16} className="mr-2"/>
                     Update Name
@@ -353,7 +363,7 @@ const Navigation = () => {
 
                   <button
                       onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md"
+                      className="w-full text-left px-3 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 flex items-center rounded-md transition-colors"
                   >
                     <IconLogout size={16} className="mr-2"/>
                     Log out
@@ -389,53 +399,62 @@ const Navigation = () => {
               <style>{spinnerKeyframes}</style>
             </div>
         ) : (
-            <nav className="sticky top-0 z-50 bg-white shadow-sm">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16 gap-4">
-                  {/* Logo */}
-                  <Link
-                      to="/"
-                      className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
-                  >
-                    <IconCompass size={28}/>
-                    <span className="hidden md:block font-medium">
-                      Explore
-                    </span>
-                  </Link>
+            <div className="w-full">
+              <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex items-center justify-between h-16 gap-4">
+                    {/* Logo */}
+                    <Link
+                        to="/"
+                        className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
+                    >
+                      <IconCompass size={28}/>
+                      <span className="hidden md:block font-medium">
+                        Explore
+                      </span>
+                    </Link>
 
-                  {/* Search Bar - Hidden on mobile, shown on larger screens */}
-                  {location.pathname === '/' &&
-                      (<div className="hidden md:block flex-1 max-w-2xl mx-4">
-                        <SearchBar
-                            value={searchQuery}
-                            onChange={setSearchQuery}
-                        />
-                      </div>)}
+                    {/* Search Bar - Only shown on homepage */}
+                    {location.pathname === '/' &&
+                        (<div className="hidden md:block flex-1 max-w-2xl mx-4">
+                          <SearchBar
+                              value={searchQuery}
+                              onChange={setSearchQuery}
+                          />
+                        </div>)}
 
-                  {/* Navigation Links & Auth Buttons - Hidden on mobile */}
-                  <div className="hidden md:flex md:items-center md:gap-4">
-                    {location.pathname === '/' && navigationLinks}
-                    {renderAuthButtons()}
+                    {/* Navigation Links & Auth Buttons - Hidden on mobile */}
+                    <div className="hidden md:flex md:items-center md:gap-4">
+                      {navigationLinks}
+                      {renderAuthButtons()}
+                    </div>
+
+                    {/* Mobile menu button */}
+                    {mobileMenuButton}
                   </div>
 
-                  {/* Mobile menu button */}
-                  {mobileMenuButton}
-                </div>
+                  {/* Mobile Search Bar - Only shown on homepage */}
+                  {location.pathname === '/' && (
+                    <div className="md:hidden py-2">
+                      <SearchBar value={searchQuery} onChange={setSearchQuery}/>
+                    </div>
+                  )}
 
-                {/* Mobile Search Bar */}
-                <div className="md:hidden py-2">
-                  <SearchBar value={searchQuery} onChange={setSearchQuery}/>
+                  {/* Mobile Navigation Links & Auth Buttons */}
+                  <div
+                      className={`md:hidden pb-4 ${isOpen ? 'block' : 'hidden'}`}
+                  >
+                    {navigationLinks}
+                    {renderAuthButtons()}
+                  </div>
                 </div>
-
-                {/* Mobile Navigation Links & Auth Buttons */}
-                <div
-                    className={`md:hidden pb-4 ${isOpen ? 'block' : 'hidden'}`}
-                >
-                  {navigationLinks}
-                  {renderAuthButtons()}
-                </div>
+              </nav>
+              
+              {/* Add padding based on navbar height and state */}
+              <div className={`${isOpen ? 'h-screen' : ''}`}>
+                <div className={`${location.pathname === '/' ? 'h-24' : 'h-16'} transition-all duration-300`}></div>
               </div>
-            </nav>
+            </div>
         )}
 
         {/* Name Update Modal */}
