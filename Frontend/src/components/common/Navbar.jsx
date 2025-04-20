@@ -5,6 +5,7 @@ import useListingStore from '../../../Store/listing';
 import useUserStore from '../../../Store/userStore';
 import UpdateNameModal from './UpdateNameModal';
 import UpdatePhotoModal from './UpdatePhotoModal';
+import ChangePasswordModal from './ChangePasswordModal';
 import SearchDropdown from '../SearchDropdown';
 import {
   IconBookmarks,
@@ -12,6 +13,7 @@ import {
   IconChevronDown,
   IconCompass,
   IconEdit,
+  IconKey,
   IconLogout,
   IconMenu2,
   IconPlus,
@@ -77,7 +79,13 @@ const SearchBar = ({value, onChange, onFocus}) => (
       </div>
     </div>);
 
-const UserProfileDropdown = ({user, onLogout, onUpdateName, onUpdatePhoto}) => {
+const UserProfileDropdown = ({
+  user,
+  onLogout,
+  onUpdateName,
+  onUpdatePhoto,
+  onChangePassword,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -101,19 +109,14 @@ const UserProfileDropdown = ({user, onLogout, onUpdateName, onUpdatePhoto}) => {
 
   const handleOption = (action) => {
     setIsOpen(false);
-
-    switch (action) {
-      case 'logout':
-        onLogout();
-        break;
-      case 'update-name':
-        onUpdateName();
-        break;
-      case 'update-photo':
-        onUpdatePhoto();
-        break;
-      default:
-        break;
+    if (action === 'logout') {
+      onLogout();
+    } else if (action === 'update-name') {
+      onUpdateName();
+    } else if (action === 'update-photo') {
+      onUpdatePhoto();
+    } else if (action === 'change-password') {
+      onChangePassword();
     }
   };
 
@@ -174,6 +177,14 @@ const UserProfileDropdown = ({user, onLogout, onUpdateName, onUpdatePhoto}) => {
                 </button>
 
                 <button
+                    onClick={() => handleOption('change-password')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <IconKey size={16} className="mr-2"/>
+                  Change Password
+                </button>
+
+                <button
                     onClick={() => handleOption('logout')}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                 >
@@ -222,14 +233,15 @@ const Navigation = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNameModal, setShowNameModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  
+
   // Use Zustand stores instead of Context
-  const { currUser, loading, logout, checkCurrUser } = useUserStore();
-  const { 
-    filterListingOnTyping, 
-    searchListingsBackend, 
-    clearSearchResults 
+  const {currUser, loading, logout, checkCurrUser} = useUserStore();
+  const {
+    filterListingOnTyping,
+    searchListingsBackend,
+    clearSearchResults,
   } = useListingStore();
 
   // Check for current user on component mount
@@ -237,9 +249,9 @@ const Navigation = () => {
     const fetchUser = async () => {
       await checkCurrUser();
     };
-    
+
     fetchUser();
-    
+
     // Close mobile menu on window resize
     const handleResize = () => window.innerWidth >= 768 && setIsOpen(false);
     window.addEventListener('resize', handleResize);
@@ -254,22 +266,29 @@ const Navigation = () => {
     }
     setIsOpen(false);
   }, [location.pathname]);
-  
+
   // Update search behavior to use backend search with debounce
   useEffect(() => {
-    const debounceTimer = setTimeout(async () => {
-      if (searchQuery.trim()) {
-        await searchListingsBackend(searchQuery);
-        setShowSearchDropdown(true);
-      } else {
-        clearSearchResults();
-        setShowSearchDropdown(false);
-        filterListingOnTyping(''); // Reset frontend filtering when search is cleared
-      }
-    }, 300); // 300ms debounce
-    
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery, searchListingsBackend, clearSearchResults, filterListingOnTyping]);
+        const debounceTimer = setTimeout(async () => {
+          if (searchQuery.trim()) {
+            await searchListingsBackend(searchQuery);
+            setShowSearchDropdown(true);
+          } else {
+            clearSearchResults();
+            setShowSearchDropdown(false);
+            filterListingOnTyping(''); // Reset frontend filtering when search is cleared
+          }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(debounceTimer);
+      },
+      [
+        searchQuery,
+        searchListingsBackend,
+        clearSearchResults,
+        filterListingOnTyping,
+      ],
+  );
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
@@ -278,15 +297,15 @@ const Navigation = () => {
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isOpen]);
 
   // Check if current route is VerifyOTP or ProfileSetup page
-  const shouldHideNavbar = ['/verify-otp', '/profile-setup'].some(path => 
-    location.pathname.includes(path)
+  const shouldHideNavbar = ['/verify-otp', '/profile-setup'].some(path =>
+      location.pathname.includes(path),
   );
 
   // If we should hide the navbar, return null
@@ -309,16 +328,20 @@ const Navigation = () => {
     setShowPhotoModal(true);
   };
 
+  const handleChangePassword = () => {
+    setShowPasswordModal(true);
+  };
+
   // Handle search query change
   const handleSearchChange = (value) => {
     setSearchQuery(value);
   };
-  
+
   // Handle close of search dropdown
   const handleCloseSearch = () => {
     setShowSearchDropdown(false);
   };
-  
+
   // Handle view all results
   const handleViewAllResults = () => {
     setShowSearchDropdown(false);
@@ -335,17 +358,21 @@ const Navigation = () => {
   </button>);
 
   const navigationLinks = (
-      <div className={`${isOpen ? 'flex flex-col gap-2 py-2' : 'hidden'} md:flex md:flex-row md:items-center md:gap-4`}>
-        <NavLink to="/listings/new" className="flex items-center gap-2 hover:text-rose-600">
+      <div className={`${isOpen
+          ? 'flex flex-col gap-2 py-2'
+          : 'hidden'} md:flex md:flex-row md:items-center md:gap-4`}>
+        <NavLink to="/listings/new"
+                 className="flex items-center gap-2 hover:text-rose-600">
           <IconPlus size={20}/>
           Add Listing
         </NavLink>
 
-        <NavLink to="/bookmarks" className="flex items-center gap-2 hover:text-rose-600">
+        <NavLink to="/bookmarks"
+                 className="flex items-center gap-2 hover:text-rose-600">
           <IconBookmarks size={20}/>
           Bookmarks
         </NavLink>
-        
+
       </div>);
 
   // Render auth buttons conditionally
@@ -353,89 +380,93 @@ const Navigation = () => {
     if (loading) {
       return null; // Don't show auth buttons while loading
     }
-    
-    return (
-      <div className={`${isOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0`}>
-        <div className="flex flex-col md:flex-row gap-2">
-          {currUser ? (
-              // User profile dropdown (for desktop) or inline options (for mobile)
-              <>
-                {/* Desktop view - show dropdown */}
-                <div className="hidden md:block">
-                  <UserProfileDropdown
-                      user={currUser}
-                      onLogout={handleLogout}
-                      onUpdateName={handleUpdateName}
-                      onUpdatePhoto={handleUpdatePhoto}
-                  />
-                </div>
 
-                {/* Mobile view - show options inline */}
-                <div className="md:hidden bg-gray-50 rounded-lg p-3 mt-2">
-                  <div className="flex items-center gap-2 px-2 py-2 mb-2 border-b border-gray-200 pb-2">
-                    {currUser.profilePhoto ? (
-                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                          <img
-                              src={currUser.profilePhoto}
-                              alt={currUser.name}
-                              className="w-full h-full object-cover"
-                          />
-                        </div>
-                    ) : (
-                        <div
-                            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
-                          <IconUserCircle size={24} className="text-gray-500"/>
-                        </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium">{currUser.name}</p>
-                      <p className="text-xs text-gray-500">{currUser.email}</p>
-                    </div>
+    return (
+        <div className={`${isOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0`}>
+          <div className="flex flex-col md:flex-row gap-2">
+            {currUser ? (
+                // User profile dropdown (for desktop) or inline options (for mobile)
+                <>
+                  {/* Desktop view - show dropdown */}
+                  <div className="hidden md:block">
+                    <UserProfileDropdown
+                        user={currUser}
+                        onLogout={handleLogout}
+                        onUpdateName={handleUpdateName}
+                        onUpdatePhoto={handleUpdatePhoto}
+                        onChangePassword={handleChangePassword}
+                    />
                   </div>
 
-                  <button
-                      onClick={handleUpdatePhoto}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
-                  >
-                    <IconCamera size={16} className="mr-2"/>
-                    Update Photo
-                  </button>
+                  {/* Mobile view - show options inline */}
+                  <div className="md:hidden bg-gray-50 rounded-lg p-3 mt-2">
+                    <div
+                        className="flex items-center gap-2 px-2 py-2 mb-2 border-b border-gray-200 pb-2">
+                      {currUser.profilePhoto ? (
+                          <div
+                              className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                            <img
+                                src={currUser.profilePhoto}
+                                alt={currUser.name}
+                                className="w-full h-full object-cover"
+                            />
+                          </div>
+                      ) : (
+                          <div
+                              className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white shadow-sm">
+                            <IconUserCircle size={24}
+                                            className="text-gray-500"/>
+                          </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{currUser.name}</p>
+                        <p className="text-xs text-gray-500">{currUser.email}</p>
+                      </div>
+                    </div>
 
-                  <button
-                      onClick={handleUpdateName}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
-                  >
-                    <IconEdit size={16} className="mr-2"/>
-                    Update Name
-                  </button>
+                    <button
+                        onClick={handleUpdatePhoto}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
+                    >
+                      <IconCamera size={16} className="mr-2"/>
+                      Update Photo
+                    </button>
 
-                  <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 flex items-center rounded-md transition-colors"
+                    <button
+                        onClick={handleUpdateName}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center rounded-md mb-1 transition-colors"
+                    >
+                      <IconEdit size={16} className="mr-2"/>
+                      Update Name
+                    </button>
+
+                    <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-3 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 flex items-center rounded-md transition-colors"
+                    >
+                      <IconLogout size={16} className="mr-2"/>
+                      Log out
+                    </button>
+                  </div>
+                </>
+            ) : (
+                <>
+                  <NavButton
+                      onClick={() => navigate('/login')}
+                      variant="outline"
                   >
-                    <IconLogout size={16} className="mr-2"/>
-                    Log out
-                  </button>
-                </div>
-              </>
-          ) : (
-              <>
-                <NavButton
-                    onClick={() => navigate('/login')}
-                    variant="outline"
-                >
-                  Log in
-                </NavButton>
-                <NavButton
-                    onClick={() => navigate('/signup')}
-                    variant="primary"
-                >
-                  Sign up
-                </NavButton>
-              </>
-          )}
+                    Log in
+                  </NavButton>
+                  <NavButton
+                      onClick={() => navigate('/signup')}
+                      variant="primary"
+                  >
+                    Sign up
+                  </NavButton>
+                </>
+            )}
+          </div>
         </div>
-      </div>
     );
   };
 
@@ -448,7 +479,8 @@ const Navigation = () => {
             </div>
         ) : (
             <div className="w-full">
-              <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+              <nav
+                  className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                   <div className="flex items-center justify-between h-16 gap-4">
                     {/* Logo */}
@@ -463,14 +495,16 @@ const Navigation = () => {
                     </Link>
 
                     {/* Search Bar - Only shown on homepage */}
-                    {(location.pathname === "/" || location.pathname === "/listings") && (
-                      <div className="hidden md:flex flex-1 justify-center">
-                        <SearchBar
-                          value={searchQuery}
-                          onChange={handleSearchChange}
-                          onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
-                        />
-                      </div>
+                    {(location.pathname === '/' || location.pathname ===
+                        '/listings') && (
+                        <div className="hidden md:flex flex-1 justify-center">
+                          <SearchBar
+                              value={searchQuery}
+                              onChange={handleSearchChange}
+                              onFocus={() => searchQuery.trim() &&
+                                  setShowSearchDropdown(true)}
+                          />
+                        </div>
                     )}
 
                     {/* Navigation Links & Auth Buttons - Hidden on mobile */}
@@ -484,29 +518,36 @@ const Navigation = () => {
                   </div>
 
                   {/* Mobile Search Bar - Only shown on homepage */}
-                  {(location.pathname === "/" || location.pathname === "/listings") && (
-                    <div className="md:hidden flex px-1 pb-2">
-                      <SearchBar 
-                        value={searchQuery} 
-                        onChange={handleSearchChange}
-                        onFocus={() => searchQuery.trim() && setShowSearchDropdown(true)}
-                      />
-                    </div>
+                  {(location.pathname === '/' || location.pathname ===
+                      '/listings') && (
+                      <div className="md:hidden flex px-1 pb-2">
+                        <SearchBar
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            onFocus={() => searchQuery.trim() &&
+                                setShowSearchDropdown(true)}
+                        />
+                      </div>
                   )}
 
                   {/* Mobile Navigation Links & Auth Buttons */}
                   <div
-                      className={`md:hidden pb-4 ${isOpen ? 'block' : 'hidden'}`}
+                      className={`md:hidden pb-4 ${isOpen
+                          ? 'block'
+                          : 'hidden'}`}
                   >
                     {navigationLinks}
                     {renderAuthButtons()}
                   </div>
                 </div>
               </nav>
-              
+
               {/* Add padding based on navbar height and state */}
               <div className={`${isOpen ? 'h-screen' : ''}`}>
-                <div className={`${(location.pathname === '/' || location.pathname === '/listings') ? 'h-28' : 'h-16'} transition-all duration-300`}></div>
+                <div className={`${(location.pathname === '/' ||
+                    location.pathname === '/listings')
+                    ? 'h-28'
+                    : 'h-16'} transition-all duration-300`}></div>
               </div>
             </div>
         )}
@@ -523,12 +564,18 @@ const Navigation = () => {
             onClose={() => setShowPhotoModal(false)}
         />
 
+        {/* Password Update Modal */}
+        <ChangePasswordModal
+            isOpen={showPasswordModal}
+            onClose={() => setShowPasswordModal(false)}
+        />
+
         {/* Search Dropdown */}
         {showSearchDropdown && (
-          <SearchDropdown
-            searchQuery={searchQuery}
-            onClose={handleCloseSearch}
-          />
+            <SearchDropdown
+                searchQuery={searchQuery}
+                onClose={handleCloseSearch}
+            />
         )}
       </>
   );

@@ -17,6 +17,10 @@ const NewListing = () => {
         location: "",
         tags: [],
     })
+    // Used for display and input in the UI only, not sent to backend
+    const [selectedCurrency, setSelectedCurrency] = useState("USD")
+    // USD to INR conversion rate (approx)
+    const [exchangeRate] = useState(83.5) 
     const [imageFile, setImageFile] = useState(null)
     const [imagePreview, setImagePreview] = useState(null)
     const [submitLoader, setSubmitLoader] = useState(false)
@@ -41,10 +45,29 @@ const NewListing = () => {
     const handleChange = (e) => {
         const { name, value } = e.target
 
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }))
+        // Special handling for currency changes - convert price value for display
+        if (name === "currency") {
+            if (value === "INR" && selectedCurrency === "USD") {
+                // Convert USD to INR for display
+                setFormData((prevData) => ({
+                    ...prevData,
+                    price: Math.round(prevData.price * exchangeRate)
+                }))
+                setSelectedCurrency(value)
+            } else if (value === "USD" && selectedCurrency === "INR") {
+                // Convert INR to USD for display
+                setFormData((prevData) => ({
+                    ...prevData,
+                    price: Math.round(prevData.price / exchangeRate)
+                }))
+                setSelectedCurrency(value)
+            }
+        } else {
+            setFormData((prevData) => ({
+                ...prevData,
+                [name]: value,
+            }))
+        }
 
         clearFlashMessage()
     }
@@ -93,8 +116,16 @@ const NewListing = () => {
         setSubmitLoader(true)
 
         try {
+            let finalPrice = formData.price;
+            
+            // If user entered price in INR, convert to USD before sending to backend
+            if (selectedCurrency === "INR") {
+                finalPrice = Math.round(formData.price / exchangeRate);
+            }
+            
             const data = {
                 ...formData,
+                price: finalPrice, // Always sends price in USD to backend
                 tagsArray: formData.tags,
                 image: imageFile,
             }
@@ -332,8 +363,8 @@ const NewListing = () => {
                         ></textarea>
                     </div>
 
-                    {/* Price & Country */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Price & Currency & Country */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label
                                 htmlFor="price"
@@ -350,6 +381,25 @@ const NewListing = () => {
                                 className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
                                 onChange={handleChange}
                             />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="currency"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                                Currency
+                            </label>
+                            <select
+                                name="currency"
+                                id="currency"
+                                value={selectedCurrency}
+                                className="w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
+                                onChange={handleChange}
+                            >
+                                <option value="USD">USD ($)</option>
+                                <option value="INR">INR (₹)</option>
+                            </select>
                         </div>
 
                         <div>

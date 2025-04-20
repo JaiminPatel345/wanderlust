@@ -3,6 +3,7 @@ const { hashPassword, validatePassword, isValidPasswordFormat, generateResetToke
 const { generateOTP, saveOTP, sendOTPEmail } = require("../utilities/otpUtils.js");
 const { AppError, formatResponse } = require("../utilities/errorHandler.js");
 const { generateSignature } = require("../utilities/cloudinaryUtils.js");
+const { generateResetToken: generatePasswordResetToken, decryptResetToken, saveResetToken, verifyResetToken, sendResetEmail } = require("../utilities/resetPasswordUtils.js");
 const Listing = require("../models/listing.js");
 
 // User signup
@@ -57,15 +58,14 @@ module.exports.signup = async (req, res) => {
         throw new AppError("Failed to generate verification code", 500);
     }
     
-    //TODO: uncomment 
     // Send OTP via email
-    // const mailSent = await sendOTPEmail(email, otp, name);
-    // if (!mailSent.success) {
-    //     // If email couldn't be sent, delete the user and OTP, then throw an error
-    //     await User.findByIdAndDelete(savedUser._id);
-    //     // No need to manually delete OTP from Redis as it will expire
-    //     throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
-    // }
+    const mailSent = await sendOTPEmail(email, otp, name);
+    if (!mailSent.success) {
+        // If email couldn't be sent, delete the user and OTP, then throw an error
+        await User.findByIdAndDelete(savedUser._id);
+        // No need to manually delete OTP from Redis as it will expire
+        throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
+    }
     
     // Only set session if everything succeeded
     req.session.user = { ...data };
@@ -192,147 +192,147 @@ module.exports.isLogin = (req, res) => {
 
 // Request password reset
 module.exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        throw new AppError("Email is required", 400);
+    }
+    
     try {
-        const { email } = req.body;
-        
-        if (!email) {
-            return res.status(400).json({
-                message: "Email is required"
-            });
-        }
-        
         // Find user by email
         const user = await User.findOne({ email });
         
         if (!user) {
             // We don't want to reveal which emails are in the database
-            return res.status(200).json({
-                message: "If your email exists in our system, you will receive a password reset link shortly"
-            });
+            return res.status(200).json(
+                formatResponse(true, "If your email exists in our system, you will receive a password reset link shortly", null)
+            );
         }
         
-        // Generate reset token
-        const resetToken = generateResetToken();
-        const hashedResetToken = hashToken(resetToken);
+        // Generate random token
+        const encryptedToken = generatePasswordResetToken(user._id.toString());
         
-        // Set token expiration (1 hour)
-        const tokenExpiration = new Date(Date.now() + 60 * 60 * 1000);
+        // Extract token from the encrypted payload for storage in Redis
+        const decoded = decryptResetToken(encryptedToken);
         
-        // Save token to user
-        user.passwordResetToken = hashedResetToken;
-        user.passwordResetExpires = tokenExpiration;
-        await user.save();
+        if (!decoded) {
+            throw new AppError("Failed to generate reset token", 500);
+        }
         
-        // In a real-world application, you would send an email with the reset link
-        // For this example, we'll just return the token directly (not secure for production)
-        console.log(`Reset token for ${email}: ${resetToken}`);
+        // Save token to Redis with user ID as part of the key
+        const tokenSaved = await saveResetToken(user._id.toString(), decoded.token);
         
-        res.status(200).json({
-            message: "If your email exists in our system, you will receive a password reset link shortly",
-            // Only include in development, remove in production
-            resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
-        });
+        if (!tokenSaved) {
+            throw new AppError("Failed to generate reset token", 500);
+        }
+        
+        // Send email with reset link
+        const emailResult = await sendResetEmail(email, user.name, encryptedToken);
+        
+        if (!emailResult.success) {
+            throw new AppError(`Failed to send reset email: ${emailResult.error}`, 500);
+        }
+        
+        // For development only
+        console.log(`Reset link for ${email}: ${process.env.REACT_APP_API_URL}/reset-password?token=${encodeURIComponent(encryptedToken)}`);
+        
+        return res.status(200).json(
+            formatResponse(true, "If your email exists in our system, you will receive a password reset link shortly", 
+                process.env.NODE_ENV === 'development' ? { encryptedToken } : null
+            )
+        );
     } catch (error) {
         console.error("Password reset request error:", error);
-        res.status(500).json({
-            message: "An error occurred while processing your request"
-        });
+        throw new AppError("An error occurred while processing your request", 500);
     }
 };
 
 // Reset password with token
 module.exports.resetPassword = async (req, res) => {
+    const { token, password } = req.body;
+    
+    if (!token || !password) {
+        throw new AppError("Token and new password are required", 400);
+    }
+    
+    // Validate password format
+    if (!isValidPasswordFormat(password)) {
+        throw new AppError("Password should be at least 6 characters and contain both letters and numbers", 400);
+    }
+    
     try {
-        const { token, password } = req.body;
+        // Decrypt and validate the token
+        const decoded = decryptResetToken(token);
         
-        if (!token || !password) {
-            return res.status(400).json({
-                message: "Token and new password are required"
-            });
+        if (!decoded || !decoded.userId || !decoded.token) {
+            throw new AppError("Invalid or expired reset token", 400);
         }
         
-        // Validate password format
-        if (!isValidPasswordFormat(password)) {
-            return res.status(400).json({
-                message: "Password should be at least 8 characters and contain both letters and numbers"
-            });
+        // Verify token in Redis
+        const isValidToken = await verifyResetToken(decoded.userId, decoded.token);
+        
+        if (!isValidToken) {
+            throw new AppError("Invalid or expired reset token", 400);
         }
         
-        // Hash the token to compare with stored hash
-        const hashedToken = hashToken(token);
-        
-        // Find user with valid token
-        const user = await User.findOne({
-            passwordResetToken: hashedToken,
-            passwordResetExpires: { $gt: Date.now() }
-        });
+        // Find user by ID
+        const user = await User.findById(decoded.userId);
         
         if (!user) {
-            return res.status(400).json({
-                message: "Token is invalid or has expired"
-            });
+            throw new AppError("User not found", 404);
         }
         
         // Hash the new password
         const hashedPassword = await hashPassword(password);
         
-        // Update user password and clear reset fields
+        // Update user's password
         user.password = hashedPassword;
-        user.passwordResetToken = undefined;
-        user.passwordResetExpires = undefined;
         await user.save();
         
-        res.status(200).json({
-            message: "Password has been reset successfully"
-        });
+        return res.status(200).json(
+            formatResponse(true, "Password has been reset successfully", null)
+        );
     } catch (error) {
         console.error("Password reset error:", error);
-        res.status(500).json({
-            message: "An error occurred while resetting your password"
-        });
+        if (error instanceof AppError) {
+            throw error;
+        } else {
+            throw new AppError("An error occurred while resetting your password", 500);
+        }
     }
 };
 
 // Change password (for logged in users)
 module.exports.changePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+        throw new AppError("Current password and new password are required", 400);
+    }
+    
+    const userId = req.session.user?.userId;
+    if (!userId) {
+        throw new AppError("You must be logged in to change your password", 401);
+    }
+    
+    // Validate new password format
+    if (!isValidPasswordFormat(newPassword)) {
+        throw new AppError("New password should be at least 6 characters and contain both letters and numbers", 400);
+    }
+    
     try {
-        const { currentPassword, newPassword } = req.body;
-        
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({
-                message: "Current password and new password are required"
-            });
-        }
-        
-        if (!req.session.user) {
-            return res.status(401).json({
-                message: "You must be logged in to change your password"
-            });
-        }
-        
-        // Validate new password format
-        if (!isValidPasswordFormat(newPassword)) {
-            return res.status(400).json({
-                message: "New password should be at least 8 characters and contain both letters and numbers"
-            });
-        }
-        
         // Find user
-        const user = await User.findById(req.session.user.userId);
+        const user = await User.findById(userId);
         
         if (!user) {
-            return res.status(404).json({
-                message: "User not found"
-            });
+            throw new AppError("User not found", 404);
         }
         
         // Verify current password
         const isPasswordValid = await validatePassword(currentPassword, user.password);
         
         if (!isPasswordValid) {
-            return res.status(401).json({
-                message: "Current password is incorrect"
-            });
+            throw new AppError("Current password is incorrect", 401);
         }
         
         // Hash the new password
@@ -342,14 +342,16 @@ module.exports.changePassword = async (req, res) => {
         user.password = hashedPassword;
         await user.save();
         
-        res.status(200).json({
-            message: "Password changed successfully"
-        });
+        return res.status(200).json(
+            formatResponse(true, "Password changed successfully", null)
+        );
     } catch (error) {
         console.error("Change password error:", error);
-        res.status(500).json({
-            message: "An error occurred while changing your password"
-        });
+        if (error instanceof AppError) {
+            throw error;
+        } else {
+            throw new AppError("An error occurred while changing your password", 500);
+        }
     }
 };
 

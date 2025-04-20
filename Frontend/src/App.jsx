@@ -12,6 +12,8 @@ import Login from "./pages/auth/Login"
 import Signup from "./pages/auth/Signup"
 import VerifyOTP from "./pages/auth/VerifyOTP"
 import ProfileSetup from "./pages/auth/ProfileSetup"
+import ForgotPassword from "./pages/auth/ForgotPassword"
+import ResetPassword from "./pages/auth/ResetPassword"
 import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
 import { FlashMessageProvider } from "./utils/flashMessageContext"
 import FlashMessageDisplay from "./components/flashMessageDisplay"
@@ -41,6 +43,8 @@ const router = createBrowserRouter(
             <Route path="/login" element={<Login />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/chats" element={<Chat />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listings/new" element={<NewListing />} />

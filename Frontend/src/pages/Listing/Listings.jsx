@@ -48,29 +48,7 @@ const FILTER_TAGS = [
 
 const TAX_RATE = 0.18 // 18% GST
 const LISTINGS_PER_PAGE = 9 // Maximum listings per page
-const USD_CONVERSION_RATE = 0.012 // 1 INR = 0.012 USD (approx)
-
-const PriceDisplay = ({ price, showWithTax, showInUSD }) => {
-    // Calculate price with tax if needed
-    const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
-    
-    // Convert to USD if needed
-    const displayPrice = showInUSD 
-        ? (priceWithTax * USD_CONVERSION_RATE).toLocaleString('en-US', { maximumFractionDigits: 2 })
-        : priceWithTax.toLocaleString('en-IN');
-    
-    // Currency symbol
-    const currencySymbol = showInUSD ? '$' : '₹';
-    
-    return (
-        <div className="flex items-center gap-2">
-            <span>{currencySymbol}{displayPrice}</span>
-            <span className="text-xs text-gray-500">
-                {showWithTax ? "(Incl. GST)" : ""}
-            </span>
-        </div>
-    )
-}
+const USD_TO_INR_RATE = 83.5 // 1 USD = 83.5 INR (approx)
 
 const TagFilter = ({ tag, isActive, onClick }) => {
     const Icon = tag.icon
@@ -216,7 +194,7 @@ const Listings = () => {
         useListingStore()
     const { selectedTags, tagClick } = useTagStore()
     const [showWithTax, setShowWithTax] = useState(false)
-    const [showInUSD, setShowInUSD] = useState(false)
+    const [displayCurrency, setDisplayCurrency] = useState('USD') // null = use original currency
     const [loading, setLoading] = useState(true)
     const { currUser, checkCurrUser } = useUserStore()
     const { getAllListings } = useListingApi()
@@ -408,16 +386,16 @@ const Listings = () => {
                     <div className="flex items-center gap-1">
                         <div className="flex border rounded-md overflow-hidden">
                             <button
-                                onClick={() => setShowInUSD(false)}
-                                className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${!showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                onClick={() => setDisplayCurrency("INR")}
+                                className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${displayCurrency === "INR" ? 'bg-gray-100 font-medium' : 'bg-white'}`}
                                 title="Show in Rupees"
                             >
                                 <IconCurrencyRupee size={16} />
                                 <span className="hidden sm:inline">INR</span>
                             </button>
                             <button
-                                onClick={() => setShowInUSD(true)}
-                                className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                onClick={() => setDisplayCurrency("USD")}
+                                className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${displayCurrency === "USD" ? 'bg-gray-100 font-medium' : 'bg-white'}`}
                                 title="Show in Dollars"
                             >
                                 <IconCurrencyDollar size={16} />
@@ -442,7 +420,7 @@ const Listings = () => {
                         key={listing._id}
                         listing={listing}
                         showWithTax={showWithTax}
-                        showInUSD={showInUSD}
+                        displayCurrency={displayCurrency}
                         isBookmarked={bookmarkedListings.includes(listing._id)}
                         onToggleBookmark={handleToggleBookmark}
                     />
@@ -452,9 +430,6 @@ const Listings = () => {
             {/* Display number of listings and pagination */}
             {filterListings.length > 0 && (
                 <div className="mt-8">
-                    <div className="text-center text-gray-600 mb-4">
-                        Showing {paginatedListings.length} of {filterListings.length} listings
-                    </div>
                     {totalPages > 1 && (
                         <Pagination 
                             currentPage={currentPage}

@@ -21,6 +21,10 @@ const EditListing = () => {
     const { currUser, checkCurrUser } = useUserStore()
     const { state } = useLocation()
     const listing = state
+    // USD to INR conversion rate (approx)
+    const [exchangeRate] = useState(83.5)
+    // For UI display only, not stored in DB
+    const [selectedCurrency, setSelectedCurrency] = useState("USD")
 
     const [formData, setFormData] = useState({
         title: listing?.title || "",
@@ -34,10 +38,30 @@ const EditListing = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }))
+        
+        // Special handling for currency changes - convert price value for display
+        if (name === "currency") {
+            if (value === "INR" && selectedCurrency === "USD") {
+                // Convert USD to INR for display
+                setFormData((prevData) => ({
+                    ...prevData,
+                    price: Math.round(prevData.price * exchangeRate)
+                }))
+                setSelectedCurrency(value)
+            } else if (value === "USD" && selectedCurrency === "INR") {
+                // Convert INR to USD for display
+                setFormData((prevData) => ({
+                    ...prevData,
+                    price: Math.round(prevData.price / exchangeRate)
+                }))
+                setSelectedCurrency(value)
+            }
+        } else {
+            setFormData((prevData) => ({
+                ...prevData,
+                [name]: value,
+            }))
+        }
     }
 
     const handleTagChange = (e) => {
@@ -103,8 +127,16 @@ const EditListing = () => {
 
         setSubmitLoader(true)
 
+        let finalPrice = formData.price;
+        
+        // If user entered price in INR, convert to USD before sending to backend
+        if (selectedCurrency === "INR") {
+            finalPrice = Math.round(formData.price / exchangeRate);
+        }
+
         const data = {
             ...formData,
+            price: finalPrice, // Always send price in USD to backend
             tagsArray: formData.tags,
             image: imageFile || formData.image,
         }
@@ -298,7 +330,7 @@ const EditListing = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label
                                 htmlFor="price"
@@ -315,6 +347,25 @@ const EditListing = () => {
                                 className="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
                                 onChange={handleChange}
                             />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="currency"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Currency
+                            </label>
+                            <select
+                                name="currency"
+                                id="currency"
+                                value={selectedCurrency}
+                                className="mt-1 block w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                                onChange={handleChange}
+                            >
+                                <option value="USD">USD ($)</option>
+                                <option value="INR">INR (₹)</option>
+                            </select>
                         </div>
 
                         <div>

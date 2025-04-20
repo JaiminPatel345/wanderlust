@@ -22,25 +22,31 @@ import { toggleBookmark, isListingBookmarked } from "../../utils/bookmarkUtils"
 
 const ADMIN_ID = "66a343a50ff99cdefc1a4657"
 const TAX_RATE = 0.18 // 18% GST
-const USD_CONVERSION_RATE = 0.012 // 1 INR = 0.012 USD (approx)
+const USD_TO_INR_RATE = 83.5 // 1 USD = 83.5 INR (approx)
 
 // Price display component
-const PriceDisplay = ({ price, showWithTax = false, showInUSD = false }) => {
-    // Calculate price with tax if needed
+const PriceDisplay = ({ price, showWithTax = false, displayCurrency = "USD" }) => {
+    // Get the actual price to display
     const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
     
-    // Convert to USD if needed
-    const displayPrice = showInUSD 
-        ? (priceWithTax * USD_CONVERSION_RATE).toLocaleString('en-US', { maximumFractionDigits: 2 })
-        : priceWithTax.toLocaleString('en-IN');
+    // All prices in the database are in USD, convert to INR if needed
+    let displayPrice = priceWithTax;
+    if (displayCurrency === "INR") {
+        displayPrice = priceWithTax * USD_TO_INR_RATE;
+    }
+    
+    // Format the price based on currency
+    const formattedPrice = displayCurrency === "USD" 
+        ? displayPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })
+        : Math.round(displayPrice).toLocaleString('en-IN');
     
     // Currency symbol and icon
-    const CurrencyIcon = showInUSD ? IconCurrencyDollar : IconCurrencyRupee;
+    const CurrencyIcon = displayCurrency === "USD" ? IconCurrencyDollar : IconCurrencyRupee;
     
     return (
         <div className="flex items-center gap-1">
             <CurrencyIcon size={22} className="text-gray-700" />
-            <span className="text-xl font-semibold">{displayPrice}</span>
+            <span className="text-xl font-semibold">{formattedPrice}</span>
             {showWithTax && (
                 <span className="text-sm text-gray-500 ml-1">(Incl. tax)</span>
             )}
@@ -159,7 +165,7 @@ const ListingDetail = () => {
     const [isBookmarked, setIsBookmarked] = useState(false)
     // Add state for price display options
     const [showWithTax, setShowWithTax] = useState(false)
-    const [showInUSD, setShowInUSD] = useState(false)
+    const [displayCurrency, setDisplayCurrency] = useState("USD")
 
     const { currUser, checkCurrUser } = useUserStore()
     const { showSuccessMessage, showErrorMessage } =
@@ -335,11 +341,27 @@ const ListingDetail = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 {listing?.image && (
-                    <img
-                        src={listing.image.url}
-                        alt={listing.title}
-                        className="w-full h-[400px] object-cover"
-                    />
+                    <div className="relative">
+                        <img
+                            src={listing.image.url}
+                            alt={listing.title}
+                            className="w-full h-[400px] object-cover"
+                        />
+                        {/* Bookmark button */}
+                        {currUser && (
+                            <button
+                                className="absolute top-3 right-3 z-10 bg-white rounded-full p-2 shadow-md hover:scale-110 transition-transform"
+                                onClick={handleBookmark}
+                                aria-label={isBookmarked ? "Remove from bookmarks" : "Save to bookmarks"}
+                            >
+                                {isBookmarked ? (
+                                    <IconBookmarkFilled size={22} className="text-rose-500" />
+                                ) : (
+                                    <IconBookmark size={22} className="text-gray-600" />
+                                )}
+                            </button>
+                        )}
+                    </div>
                 )}
 
                 <div className="p-6">
@@ -357,16 +379,16 @@ const ListingDetail = () => {
                         <div className="flex items-center gap-1">
                             <div className="flex border rounded-md overflow-hidden">
                                 <button
-                                    onClick={() => setShowInUSD(false)}
-                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${!showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                    onClick={() => setDisplayCurrency("INR")}
+                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${displayCurrency === "INR" ? 'bg-gray-100 font-medium' : 'bg-white'}`}
                                     title="Show in Rupees"
                                 >
                                     <IconCurrencyRupee size={16} />
                                     <span className="hidden sm:inline">INR</span>
                                 </button>
                                 <button
-                                    onClick={() => setShowInUSD(true)}
-                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${showInUSD ? 'bg-gray-100 font-medium' : 'bg-white'}`}
+                                    onClick={() => setDisplayCurrency("USD")}
+                                    className={`p-1.5 sm:px-2 sm:py-1 flex items-center gap-1 text-xs ${displayCurrency === "USD" ? 'bg-gray-100 font-medium' : 'bg-white'}`}
                                     title="Show in Dollars"
                                 >
                                     <IconCurrencyDollar size={16} />
@@ -402,34 +424,10 @@ const ListingDetail = () => {
                             <PriceDisplay 
                                 price={listing.price} 
                                 showWithTax={showWithTax} 
-                                showInUSD={showInUSD} 
+                                displayCurrency={displayCurrency} 
                             />
                         )}
                         
-                        {currUser && (
-                            <button
-                                onClick={handleBookmark}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
-                                    isBookmarked 
-                                        ? "bg-rose-100 text-rose-600 hover:bg-rose-200" 
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
-                                aria-label={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
-                            >
-                                {isBookmarked ? (
-                                    <>
-                                        <IconBookmarkFilled size={20} />
-                                        <span>Bookmarked</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <IconBookmark size={20} />
-                                        <span>Bookmark</span>
-                                    </>
-                                )}
-                            </button>
-                        )}
-
                         <div className="flex flex-wrap gap-2">
                             {listing?.tags
                                 ?.filter((tag) => tag !== "null")

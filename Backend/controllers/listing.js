@@ -94,7 +94,7 @@ module.exports.createListing = (req, res, next) => {
         title,
         description,
         image,
-        price,
+        price, // Price is already in USD from frontend
         location,
         country,
         tags: tagsArray || "[]",
@@ -127,7 +127,6 @@ module.exports.updateListing = (req, res) => {
         location,
         country,
         tagsArray,
-
     } = req.body;
 
     const image = {
@@ -139,7 +138,7 @@ module.exports.updateListing = (req, res) => {
         title,
         description,
         image,
-        price,
+        price, // Price is already in USD from frontend
         location,
         country,
         tags: tagsArray,

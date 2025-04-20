@@ -245,6 +245,32 @@ const useUserStore = create((set) => ({
       return { success: false, error: 'Network error occurred' };
     }
   },
+  
+  // Change password
+  changePassword: async (currentPassword, newPassword) => {
+    try {
+      const response = await fetch(`${API_URL}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      
+      const data = await response.json();
+      console.log('change password response:', data);
+      
+      if (response.ok && data.success) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, error: data.message || 'Failed to change password' };
+      }
+    } catch (error) {
+      console.error('Change password error:', error);
+      return { success: false, error: 'Network error occurred' };
+    }
+  },
 }));
 
 export default useUserStore; 

@@ -41,4 +41,33 @@ const redisStore = new RedisStore({
     prefix: "session:",
 })
 
-module.exports = redisStore
+// Token management utilities
+const tokenUtils = {
+    // Save a token with expiry time
+    saveToken: async (prefix, key, value, expiryInSeconds) => {
+        const fullKey = `${prefix}:${key}`;
+        await redisClient.set(fullKey, value);
+        await redisClient.expire(fullKey, expiryInSeconds);
+        return true;
+    },
+
+    // Get a token
+    getToken: async (prefix, key) => {
+        const fullKey = `${prefix}:${key}`;
+        return await redisClient.get(fullKey);
+    },
+
+    // Delete a token
+    deleteToken: async (prefix, key) => {
+        const fullKey = `${prefix}:${key}`;
+        await redisClient.del(fullKey);
+        return true;
+    }
+};
+
+// Export both the store and the client
+module.exports = {
+    store: redisStore,
+    client: redisClient,
+    tokenUtils
+};

@@ -14,7 +14,7 @@ if (process.env.NODE_ENV !== "production") {
     require("dotenv").config()
 }
 const session = require("express-session")
-const redisStore = require("./redis")
+const { store: redisStore } = require("./redis")
 
 const listingsRoutes = require("./routes/listing.js")
 const reviewsRoutes = require("./routes/review.js")

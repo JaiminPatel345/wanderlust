@@ -27,10 +27,7 @@ const userSchema = new Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Listing"
         }
-    ],
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    
+    ]
 })
 
 module.exports = mongoose.model("User", userSchema)
