@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // Get the Redis client and token utilities from redis.js
-const { client: redisClient, tokenUtils } = require('../redis');
+const { client: redisClient, tokenUtils } = require('./redis');
 
 // Reset token expiration time in seconds (1 hour)
 const RESET_TOKEN_EXPIRY = 60 * 60;

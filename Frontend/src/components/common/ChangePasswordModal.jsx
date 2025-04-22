@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { IconX } from "@tabler/icons-react";
 import { FaEye, FaEyeSlash, FaCheck, FaTimes } from "react-icons/fa";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
-import useUserStore from "../../../Store/userStore";
+import useUserStore from "../../store/userStore";
 import { useDebounce } from "../../hooks/useDebounce";
 import PropTypes from "prop-types";
 

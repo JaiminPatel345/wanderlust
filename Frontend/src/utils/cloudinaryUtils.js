@@ -4,9 +4,9 @@ import { get } from './api';
  * Get Cloudinary upload signature from backend
  * @returns {Promise<Object>} - The signature data
  */
-export const getCloudinarySignature = async () => {
+export const getCloudinarySignature = async (type) => {
     try {
-        const response = await get('/cloudinary-signature');
+        const response = await get(`/cloudinary-signature?type=${type}`);
         return response.data;
     } catch (error) {
         console.error('Error getting Cloudinary signature:', error);

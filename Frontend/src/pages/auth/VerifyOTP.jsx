@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
-import useUserStore from "../../../Store/userStore";
+import useUserStore from "../../store/userStore";
 
 const VerifyOTP = () => {
     const [verifyLoader, setVerifyLoader] = useState(false);

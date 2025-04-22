@@ -4,7 +4,7 @@ import { FlashMessageContext } from '../../utils/flashMessageContext';
 import { useContext } from 'react';
 import { BeatLoader } from 'react-spinners';
 import { IconX } from '@tabler/icons-react';
-import useUserStore from '../../../Store/userStore';
+import useUserStore from '../../store/userStore';
 
 const UpdateNameModal = ({ isOpen, onClose }) => {
     const [name, setName] = useState('');

@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, {useEffect, useRef, useState} from 'react';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
-import useListingStore from '../../../Store/listing';
-import useUserStore from '../../../Store/userStore';
+import useListingStore from '../../store/listing';
+import useUserStore from '../../store/userStore';
 import UpdateNameModal from './UpdateNameModal';
 import UpdatePhotoModal from './UpdatePhotoModal';
 import ChangePasswordModal from './ChangePasswordModal';

@@ -18,7 +18,6 @@ import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
 import { FlashMessageProvider } from "./utils/flashMessageContext"
 import FlashMessageDisplay from "./components/flashMessageDisplay"
 import { Toaster } from "react-hot-toast"
-import Chat from "./pages/Chat"
 import NotFound from "./pages/NotFound"
 import Bookmarks from "./pages/Bookmarks"
 
@@ -45,7 +44,6 @@ const router = createBrowserRouter(
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/chats" element={<Chat />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listings/new" element={<NewListing />} />
             <Route path="/listings/:id" element={<OneListing />} />

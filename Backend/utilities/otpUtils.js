@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 // Get the Redis client and token utilities from redis.js
-const { client: redisClient, tokenUtils } = require('../redis');
+const { client: redisClient, tokenUtils } = require('./redis');
 
 // OTP expiration time in seconds (10 minutes)
 const OTP_EXPIRY_TIME = 10 * 60;

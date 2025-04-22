@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useContext } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import useUserStore from "../../../Store/userStore"
+import useUserStore from "../../store/userStore"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
 import {
     IconStar,

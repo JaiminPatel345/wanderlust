@@ -1,5 +1,5 @@
 // hooks/useListingApi.js
-import useListingStore from "../Store/listing"
+import useListingStore from "../store/listing.js"
 
 export const useListingApi = () => {
     const setListings = useListingStore((state) => state.setListings)

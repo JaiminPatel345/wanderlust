@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
-import useUserStore from "../../../Store/userStore";
+import useUserStore from "../../store/userStore";
 import { FlashMessageContext } from "../../utils/flashMessageContext";
 import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from "../../utils/cloudinaryUtils";
 import { IconCamera, IconUpload, IconCheck } from "@tabler/icons-react";

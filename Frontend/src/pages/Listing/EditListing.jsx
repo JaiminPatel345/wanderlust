@@ -3,7 +3,7 @@ import React, { useContext, useState } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { BeatLoader, PulseLoader } from "react-spinners"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
-import useUserStore from "../../../Store/userStore"
+import useUserStore from "../../store/userStore"
 import { Link } from "react-router-dom"
 
 const EditListing = () => {

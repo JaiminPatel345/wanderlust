@@ -4,7 +4,7 @@ import { FlashMessageContext } from '../../utils/flashMessageContext';
 import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from '../../utils/cloudinaryUtils';
 import { BeatLoader } from 'react-spinners';
 import { IconX, IconCamera, IconUpload, IconCheck } from '@tabler/icons-react';
-import useUserStore from '../../../Store/userStore';
+import useUserStore from '../../store/userStore';
 
 const UpdatePhotoModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);

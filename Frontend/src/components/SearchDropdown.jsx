@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IconSearch, IconX, IconMapPin, IconCurrencyRupee } from '@tabler/icons-react';
-import useListingStore from '../../Store/listing';
+import useListingStore from '../store/listing';
 import { ScaleLoader } from 'react-spinners';
 import PropTypes from 'prop-types';
 
