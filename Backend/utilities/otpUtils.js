@@ -88,9 +88,7 @@ const sendOTPEmail = async (email, otp, name = '') => {
             `,
     };
 
-    // TODO: Change while push
-    info = {messageId: 123};
-    // const info = await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
     return {success: true, messageId: info.messageId};
   } catch (error) {
     console.error('Error sending OTP email:', error);
