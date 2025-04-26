@@ -1,10 +1,10 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useRef, useContext } from 'react';
-import { FlashMessageContext } from '../../utils/flashMessageContext';
-import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from '../../utils/cloudinaryUtils';
+import { FlashMessageContext } from '../../../utils/flashMessageContext.jsx';
+import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from '../../../utils/cloudinaryUtils.js';
 import { BeatLoader } from 'react-spinners';
 import { IconX, IconCamera, IconUpload, IconCheck } from '@tabler/icons-react';
-import useUserStore from '../../store/userStore';
+import useUserStore from '../../../store/userStore.js';
 
 const UpdatePhotoModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);

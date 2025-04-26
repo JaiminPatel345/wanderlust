@@ -1,16 +1,14 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState, useContext } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import useUserStore from "../../store/userStore"
 import { FlashMessageContext } from "../../utils/flashMessageContext"
 import {
-    IconStar,
     IconHash,
     IconMapPin,
     IconWorld,
     IconEdit,
     IconTrash,
-    IconMessage,
     IconBookmark,
     IconBookmarkFilled,
     IconCurrencyRupee,
@@ -19,136 +17,16 @@ import {
 } from "@tabler/icons-react"
 import "../../rating.css"
 import { toggleBookmark, isListingBookmarked } from "../../utils/bookmarkUtils"
+import { addReview, deleteReview } from "../../utils/reviewUtils"
+
+// Component imports
+import PriceDisplay from "../../components/ui/listing/PriceDisplay"
+import ReviewForm from "../../components/ui/listing/ReviewForm"
+import ReviewItem from "../../components/ui/listing/ReviewItem"
+import ReviewStats from "../../components/ui/listing/ReviewStats"
+import OwnerInfo from "../../components/ui/listing/OwnerInfo"
 
 const ADMIN_ID = "66a343a50ff99cdefc1a4657"
-const TAX_RATE = 0.18 // 18% GST
-const USD_TO_INR_RATE = 83.5 // 1 USD = 83.5 INR (approx)
-
-// Price display component
-const PriceDisplay = ({ price, showWithTax = false, displayCurrency = "USD" }) => {
-    // Get the actual price to display
-    const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
-    
-    // All prices in the database are in USD, convert to INR if needed
-    let displayPrice = priceWithTax;
-    if (displayCurrency === "INR") {
-        displayPrice = priceWithTax * USD_TO_INR_RATE;
-    }
-    
-    // Format the price based on currency
-    const formattedPrice = displayCurrency === "USD" 
-        ? displayPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })
-        : Math.round(displayPrice).toLocaleString('en-IN');
-    
-    // Currency symbol and icon
-    const CurrencyIcon = displayCurrency === "USD" ? IconCurrencyDollar : IconCurrencyRupee;
-    
-    return (
-        <div className="flex items-center gap-1">
-            <CurrencyIcon size={22} className="text-gray-700" />
-            <span className="text-xl font-semibold">{formattedPrice}</span>
-            {showWithTax && (
-                <span className="text-sm text-gray-500 ml-1">(Incl. tax)</span>
-            )}
-        </div>
-    );
-};
-
-const ReviewForm = ({
-    onSubmit,
-    rating,
-    setRating,
-    content,
-    setContent,
-    isLoading,
-    showSignupLink,
-}) => (
-    <form onSubmit={onSubmit} className="space-y-4">
-        <div className="flex gap-2 mb-4">
-            {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                    key={value}
-                    type="button"
-                    onClick={() => setRating(value)}
-                    className={`p-2 rounded ${
-                        rating === value ? "text-yellow-500" : "text-gray-300"
-                    }`}
-                >
-                    <IconStar
-                        size={24}
-                        fill={rating >= value ? "currentColor" : "none"}
-                    />
-                </button>
-            ))}
-        </div>
-
-        <div className="space-y-2">
-            <label htmlFor="review" className="block text-sm font-medium">
-                Your Review
-            </label>
-            <textarea
-                id="review"
-                value={content || ""}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full border-2 rounded-md p-2 min-h-[100px]"
-                required
-            />
-        </div>
-
-        {showSignupLink && (
-            <Link to="/signup" className="text-blue-600 hover:underline block">
-                Sign up to leave a review
-            </Link>
-        )}
-
-        <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-            {isLoading ? "Submitting..." : "Submit Review"}
-        </button>
-    </form>
-)
-
-const Review = ({ review, onDelete, canDelete, isDeleting }) => (
-    <div className="p-4 bg-gray-50 rounded-lg shadow">
-        <div className="flex justify-between items-start mb-2">
-            <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                    <IconStar
-                        key={i}
-                        size={20}
-                        className={
-                            i < review.rating
-                                ? "text-yellow-500"
-                                : "text-gray-300"
-                        }
-                        fill={i < review.rating ? "currentColor" : "none"}
-                    />
-                ))}
-            </div>
-            <span className="text-sm text-gray-500">
-                {new Date(review.createdAt).toLocaleDateString()}
-            </span>
-        </div>
-
-        <p className="font-medium text-gray-700 mb-1">
-            By: {review.owner?.name}
-        </p>
-        <p className="text-gray-600">{review.content}</p>
-
-        {canDelete && (
-            <button
-                onClick={() => onDelete(review)}
-                disabled={isDeleting}
-                className="mt-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
-            >
-                {isDeleting ? "Deleting..." : "Delete"}
-            </button>
-        )}
-    </div>
-)
 
 const ListingDetail = () => {
     const navigate = useNavigate()
@@ -238,23 +116,15 @@ const ListingDetail = () => {
         setIsSubmitting(true)
 
         try {
-            const response = await fetch(
-                `${process.env.VITE_API_BASE_URL}/listings/${id}/reviews`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: "include",
-                    body: JSON.stringify({ rating, content: reviewContent }),
-                }
-            )
-
-            const data = await response.json()
-
-            if (!response.ok) throw new Error(data.message)
+            const result = await addReview(id, { rating, content: reviewContent });
+            
+            if (!result.success) {
+                throw new Error(result.error)
+            }
 
             const newReview = {
-                ...data.review,
-                owner: { _id: currUser.userId, name: currUser.name },
+                ...result.review,
+                owner: { _id: currUser.userId, name: currUser.name, profilePhoto: currUser.profilePhoto },
             }
 
             setReviews((prev) => [...prev, newReview])
@@ -272,17 +142,10 @@ const ListingDetail = () => {
         setIsDeletingReview((prev) => ({ ...prev, [review._id]: true }))
 
         try {
-            const response = await fetch(
-                `${process.env.VITE_API_BASE_URL}/listings/${id}/reviews/${review._id}`,
-                {
-                    method: "DELETE",
-                    credentials: "include",
-                }
-            )
-
-            if (!response.ok) {
-                const data = await response.json()
-                throw new Error(data.message)
+            const result = await deleteReview(id, review._id);
+            
+            if (!result.success) {
+                throw new Error(result.error)
             }
 
             setReviews((prev) => prev.filter((r) => r._id !== review._id))
@@ -365,15 +228,11 @@ const ListingDetail = () => {
                 )}
 
                 <div className="p-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-2xl font-bold mb-2">
-                                {listing?.title}
-                            </h1>
-                            <p className="text-gray-600 mb-4">
-                                Hosted by {listing?.owner?.name}
-                            </p>
-                        </div>
+                    {/* Title and bookmark controls on top row */}
+                    <div className="flex justify-between items-start mb-6">
+                        <h1 className="text-2xl font-bold">
+                            {listing?.title}
+                        </h1>
                         
                         {/* Price display options */}
                         <div className="flex items-center gap-1">
@@ -406,100 +265,119 @@ const ListingDetail = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-4">
+                    {/* Owner info component */}
+                    <OwnerInfo 
+                        owner={listing?.owner} 
+                        listingTitle={listing?.title} 
+                        canModifyListing={canModifyListing} 
+                    />
+
+                    {/* Description section */}
+                    <div className="mb-6">
+                        <h2 className="text-lg font-medium mb-2">About this place</h2>
                         <p className="text-gray-700">{listing?.description}</p>
+                    </div>
 
-                        <div className="flex items-center gap-2">
-                            <IconMapPin className="text-gray-500" />
-                            <span>{listing?.location}</span>
+                    {/* Location and price info */}
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-medium mb-2">Location</h2>
+                            <div className="flex items-center gap-2">
+                                <IconMapPin className="text-gray-500" />
+                                <span>{listing?.location}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <IconWorld className="text-gray-500" />
+                                <span>{listing?.country}</span>
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <IconWorld className="text-gray-500" />
-                            <span>{listing?.country}</span>
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-medium mb-2">Price</h2>
+                            {listing?.price && (
+                                <PriceDisplay 
+                                    price={listing.price} 
+                                    showWithTax={showWithTax} 
+                                    displayCurrency={displayCurrency} 
+                                />
+                            )}
                         </div>
-
-                        {/* Updated price display */}
-                        {listing?.price && (
-                            <PriceDisplay 
-                                price={listing.price} 
-                                showWithTax={showWithTax} 
-                                displayCurrency={displayCurrency} 
-                            />
-                        )}
+                    </div>
                         
-                        <div className="flex flex-wrap gap-2">
-                            {listing?.tags
-                                ?.filter((tag) => tag !== "null")
-                                .map((tag, index) => (
-                                    <span
-                                        key={index}
-                                        className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm"
-                                    >
-                                        <IconHash size={16} />
-                                        {tag}
-                                    </span>
-                                ))}
+                    {/* Tags section */}
+                    {listing?.tags?.length > 0 && (
+                        <div className="mb-6">
+                            <h2 className="text-lg font-medium mb-2">Tags</h2>
+                            <div className="flex flex-wrap gap-2">
+                                {listing.tags
+                                    .filter((tag) => tag !== "null")
+                                    .map((tag, index) => (
+                                        <span
+                                            key={index}
+                                            className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full text-sm"
+                                        >
+                                            <IconHash size={16} />
+                                            {tag}
+                                        </span>
+                                    ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex gap-4 mt-6">
-                        {canModifyListing ? (
-                            <>
-                                <button
-                                    onClick={() =>
-                                        navigate(`/listings/${id}/edit`, {
-                                            state: listing,
-                                        })
-                                    }
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                >
-                                    <IconEdit size={20} />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    disabled={isDeletingListing}
-                                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                                >
-                                    <IconTrash size={20} />
-                                    {isDeletingListing
-                                        ? "Deleting..."
-                                        : "Delete"}
-                                </button>
-                            </>
-                        ) : (
-                            //TODO
-                            // <Link
-                            //     to="/chats"
-                            //     className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-                            // >
-                            //     <IconMessage size={20} />
-                            //     Chat with {listing?.owner?.name}
-                            // </Link>
-                            <></>
-                        )}
-                    </div>
+                    {/* Admin actions */}
+                    {canModifyListing && (
+                        <div className="flex gap-4 mt-8 pt-4 border-t">
+                            <button
+                                onClick={() =>
+                                    navigate(`/listings/${id}/edit`, {
+                                        state: listing,
+                                    })
+                                }
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                                <IconEdit size={20} />
+                                Edit
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeletingListing}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                                <IconTrash size={20} />
+                                {isDeletingListing
+                                    ? "Deleting..."
+                                    : "Delete"}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
             <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">Reviews</h2>
+                {/* Review statistics */}
+                <ReviewStats reviews={reviews} />
+                
+                {/* Review Form */}
+                <div className="mb-8">
+                    <h3 className="text-xl font-semibold mb-4">Leave a Review</h3>
+                    <ReviewForm
+                        onSubmit={handleReviewSubmit}
+                        rating={rating}
+                        setRating={setRating}
+                        content={reviewContent}
+                        setContent={setReviewContent}
+                        isLoading={isSubmitting}
+                        showSignupLink={showSignupPrompt}
+                    />
+                </div>
 
-                <ReviewForm
-                    onSubmit={handleReviewSubmit}
-                    rating={rating}
-                    setRating={setRating}
-                    content={reviewContent}
-                    setContent={setReviewContent}
-                    isLoading={isSubmitting}
-                    showSignupLink={showSignupPrompt}
-                />
-
-                <div className="mt-8 space-y-4">
-                    {reviews?.length > 0 ? (
-                        reviews.map((review) => (
-                            <Review
+                {/* Individual Reviews */}
+                {reviews?.length > 0 ? (
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-semibold mb-4">All Reviews</h3>
+                        {reviews.map((review) => (
+                            <ReviewItem
                                 key={review._id}
                                 review={review}
                                 onDelete={handleReviewDelete}
@@ -510,13 +388,13 @@ const ListingDetail = () => {
                                 }
                                 isDeleting={isDeletingReview[review._id]}
                             />
-                        ))
-                    ) : (
-                        <p className="text-gray-500 italic">
-                            No reviews yet. Be the first to review!
-                        </p>
-                    )}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-gray-500 italic text-center py-4">
+                        No reviews yet. Be the first to review!
+                    </p>
+                )}
             </div>
         </div>
     )

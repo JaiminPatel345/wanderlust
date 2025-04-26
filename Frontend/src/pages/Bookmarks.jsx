@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconSearch, IconBookmarkOff } from '@tabler/icons-react';
 import useUserStore from '../store/userStore';
-import ListingCard from '../components/ListingCard';
+import ListingCard from '../components/ui/listing/ListingCard.jsx';
 import { fetchBookmarks, removeBookmark } from '../utils/bookmarkUtils';
 import { FlashMessageContext } from '../utils/flashMessageContext';
 

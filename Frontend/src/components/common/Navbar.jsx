@@ -1,230 +1,28 @@
 /* eslint-disable react/prop-types */
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
 import useListingStore from '../../store/listing';
 import useUserStore from '../../store/userStore';
-import UpdateNameModal from './UpdateNameModal';
-import UpdatePhotoModal from './UpdatePhotoModal';
-import ChangePasswordModal from './ChangePasswordModal';
-import SearchDropdown from '../SearchDropdown';
+import UpdateNameModal from '../ui/user/UpdateNameModal.jsx';
+import UpdatePhotoModal from '../ui/user/UpdatePhotoModal.jsx';
+import ChangePasswordModal from '../ui/user/ChangePasswordModal.jsx';
+import SearchDropdown from '../ui/navbar/SearchDropdown.jsx';
+import {shouldShowSearchBar} from '../../utils/navbarUtils';
+import NavLink from '../ui/navbar/NavLink.jsx';
+import NavButton from '../ui/navbar/NavButton.jsx';
+import SearchBar from '../ui/navbar/SearchBar.jsx';
+import UserProfileDropdown from '../ui/user/UserProfileDropdown.jsx';
 import {
   IconBookmarks,
   IconCamera,
-  IconChevronDown,
   IconCompass,
   IconEdit,
-  IconKey,
   IconLogout,
   IconMenu2,
   IconPlus,
-  IconSearch,
   IconUserCircle,
   IconX,
 } from '@tabler/icons-react';
-
-const NavLink = ({to, children, disabled = false, className = ''}) => (<Link
-    to={to}
-    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors
-      ${disabled ? 'text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100'} 
-      ${className}`}
->
-  {children}
-</Link>);
-
-const NavButton = ({
-  onClick, children, variant = 'primary', disabled = false,
-}) => {
-  const baseStyles = 'px-4 py-2 rounded-md text-sm font-medium transition-colors';
-  const variants = {
-    primary: 'bg-rose-500 text-white hover:bg-rose-600 disabled:bg-rose-300',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:bg-gray-100',
-    outline: 'border border-gray-300 hover:bg-gray-50 disabled:bg-gray-50',
-  };
-
-  return (<button
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} disabled:cursor-not-allowed`}
-  >
-    {children}
-  </button>);
-};
-
-const SearchBar = ({value, onChange, onFocus}) => (
-    <div className="flex gap-2 w-full">
-      <div className="relative flex-1">
-        <input
-            type="search"
-            value={value}
-            onChange={(e) => {
-              e.stopPropagation();
-              onChange(e.target.value);
-            }}
-            onFocus={(e) => {
-              e.stopPropagation();
-              if (onFocus && value.trim()) onFocus();
-            }}
-            onKeyDown={(e) => {
-              // Prevent dropdown from capturing key events intended for input
-              e.stopPropagation();
-            }}
-            placeholder="Search listings..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-            aria-label="Search listings"
-        />
-        <IconSearch
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={20}
-        />
-      </div>
-    </div>);
-
-const UserProfileDropdown = ({
-  user,
-  onLogout,
-  onUpdateName,
-  onUpdatePhoto,
-  onChangePassword,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const handleOption = (action) => {
-    setIsOpen(false);
-    if (action === 'logout') {
-      onLogout();
-    } else if (action === 'update-name') {
-      onUpdateName();
-    } else if (action === 'update-photo') {
-      onUpdatePhoto();
-    } else if (action === 'change-password') {
-      onChangePassword();
-    }
-  };
-
-  return (
-      <div className="relative" ref={dropdownRef}>
-        <button
-            onClick={toggleDropdown}
-            className="flex items-center focus:outline-none"
-            aria-expanded={isOpen}
-            aria-haspopup="true"
-        >
-          {user.profilePhoto ? (
-              <div
-                  className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-100">
-                <img
-                    src={user.profilePhoto}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                />
-              </div>
-          ) : (
-              <div
-                  className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <IconUserCircle size={24} className="text-gray-500"/>
-              </div>
-          )}
-          <IconChevronDown
-              size={16}
-              className={`ml-1 text-gray-600 transition-transform ${isOpen
-                  ? 'rotate-180'
-                  : ''}`}
-          />
-        </button>
-
-        {isOpen && (
-            <div
-                className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-              <div className="px-4 py-3 border-b border-gray-200">
-                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
-              </div>
-
-              <div className="py-1">
-                <button
-                    onClick={() => handleOption('update-photo')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                >
-                  <IconCamera size={16} className="mr-2"/>
-                  Update Photo
-                </button>
-
-                <button
-                    onClick={() => handleOption('update-name')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                >
-                  <IconEdit size={16} className="mr-2"/>
-                  Update Name
-                </button>
-
-                <button
-                    onClick={() => handleOption('change-password')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                >
-                  <IconKey size={16} className="mr-2"/>
-                  Change Password
-                </button>
-
-                <button
-                    onClick={() => handleOption('logout')}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                >
-                  <IconLogout size={16} className="mr-2"/>
-                  Log out
-                </button>
-              </div>
-            </div>
-        )}
-      </div>
-  );
-};
-
-// Add CSS for the spinner
-const spinnerStyles = {
-  loadingContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '60px',
-    width: '100%',
-    backgroundColor: 'white',
-  },
-  spinner: {
-    width: '30px',
-    height: '30px',
-    border: '3px solid rgba(0, 0, 0, 0.1)',
-    borderRadius: '50%',
-    borderTop: '3px solid #3498db',
-    animation: 'spin 1s linear infinite',
-  },
-};
-
-// Add keyframes for the spinner animation
-const spinnerKeyframes = `
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-`;
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -235,6 +33,16 @@ const Navigation = () => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const notShowSearchBarPaths = [
+    '/login',
+    '/signup',
+    '/listings/new',
+    '/verify-otp',
+    '/profile-setup',
+    '/forgot-password',
+    '/listings/:id/edit',
+  ];
+  const showSearchBarPaths = ['/', '/bookmarks', '/listings', '/listings/:id'];
 
   // Use Zustand stores instead of Context
   const {currUser, loading, logout, checkCurrUser} = useUserStore();
@@ -342,20 +150,22 @@ const Navigation = () => {
     setShowSearchDropdown(false);
   };
 
-  // Handle view all results
-  const handleViewAllResults = () => {
-    setShowSearchDropdown(false);
-    // Don't clear the search query when showing all results
-    // setSearchQuery('');
-  };
+  // Check if search bar should be displayed
+  const displaySearchBar = shouldShowSearchBar(
+      location.pathname,
+      showSearchBarPaths,
+      notShowSearchBarPaths,
+  );
 
-  const mobileMenuButton = (<button
-      onClick={() => setIsOpen(!isOpen)}
-      className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-      aria-label="Toggle menu"
-  >
-    {isOpen ? <IconX size={24}/> : <IconMenu2 size={24}/>}
-  </button>);
+  const mobileMenuButton = (
+      <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="md:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+          aria-label="Toggle menu"
+      >
+        {isOpen ? <IconX size={24}/> : <IconMenu2 size={24}/>}
+      </button>
+  );
 
   const navigationLinks = (
       <div className={`${isOpen
@@ -372,8 +182,8 @@ const Navigation = () => {
           <IconBookmarks size={20}/>
           Bookmarks
         </NavLink>
-
-      </div>);
+      </div>
+  );
 
   // Render auth buttons conditionally
   const renderAuthButtons = () => {
@@ -472,85 +282,75 @@ const Navigation = () => {
 
   return (
       <>
-        {loading ? (
-            <div style={spinnerStyles.loadingContainer}>
-              <div style={spinnerStyles.spinner}></div>
-              <style>{spinnerKeyframes}</style>
-            </div>
-        ) : (
-            <div className="w-full">
-              <nav
-                  className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="flex items-center justify-between h-16 gap-4">
-                    {/* Logo */}
-                    <Link
-                        to="/"
-                        className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
-                    >
-                      <IconCompass size={28}/>
-                      <span className="hidden md:block font-medium">
-                        Explore
-                      </span>
-                    </Link>
+        <div className="w-full">
+          <nav
+              className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16 gap-4">
+                {/* Logo */}
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 text-rose-500 hover:text-rose-600 transition-colors"
+                >
+                  <IconCompass size={28}/>
+                  <span className="hidden md:block font-medium">
+                  Explore
+                </span>
+                </Link>
 
-                    {/* Search Bar - Only shown on homepage */}
-                    {(location.pathname === '/' || location.pathname ===
-                        '/listings') && (
-                        <div className="hidden md:flex flex-1 justify-center">
-                          <SearchBar
-                              value={searchQuery}
-                              onChange={handleSearchChange}
-                              onFocus={() => searchQuery.trim() &&
-                                  setShowSearchDropdown(true)}
-                          />
-                        </div>
-                    )}
-
-                    {/* Navigation Links & Auth Buttons - Hidden on mobile */}
-                    <div className="hidden md:flex md:items-center md:gap-4">
-                      {navigationLinks}
-                      {renderAuthButtons()}
+                {/* Search Bar - Desktop */}
+                {displaySearchBar && (
+                    <div className="hidden md:flex flex-1 justify-center">
+                      <SearchBar
+                          value={searchQuery}
+                          onChange={handleSearchChange}
+                          onFocus={() => searchQuery.trim() &&
+                              setShowSearchDropdown(true)}
+                      />
                     </div>
+                )}
 
-                    {/* Mobile menu button */}
-                    {mobileMenuButton}
-                  </div>
-
-                  {/* Mobile Search Bar - Only shown on homepage */}
-                  {(location.pathname === '/' || location.pathname ===
-                      '/listings') && (
-                      <div className="md:hidden flex px-1 pb-2">
-                        <SearchBar
-                            value={searchQuery}
-                            onChange={handleSearchChange}
-                            onFocus={() => searchQuery.trim() &&
-                                setShowSearchDropdown(true)}
-                        />
-                      </div>
-                  )}
-
-                  {/* Mobile Navigation Links & Auth Buttons */}
-                  <div
-                      className={`md:hidden pb-4 ${isOpen
-                          ? 'block'
-                          : 'hidden'}`}
-                  >
-                    {navigationLinks}
-                    {renderAuthButtons()}
-                  </div>
+                {/* Navigation Links & Auth Buttons - Hidden on mobile */}
+                <div className="hidden md:flex md:items-center md:gap-4">
+                  {navigationLinks}
+                  {renderAuthButtons()}
                 </div>
-              </nav>
 
-              {/* Add padding based on navbar height and state */}
-              <div className={`${isOpen ? 'h-screen' : ''}`}>
-                <div className={`${(location.pathname === '/' ||
-                    location.pathname === '/listings')
-                    ? 'h-28'
-                    : 'h-16'} transition-all duration-300`}></div>
+                {/* Mobile menu button */}
+                {mobileMenuButton}
+              </div>
+
+              {/* Mobile Search Bar */}
+              {displaySearchBar && (
+                  <div className="md:hidden flex px-1 pb-2">
+                    <SearchBar
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={() => searchQuery.trim() &&
+                            setShowSearchDropdown(true)}
+                    />
+                  </div>
+              )}
+
+              {/* Mobile Navigation Links & Auth Buttons */}
+              <div
+                  className={`md:hidden pb-4 ${isOpen
+                      ? 'block'
+                      : 'hidden'}`}
+              >
+                {navigationLinks}
+                {renderAuthButtons()}
               </div>
             </div>
-        )}
+          </nav>
+
+          {/* Add padding based on navbar height and state */}
+          <div className={`${isOpen ? 'h-screen' : ''}`}>
+            <div className={`${displaySearchBar
+                ? 'h-28'
+                : 'h-16'} transition-all duration-300`}></div>
+          </div>
+        </div>
 
         {/* Name Update Modal */}
         <UpdateNameModal

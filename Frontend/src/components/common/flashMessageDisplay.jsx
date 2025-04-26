@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react"
-import { FlashMessageContext } from "../utils/flashMessageContext"
+import { FlashMessageContext } from "../../utils/flashMessageContext.jsx"
 import toast, { Toaster } from "react-hot-toast"
 
 const FlashMessageDisplay = () => {

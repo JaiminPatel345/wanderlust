@@ -23,7 +23,7 @@ import {
   IconTent,
   IconTractor,
 } from '@tabler/icons-react';
-import ListingCard from '../../components/ListingCard';
+import ListingCard from '../../components/ui/listing/ListingCard.jsx';
 import {toggleBookmark} from '../../utils/bookmarkUtils';
 import {FlashMessageContext} from '../../utils/flashMessageContext';
 

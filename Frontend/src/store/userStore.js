@@ -131,7 +131,7 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('update photo response:', data);
+      console.log('update photo updated');
       
       if (response.ok && data.success) {
         set((state) => ({

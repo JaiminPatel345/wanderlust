@@ -25,14 +25,7 @@ export const uploadToCloudinary = async (file, signatureData) => {
         throw new Error('File and signature data are required for upload');
     }
     
-    console.log('Uploading to Cloudinary with data:', {
-        cloudName: signatureData.cloud_name,
-        hasApiKey: !!signatureData.api_key,
-        hasSignature: !!signatureData.signature,
-        timestamp: signatureData.timestamp,
-        publicId: signatureData.public_id,
-        folder: signatureData.folder
-    });
+    console.log('Uploading to Cloudinary');
     
     const formData = new FormData();
     

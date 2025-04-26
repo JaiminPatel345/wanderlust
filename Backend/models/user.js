@@ -28,6 +28,8 @@ const userSchema = new Schema({
             ref: "Listing"
         }
     ]
+},{
+    timestamps: true
 })
 
 module.exports = mongoose.model("User", userSchema)

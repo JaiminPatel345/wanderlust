@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IconSearch, IconX, IconMapPin, IconCurrencyRupee } from '@tabler/icons-react';
-import useListingStore from '../store/listing';
+import {
+  IconSearch,
+  IconX,
+  IconMapPin,
+  IconCurrencyRupee,
+  IconCurrencyDollar,
+} from '@tabler/icons-react';
+import useListingStore from '../../../store/listing.js';
 import { ScaleLoader } from 'react-spinners';
 import PropTypes from 'prop-types';
 
@@ -93,8 +99,8 @@ const SearchDropdown = ({ searchQuery, onClose }) => {
                       <span className="truncate">{listing.location}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-700 mt-1">
-                      <IconCurrencyRupee size={16} className="mr-1" />
-                      <span>₹{listing.price.toLocaleString('en-IN')}</span>
+                      <IconCurrencyDollar size={16} className="mr-1" />
+                      <span>{listing.price.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { IconX } from "@tabler/icons-react";
 import { FaEye, FaEyeSlash, FaCheck, FaTimes } from "react-icons/fa";
-import { FlashMessageContext } from "../../utils/flashMessageContext";
-import useUserStore from "../../store/userStore";
-import { useDebounce } from "../../hooks/useDebounce";
+import { FlashMessageContext } from "../../../utils/flashMessageContext.jsx";
+import useUserStore from "../../../store/userStore.js";
+import { useDebounce } from "../../../hooks/useDebounce.js";
 import PropTypes from "prop-types";
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {

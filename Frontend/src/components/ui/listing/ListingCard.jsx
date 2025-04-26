@@ -10,9 +10,9 @@ import {
   IconMapPin,
   IconWorld,
 } from '@tabler/icons-react';
-import {toggleBookmark} from '../utils/bookmarkUtils';
-import {FlashMessageContext} from '../utils/flashMessageContext';
-import useUserStore from '../store/userStore';
+import {toggleBookmark} from '../../../utils/bookmarkUtils.js';
+import {FlashMessageContext} from '../../../utils/flashMessageContext.jsx';
+import useUserStore from '../../../store/userStore.js';
 
 const TAX_RATE = 0.18; // 18% GST
 const USD_TO_INR_RATE = 83.5; // 1 USD = 83.5 INR (approx)
