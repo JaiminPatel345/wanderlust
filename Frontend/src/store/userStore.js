@@ -46,7 +46,6 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('login response:', data);
       
       if (response.ok && data.success) {
         set({ currUser: data.data.user, loading: false });
@@ -102,7 +101,6 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('update name response:', data);
       
       if (response.ok && data.success) {
         set((state) => ({
@@ -162,7 +160,6 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('signup response:', data);
       
       if (response.ok && data.success) {
         // Only set current user if no verification is required
@@ -201,7 +198,6 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('verify OTP response:', data);
       
       if (response.ok && data.success) {
         set({ currUser: data.data.user, loading: false });
@@ -233,7 +229,7 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('resend OTP response:', data);
+      console.log('resend OTP');
       
       if (response.ok && data.success) {
         return { success: true, message: data.message };
@@ -259,7 +255,7 @@ const useUserStore = create((set) => ({
       });
       
       const data = await response.json();
-      console.log('change password response:', data);
+      console.log('change password');
       
       if (response.ok && data.success) {
         return { success: true, message: data.message };

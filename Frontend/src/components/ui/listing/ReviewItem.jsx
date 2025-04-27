@@ -44,7 +44,7 @@ const ReviewItem = ({ review, onDelete, canDelete, isDeleting }) => (
             
             <div className="flex-1">
                 <p className="font-medium text-gray-800 mb-1">
-                    {review.owner?.name}
+                    {review.owner?.name || "demo"}
                 </p>
                 <p className="text-gray-600">{review.content}</p>
                 
