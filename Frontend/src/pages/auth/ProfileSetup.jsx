@@ -16,15 +16,13 @@ const ProfileSetup = () => {
     const fileInputRef = useRef(null);
     
     const { currUser, updatePhoto } = useUserStore();
-    const { showSuccessMessage, showErrorMessage, clearFlashMessage } = useContext(FlashMessageContext);
+    const { showSuccessMessage, showErrorMessage } = useContext(FlashMessageContext);
     
     useEffect(() => {
-        // If the user already has a profile photo, redirect to home
         if (currUser?.profilePhoto) {
             navigate("/");
         }
         
-        // If not logged in, redirect to login
         if (!currUser) {
             navigate("/login");
         }
@@ -34,20 +32,19 @@ const ProfileSetup = () => {
         const file = e.target.files[0];
         if (!file) return;
         
-        const validation = validateImageFile(file);
-        if (!validation.valid) {
-            showErrorMessage(validation.message);
-            return;
+        try {
+            validateImageFile(file);
+            setSelectedFile(file);
+            
+            // Preview the image
+            const reader = new FileReader();
+            reader.onload = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            showErrorMessage(error.message || "Invalid image file. Please select a valid image.");
         }
-        
-        setSelectedFile(file);
-        
-        // Preview the image
-        const reader = new FileReader();
-        reader.onload = () => {
-            setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
     };
     
     const handleSkip = () => {
@@ -64,21 +61,12 @@ const ProfileSetup = () => {
         
         try {
             // Get upload signature from backend
-            const signatureData = await getCloudinarySignature();
-            
-            if (!signatureData || !signatureData.cloud_name || !signatureData.api_key) {
-                console.error("Invalid signature data received:", signatureData);
-                throw new Error("Failed to get proper upload credentials");
-            }
+            const signatureData = await getCloudinarySignature('profile');
             
             // Upload to Cloudinary
             const imageUrl = await uploadToCloudinary(selectedFile, signatureData);
             
-            if (!imageUrl) {
-                throw new Error("No image URL returned from upload");
-            }
-            
-            // Update user profile with the uploaded image URL using Zustand store
+            // Update user profile with the uploaded image URL
             const result = await updatePhoto(imageUrl);
             
             if (!result.success) {
@@ -86,23 +74,15 @@ const ProfileSetup = () => {
             }
             
             showSuccessMessage("Profile photo uploaded successfully!");
-            
-            // Redirect to home page
-            setTimeout(() => {
-                navigate("/");
-            }, 1000);
+            setTimeout(() => navigate("/"), 1000);
             
         } catch (error) {
-            console.error("Profile photo upload error:", error);
-            // Provide a more specific error message based on where the failure occurred
-            let errorMessage = "Failed to set profile photo";
+            let errorMessage = "Failed to set profile photo. Please try again.";
             
-            if (error.message?.includes("upload credentials")) {
-                errorMessage = "Server configuration error. Please try again later.";
-            } else if (error.message?.includes("parse")) {
-                errorMessage = "Communication error with image server. Please try again.";
-            } else if (error.message?.includes("404")) {
-                errorMessage = "API endpoint not found. Backend service may be unavailable.";
+            if (error.message) {
+                errorMessage = error.message;
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
             }
             
             showErrorMessage(errorMessage);

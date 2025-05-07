@@ -2,6 +2,7 @@ const express = require("express")
 const router = express.Router()
 const {
     isLoggedIn,
+    verifyToken,
     isListingOwner,
     validateListing,
 } = require("../utilities/middleware.js")
@@ -18,15 +19,15 @@ router.get("/search", asyncWrap(listingController.searchListings))
 router
     .route("/")
     .get(asyncWrap(listingController.index)) // All listings
-    .post(isLoggedIn, asyncWrap(listingController.createListing)) // Add listing
+    .post(verifyToken, asyncWrap(listingController.createListing)) // Add listing
 
 // Routes for a specific listing
 router
     .route("/:id")
     .get(asyncWrap(listingController.singleListing)) // Show route
-    .put(isLoggedIn, isListingOwner, asyncWrap(listingController.updateListing)) // Update route
+    .put(verifyToken, isListingOwner, asyncWrap(listingController.updateListing)) // Update route
     .delete(
-        isLoggedIn,
+        verifyToken,
         isListingOwner,
         asyncWrap(listingController.destroyListing)
     ) // Delete route

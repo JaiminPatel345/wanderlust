@@ -9,6 +9,7 @@ import {
   validateImageFile,
 } from '../../utils/cloudinaryUtils';
 import {IconPhoto, IconTrash} from '@tabler/icons-react';
+import TagSelector from '../../components/ui/TagSelector';
 
 const NewListing = () => {
   const navigate = useNavigate();
@@ -76,25 +77,10 @@ const NewListing = () => {
     clearFlashMessage();
   };
 
-  const handleTagChange = (e) => {
-    const selectedTag = e.target.value;
-    if (selectedTag !== 'null' && !formData.tags.includes(selectedTag)) {
-      addTag(selectedTag);
-      e.target.value = 'null'; // Reset select value
-    }
-  };
-
-  const addTag = (tag) => {
-    setFormData((prevData) => ({
+  const handleTagsChange = (newTags) => {
+    setFormData(prevData => ({
       ...prevData,
-      tags: [...prevData.tags, tag],
-    }));
-  };
-
-  const removeTag = (tag) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      tags: prevData.tags.filter((t) => t !== tag),
+      tags: newTags
     }));
   };
 
@@ -452,50 +438,11 @@ const NewListing = () => {
               </div>
             </div>
 
-
             {/* Tags */}
-            <div>
-              <label
-                  htmlFor="tags"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Tags
-              </label>
-              <select
-                  name="tags"
-                  id="tags"
-                  onChange={handleTagChange}
-                  className="w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-              >
-                <option value="null">--Select Tags--</option>
-                <option value="Trending">Trending</option>
-                <option value="Rooms">Rooms</option>
-                <option value="Iconic cities">Iconic cities</option>
-                <option value="Mountains">Mountains</option>
-                <option value="Castles">Castles</option>
-                <option value="Amazing pools">Amazing pools</option>
-                <option value="Camping">Camping</option>
-                <option value="Farms">Farms</option>
-                <option value="Arctic">Arctic</option>
-              </select>
-              <div className="flex gap-2 mt-2 flex-wrap">
-                {formData.tags.map((tag, index) => (
-                    <div
-                        key={index}
-                        className="flex items-center bg-gray-200 px-3 py-1 rounded-md"
-                    >
-                      <span>{tag}</span>
-                      <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="ml-2 text-gray-600 hover:text-red-500 focus:outline-none"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                ))}
-              </div>
-            </div>
+            <TagSelector 
+                selectedTags={formData.tags}
+                onTagsChange={handleTagsChange}
+            />
 
             {/* Submit Button */}
             <button

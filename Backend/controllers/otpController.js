@@ -68,18 +68,6 @@ module.exports.verifyOTP = async (req, res) => {
         throw new AppError("User not found", 404);
     }
 
-    // Create/update session if needed
-    if (req.session && !req.session.user) {
-        const data = {
-            userId: user._id,
-            email: user.email,
-            name: user.name,
-            profilePhoto: user.profilePhoto || ''
-        };
-        
-        req.session.user = { ...data };
-    }
-
     // Check if this is a new user (no profile photo yet)
     const isNewUser = !user.profilePhoto || user.profilePhoto === '';
 

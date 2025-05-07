@@ -47,7 +47,7 @@ const rateLimiters = {
   
   passwordChange: createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 2,
+    max: 3,
     message: 'Too many password change attempts, please try again later'
   })
 };

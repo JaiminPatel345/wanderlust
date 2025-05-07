@@ -19,20 +19,28 @@ const UpdatePhotoModal = ({ isOpen, onClose }) => {
         const file = e.target.files[0];
         if (!file) return;
         
-        const validation = validateImageFile(file);
-        if (!validation.valid) {
-            showErrorMessage(validation.message);
-            return;
+        try {
+            validateImageFile(file);
+            setSelectedFile(file);
+            
+            // Reset previous preview
+            setImagePreview(null);
+            
+            // Create new preview
+            const reader = new FileReader();
+            reader.onload = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            showErrorMessage(error.message || "Invalid image file. Please select a valid image.");
+            // Reset file input and preview on error
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+            setImagePreview(null);
+            setSelectedFile(null);
         }
-        
-        setSelectedFile(file);
-        
-        // Preview the image
-        const reader = new FileReader();
-        reader.onload = () => {
-            setImagePreview(reader.result);
-        };
-        reader.readAsDataURL(file);
     };
     
     const handleUpload = async () => {
@@ -45,10 +53,16 @@ const UpdatePhotoModal = ({ isOpen, onClose }) => {
         
         try {
             // Get upload signature from backend
-            const signatureData = await getCloudinarySignature();
+            const signatureData = await getCloudinarySignature('profile');
+            if (!signatureData || !signatureData.cloud_name || !signatureData.api_key) {
+                throw new Error('Failed to get upload credentials. Please try again.');
+            }
             
             // Upload to Cloudinary
             const imageUrl = await uploadToCloudinary(selectedFile, signatureData);
+            if (!imageUrl) {
+                throw new Error('Failed to upload image. Please try again.');
+            }
             
             // Update user profile with the uploaded image URL using Zustand store
             const result = await updatePhoto(imageUrl);
@@ -57,11 +71,18 @@ const UpdatePhotoModal = ({ isOpen, onClose }) => {
                 showSuccessMessage("Profile photo updated successfully!");
                 onClose();
             } else {
-                showErrorMessage(result.error || "Failed to update profile photo");
+                throw new Error(result.error || "Failed to update profile photo. Please try again.");
             }
         } catch (error) {
-            console.error("Profile photo upload error:", error);
-            showErrorMessage(error.message || "Failed to update profile photo");
+            let errorMessage = "Failed to update profile photo. Please try again.";
+            
+            if (error.message) {
+                errorMessage = error.message;
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            
+            showErrorMessage(errorMessage);
         } finally {
             setLoading(false);
         }

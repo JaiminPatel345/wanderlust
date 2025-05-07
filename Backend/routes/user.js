@@ -2,7 +2,7 @@ const express = require("express")
 const router = express.Router()
 const asyncWrap = require("../utilities/wrapAsync.js")
 const userController = require("../controllers/user.js")
-const { isLoggedIn } = require("../utilities/middleware.js")
+const { isLoggedIn, verifyToken } = require("../utilities/middleware.js")
 const { rateLimiters } = require("../utilities/rateLimiter.js")
 
 router.route("/signup").post(asyncWrap(userController.signup))
@@ -19,23 +19,23 @@ router.route("/forgot-password").post(rateLimiters.passwordReset, asyncWrap(user
 router.route("/reset-password").post(rateLimiters.passwordReset, asyncWrap(userController.resetPassword))
 
 // Change password (requires authentication)
-router.route("/change-password").post(isLoggedIn, rateLimiters.passwordChange, asyncWrap(userController.changePassword))
+router.route("/change-password").post(verifyToken, rateLimiters.passwordChange, asyncWrap(userController.changePassword))
 
 // Profile management routes
 router.route("/profile")
-    .get(isLoggedIn, asyncWrap(userController.getProfile))
-    .put(isLoggedIn, asyncWrap(userController.updateProfile))
+    .get(verifyToken, asyncWrap(userController.getProfile))
+    .put(verifyToken, asyncWrap(userController.updateProfile))
 
-router.route("/profile/name").put(isLoggedIn, asyncWrap(userController.updateName))
+router.route("/profile/name").put(verifyToken, asyncWrap(userController.updateName))
 
-router.route("/cloudinary-signature").get(isLoggedIn, asyncWrap(userController.getCloudinarySignature))
+router.route("/cloudinary-signature").get(verifyToken, asyncWrap(userController.getCloudinarySignature))
 
 // Bookmark routes
 router.route("/bookmarks")
-    .get(isLoggedIn, asyncWrap(userController.getBookmarks))
+    .get(verifyToken, asyncWrap(userController.getBookmarks))
 
 router.route("/bookmarks/:listingId")
-    .post(isLoggedIn, asyncWrap(userController.addBookmark))
-    .delete(isLoggedIn, asyncWrap(userController.removeBookmark))
+    .post(verifyToken, asyncWrap(userController.addBookmark))
+    .delete(verifyToken, asyncWrap(userController.removeBookmark))
 
 module.exports = router

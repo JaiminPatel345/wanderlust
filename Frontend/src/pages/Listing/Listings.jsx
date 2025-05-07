@@ -24,7 +24,7 @@ import {
   IconTractor,
 } from '@tabler/icons-react';
 import ListingCard from '../../components/ui/listing/ListingCard.jsx';
-import {toggleBookmark} from '../../utils/bookmarkUtils';
+import {fetchBookmarks, toggleBookmark} from '../../utils/bookmarkUtils';
 import {FlashMessageContext} from '../../utils/flashMessageContext';
 
 const FILTER_TAGS = [
@@ -146,17 +146,16 @@ const Pagination = ({currentPage, totalPages, onPageChange}) => {
 
     {/* Page numbers */}
     {pageNumbers.map((page, index) => (page === '...' ? (
-        <span key={`ellipsis-${index}`} className="px-2">...</span>) : (
-        <button
-            key={page}
-            onClick={() => handlePageNumberClick(page)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${currentPage ===
-            page
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}
-        >
-          {page}
-        </button>)))}
+        <span key={`ellipsis-${index}`} className="px-2">...</span>) : (<button
+        key={page}
+        onClick={() => handlePageNumberClick(page)}
+        className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${currentPage ===
+        page
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600'}`}
+    >
+      {page}
+    </button>)))}
 
     {/* Next button */}
     <button
@@ -211,14 +210,10 @@ const Listings = () => {
       // If user is logged in, fetch their bookmarks to know which listings are bookmarked
       if (currUser) {
         try {
-          const response = await fetch('/api/bookmarks', {
-            credentials: 'include',
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.bookmarks) {
-              setBookmarkedListings(data.bookmarks.map(bookmark => bookmark._id));
-            }
+          console.log('Fetching bookmarks in Listings component...');
+          const response = await fetchBookmarks();
+          if (response.success && response.bookmarks) {
+            setBookmarkedListings(response.bookmarks.map(bookmark => bookmark._id));
           }
         } catch (error) {
           console.error('Error fetching bookmarks:', error);
@@ -298,7 +293,7 @@ const Listings = () => {
         }
 
         // Show error message only for actual error conditions, not for "already bookmarked" case
-        if (!response.message.includes('already bookmarked')) {
+        if (!response.message?.includes('already bookmarked')) {
           showErrorMessage(response.message || 'Failed to update bookmark');
         }
       }
@@ -392,9 +387,7 @@ const Listings = () => {
               className={`p-1.5 rounded-md border flex items-center justify-center ${showWithTax
                   ? 'bg-blue-50 border-blue-200'
                   : 'bg-white'}`}
-              title={showWithTax
-                  ? 'Price includes tax'
-                  : 'Price excludes tax'}
+              title={showWithTax ? 'Price includes tax' : 'Price excludes tax'}
           >
             <IconTax size={18} className={showWithTax
                 ? 'text-blue-500'

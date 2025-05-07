@@ -1,19 +1,45 @@
 const Listing = require("../models/listing.js");
 const Review = require("../models/review.js");
 const User = require("../models/user.js");
+const jwt = require('jsonwebtoken');
+const { verifyToken } = require('./tokenUtils.js');
 const {
     listingsSchema
 } = require("./schema.js");
 
-module.exports.isLoggedIn = (req, res, next) => {
-    if (req.session && req.session.user) {
-        User.findById(req.session.user.userId)
+module.exports.verifyToken = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                message: "No token provided",
+            });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = verifyToken(token);
+
+        
+        if (!decoded) {
+            return res.status(401).json({
+                message: "Invalid token",
+            });
+        }
+        
+        User.findById(decoded.userId)
             .then((user) => {
                 if (user) {
+                    req.user = {
+                        userId: user._id,
+                        email: user.email,
+                        name: user.name,
+                        profilePhoto: user.profilePhoto || '',
+                        isValidatedEmail: user.isValidatedEmail
+                    };
                     next();
                 } else {
                     res.status(401).json({
-                        message: "No user found",
+                        message: "Invalid token: User not found",
                     });
                 }
             })
@@ -22,39 +48,36 @@ module.exports.isLoggedIn = (req, res, next) => {
                     message: err.message,
                 });
             });
-    } else {
-        res.status(401).json({
-            message: "No user found",
+    } catch (error) {
+        return res.status(401).json({
+            message: "Invalid token",
         });
     }
 };
 
-module.exports.saveOriginalUrl = (req, res, next) => {
-    req.session.redirectUrl = req.originalUrl;
-    next();
-};
+// This function is no longer needed since client-side will check for token
+// We'll keep it during transition period, but it can be replaced with verifyToken
+module.exports.isLoggedIn = module.exports.verifyToken;
 
 module.exports.isListingOwner = (req, res, next) => {
-    if (req.session.user.userId === "66a343a50ff99cdefc1a4657") {
-        next()
-        return
+    // First check if admin user
+    if (req.user?.userId === "66a343a50ff99cdefc1a4657") {
+        next();
+        return;
     }
-    const {
-        id
-    } = req.params;
+    
+    const { id } = req.params;
     Listing.findById(id)
         .populate("owner")
         .then((listing) => {
-
-            if (listing && listing.owner._id.equals(req.session.user.userId))
+            if (listing && listing.owner._id.equals(req.user.userId))
                 next();
             else {
                 throw {
                     status: 403,
                     message: "You are not the owner of this listing",
-                }
+                };
             }
-
         })
         .catch((error) => {
             res.status(error.status || 500).json({
@@ -76,11 +99,9 @@ module.exports.validateListing = (req, res, next) => {
 };
 
 module.exports.isReviewOwner = (req, res, next) => {
-    const {
-        reviewId
-    } = req.params;
+    const { reviewId } = req.params;
 
-    if (req.session.user?.userId?.toString() === "66a343a50ff99cdefc1a4657") {
+    if (req.user?.userId?.toString() === "66a343a50ff99cdefc1a4657") {
         next();
         return;
     }
@@ -88,7 +109,7 @@ module.exports.isReviewOwner = (req, res, next) => {
     Review.findById(reviewId)
         .populate("owner")
         .then((review) => {
-            if (review && review.owner._id.equals(req.session.user.userId)) {
+            if (review && review.owner._id.equals(req.user.userId)) {
                 next();
             } else {
                 res.status(403).json({

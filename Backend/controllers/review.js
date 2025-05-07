@@ -16,7 +16,7 @@ module.exports.createReview = (req, res) => {
             const newReview = new Review({
                 content,
                 rating: parseInt(rating),
-                owner: req.session.user.userId,
+                owner: req.user.userId,
             });
 
             listing.reviews.push(newReview);
@@ -24,12 +24,15 @@ module.exports.createReview = (req, res) => {
         })
         .then(([review]) => {
             res.status(201).json({
+                success: true,
                 message: "New Review Added!",
                 review
             });
         })
         .catch((error) => {
+            console.error("Error creating review:", error);
             res.status(500).json({
+                success: false,
                 message: "Error creating review",
                 error: error.message,
             });
@@ -53,11 +56,14 @@ module.exports.destroyReview = (req, res) => {
         })
         .then(() => {
             res.json({
+                success: true,
                 message: "Review Deleted"
             });
         })
         .catch((error) => {
+            console.error("Error deleting review:", error);
             res.status(500).json({
+                success: false,
                 message: "Error deleting review",
                 error: error.message,
             });

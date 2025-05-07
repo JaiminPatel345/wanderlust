@@ -98,8 +98,7 @@ app.use((req, res) => {
   res.status(404).json(formatResponse(false, 'Route not found'));
 });
 
-// Error handler (comes after routes and 404 handler)
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error(err.stack);
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';

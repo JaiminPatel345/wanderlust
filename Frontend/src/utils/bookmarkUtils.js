@@ -1,4 +1,4 @@
-import { get, post, del } from './api';
+import axiosInstance from '../api/axiosInstance';
 
 /**
  * Fetch user's bookmarks
@@ -6,19 +6,10 @@ import { get, post, del } from './api';
  */
 export const fetchBookmarks = async () => {
   try {
-    const response = await get('/bookmarks');
-    return {
-      success: response.success,
-      bookmarks: response.bookmarks || [],
-      message: response.message
-    };
+    const response = await axiosInstance.get('/bookmarks');
+    return response.data.data.bookmarks;
   } catch (error) {
-    console.error('Error fetching bookmarks:', error);
-    return {
-      success: false,
-      bookmarks: [],
-      message: error.message || 'Failed to fetch bookmarks'
-    };
+    throw new Error('Failed to fetch bookmarks');
   }
 };
 
@@ -31,7 +22,7 @@ export const isListingBookmarked = async (listingId) => {
   try {
     const response = await fetchBookmarks();
     if (!response.success) return false;
-    
+
     return response.bookmarks.some(bookmark => bookmark._id === listingId);
   } catch (error) {
     console.error('Error checking bookmark status:', error);
@@ -46,18 +37,10 @@ export const isListingBookmarked = async (listingId) => {
  */
 export const addBookmark = async (listingId) => {
   try {
-    const response = await post(`/bookmarks/${listingId}`, {});
-    return {
-      success: response.success,
-      message: response.message || 'Bookmark added successfully'
-    };
+    return await axiosInstance.post(`/bookmarks/${listingId}`);
   } catch (error) {
-    const message = error.message || 'Failed to add bookmark';
-    console.error('Error adding bookmark:', message);
-    return {
-      success: false,
-      message: message
-    };
+    console.log("Error adding bookmark", error);
+    throw new Error('Failed to add bookmark');
   }
 };
 
@@ -68,18 +51,10 @@ export const addBookmark = async (listingId) => {
  */
 export const removeBookmark = async (listingId) => {
   try {
-    const response = await del(`/bookmarks/${listingId}`);
-    return {
-      success: response.success,
-      message: response.message || 'Bookmark removed successfully'
-    };
+    return await axiosInstance.delete(`/bookmarks/${listingId}`);
   } catch (error) {
-    const message = error.message || 'Failed to remove bookmark';
-    console.error('Error removing bookmark:', message);
-    return {
-      success: false,
-      message: message
-    };
+    console.log("Error adding bookmark", error);
+    throw new Error('Failed to remove bookmark');
   }
 };
 
@@ -92,20 +67,20 @@ export const removeBookmark = async (listingId) => {
 export const toggleBookmark = async (listingId, isCurrentlyBookmarked) => {
   try {
     let response;
-    
+
     if (isCurrentlyBookmarked) {
       response = await removeBookmark(listingId);
       return {
         success: response.success,
         isBookmarked: !response.success ? isCurrentlyBookmarked : false,
-        message: response.message
+        message: response.message,
       };
     } else {
       response = await addBookmark(listingId);
       return {
         success: response.success,
         isBookmarked: response.success ? true : isCurrentlyBookmarked,
-        message: response.message
+        message: response.message,
       };
     }
   } catch (error) {
@@ -113,7 +88,7 @@ export const toggleBookmark = async (listingId, isCurrentlyBookmarked) => {
     return {
       success: false,
       isBookmarked: isCurrentlyBookmarked,
-      message: error.message || 'Failed to update bookmark status'
+      message: error.message || 'Failed to update bookmark status',
     };
   }
 }; 

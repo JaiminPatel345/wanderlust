@@ -24,18 +24,13 @@ const Bookmarks = () => {
 
   // Fetch bookmarks
   const loadBookmarks = async () => {
-    setIsLoading(true);
     try {
-      const response = await fetchBookmarks();
-      if (response.success) {
-        setBookmarks(response.bookmarks);
-        setFilteredBookmarks(response.bookmarks);
-      } else {
-        showErrorMessage(response.message || 'Failed to load bookmarks');
-      }
+      setIsLoading(true);
+      const bookmarks = await fetchBookmarks();
+      setBookmarks(bookmarks);
+      setFilteredBookmarks(bookmarks);
     } catch (error) {
-      console.error('Error fetching bookmarks:', error);
-      showErrorMessage('Failed to load bookmarks');
+      showErrorMessage('Failed to fetch bookmarks');
     } finally {
       setIsLoading(false);
     }
@@ -66,29 +61,17 @@ const Bookmarks = () => {
 
   // Handle bookmark removal
   const handleRemoveBookmark = async (listingId) => {
-    // Optimistically update UI first
-    setBookmarks((prevBookmarks) => 
-      prevBookmarks.filter((bookmark) => bookmark._id !== listingId)
-    );
-    setFilteredBookmarks((prevFiltered) => 
-      prevFiltered.filter((bookmark) => bookmark._id !== listingId)
-    );
-    
-    // Then make the API call
     try {
-      const response = await removeBookmark(listingId);
-      
-      if (!response.success) {
-        // Revert UI changes if the operation failed
-        showErrorMessage(response.message || 'Failed to remove bookmark');
-        await loadBookmarks(); // Reload the bookmarks to ensure consistency
-      } else {
-        showSuccessMessage('Bookmark removed successfully');
-      }
+      await removeBookmark(listingId);
+      setBookmarks((prevBookmarks) => 
+        prevBookmarks.filter((bookmark) => bookmark._id !== listingId)
+      );
+      setFilteredBookmarks((prevFiltered) => 
+        prevFiltered.filter((bookmark) => bookmark._id !== listingId)
+      );
+      showSuccessMessage('Bookmark removed successfully');
     } catch (error) {
-      console.error('Error removing bookmark:', error);
       showErrorMessage('Failed to remove bookmark');
-      await loadBookmarks(); // Reload the bookmarks to ensure consistency
     }
   };
 

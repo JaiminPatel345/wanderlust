@@ -98,7 +98,7 @@ module.exports.createListing = (req, res, next) => {
         location,
         country,
         tags: tagsArray || "[]",
-        owner: req.session.user.userId,
+        owner: req.user.userId,
     });
     console.log(newListing);
 

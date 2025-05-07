@@ -9,6 +9,7 @@ const {
 } = require('../utilities/otpUtils.js');
 const {AppError, formatResponse} = require('../utilities/errorHandler.js');
 const {generateSignature} = require('../utilities/cloudinaryUtils.js');
+const {generateToken} = require('../utilities/tokenUtils.js');
 const {
   generateResetToken: generatePasswordResetToken,
   decryptResetToken,
@@ -52,13 +53,16 @@ module.exports.signup = async (req, res) => {
   // Save user to database
   const savedUser = await newUser.save();
 
-  // Create session data
+  // Create user data
   const data = {
     userId: savedUser._id,
     email: savedUser.email,
     name: savedUser.name,
     isValidatedEmail: savedUser.isValidatedEmail,
   };
+
+  // Generate JWT token
+  const token = generateToken(savedUser);
 
   // Generate OTP
   const otp = generateOTP();
@@ -82,13 +86,12 @@ module.exports.signup = async (req, res) => {
     );
   }
 
-  // Only set session if everything succeeded
-  req.session.user = {...data};
-
   res.status(201).json(formatResponse(true,
       'User registered successfully. Please verify your email.',
       {
-        user: data, requireVerification: true,
+        user: data,
+        requireVerification: true,
+        token,
       },
   ));
 };
@@ -138,12 +141,16 @@ module.exports.login = async (req, res) => {
     return res.status(403).json(formatResponse(false,
         'Email not verified. A new verification code has been sent.',
         {
-          requireVerification: true, email: user.email,
+          requireVerification: true, 
+          email: user.email,
         },
     ));
   }
 
-  // Create session data
+  // Generate JWT token
+  const token = generateToken(user);
+
+  // Create user data
   const data = {
     userId: user._id,
     email: user.email,
@@ -151,55 +158,36 @@ module.exports.login = async (req, res) => {
     profilePhoto: user.profilePhoto || '',
   };
 
-  req.session.user = {...data};
-
-  req.session.save((err) => {
-    if (err) {
-      console.error('Error saving session:', err);
-    } else {
-      console.log('Session saved successfully');
-    }
-  });
-
   return res.status(200).json(formatResponse(true,
       'Login successful',
-      {user: data},
+      {
+        user: data,
+        token,
+      },
   ));
 };
 
-// User logout
+// User logout (JWT tokens are handled client-side)
 module.exports.logout = (req, res) => {
-  try {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Session destroy failed:', err);
-        return res.status(500).json({
-          message: 'Error during logout', error: err.message,
-        });
-      }
-
-      res.clearCookie('sessionId');
-      res.status(200).json({
-        message: 'Logged out successfully',
-      });
-    });
-  } catch (error) {
-    console.error('Error during logout:', error);
-    res.status(500).json({
-      message: 'Error during logout', error: error.message,
-    });
-  }
+  res.status(200).json({
+    message: 'Logged out successfully',
+  });
 };
 
 // Check if user is logged in
 module.exports.isLogin = (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json(formatResponse(false, 'Not logged in', null));
+  if (req.user) {
+    return res.status(200).json(formatResponse(true, 'User is logged in', {
+      user: {
+        userId: req.user.userId,
+        email: req.user.email,
+        name: req.user.name,
+        profilePhoto: req.user.profilePhoto || '',
+      }
+    }));
   }
 
-  return res.status(200).json(formatResponse(true, 'User is logged in', {
-    user: req.session.user,
-  }));
+  return res.status(401).json(formatResponse(false, 'Not logged in', null));
 };
 
 // Request password reset
@@ -217,48 +205,33 @@ module.exports.forgotPassword = async (req, res) => {
     if (!user) {
       // We don't want to reveal which emails are in the database
       return res.status(200).json(formatResponse(true,
-          'If your email exists in our system, you will receive a password reset link shortly',
+          'If an account exists with this email, you will receive a password reset link.',
           null,
       ));
     }
 
-    // Generate random token
-    const encryptedToken = generatePasswordResetToken(user._id.toString());
+    // Generate reset token
+    const resetToken = generatePasswordResetToken();
 
-    // Extract token from the encrypted payload for storage in Redis
-    const decoded = decryptResetToken(encryptedToken);
-
-    if (!decoded) {
-      throw new AppError('Failed to generate reset token', 500);
-    }
-
-    // Save token to Redis with user ID as part of the key
-    const tokenSaved = await saveResetToken(user._id.toString(), decoded.token);
-
+    // Save reset token to Redis
+    const tokenSaved = await saveResetToken(email, resetToken);
     if (!tokenSaved) {
       throw new AppError('Failed to generate reset token', 500);
     }
 
-    // Send email with reset link
-    const emailResult = await sendResetEmail(email, user.name, encryptedToken);
-
-    if (!emailResult.success) {
-      throw new AppError(`Failed to send reset email: ${emailResult.error}`,
-          500,
-      );
+    // Send reset email
+    const mailSent = await sendResetEmail(email, resetToken, user.name);
+    if (!mailSent.success) {
+      throw new AppError(`Failed to send reset email: ${mailSent.error}`, 500);
     }
 
-    // For development only
-    console.log(`Reset link for ${email}: ${process.env.REACT_APP_API_URL}/reset-password?token=${encodeURIComponent(
-        encryptedToken)}`);
-
-    return res.status(200).json(formatResponse(true,
-        'If your email exists in our system, you will receive a password reset link shortly',
-        process.env.NODE_ENV === 'development' ? {encryptedToken} : null,
+    res.status(200).json(formatResponse(true,
+        'If an account exists with this email, you will receive a password reset link.',
+        null,
     ));
   } catch (error) {
-    console.error('Password reset request error:', error);
-    throw new AppError('An error occurred while processing your request', 500);
+    console.error('Error in forgotPassword:', error);
+    throw new AppError('Failed to process password reset request', 500);
   }
 };
 
@@ -331,7 +304,7 @@ module.exports.changePassword = async (req, res) => {
     throw new AppError('Current password and new password are required', 400);
   }
 
-  const userId = req.session.user?.userId;
+  const userId = req.user?.userId;
   if (!userId) {
     throw new AppError('You must be logged in to change your password', 401);
   }
@@ -385,7 +358,7 @@ module.exports.changePassword = async (req, res) => {
 // Get Cloudinary upload signature
 module.exports.getCloudinarySignature = (req, res) => {
   try {
-    const userId = req.session.user?.userId;
+    const userId = req.user?.userId;
 
     if (!userId) {
       throw new AppError('Not authorized', 401);
@@ -423,7 +396,7 @@ module.exports.getCloudinarySignature = (req, res) => {
 // Update user profile
 module.exports.updateProfile = async (req, res) => {
   const {profilePhoto} = req.body;
-  const userId = req.session.user?.userId;
+  const userId = req.user?.userId;
 
   if (!userId) {
     throw new AppError('Not authorized', 401);
@@ -438,11 +411,6 @@ module.exports.updateProfile = async (req, res) => {
     if (!updatedUser) {
       throw new AppError('User not found', 404);
     }
-
-    // Update session with the new profile photo
-    req.session.user = {
-      ...req.session.user, profilePhoto: updatedUser.profilePhoto,
-    };
 
     res.status(200).json(formatResponse(true, 'Profile updated successfully', {
       user: {
@@ -460,7 +428,7 @@ module.exports.updateProfile = async (req, res) => {
 
 // Get user profile
 module.exports.getProfile = async (req, res) => {
-  const userId = req.session.user?.userId;
+  const userId = req.user?.userId;
 
   if (!userId) {
     throw new AppError('Not authorized', 401);
@@ -493,7 +461,7 @@ module.exports.getProfile = async (req, res) => {
 // Update user name
 module.exports.updateName = async (req, res) => {
   const {name} = req.body;
-  const userId = req.session.user?.userId;
+  const userId = req.user?.userId;
 
   if (!userId) {
     throw new AppError('Not authorized', 401);
@@ -513,11 +481,6 @@ module.exports.updateName = async (req, res) => {
       throw new AppError('User not found', 404);
     }
 
-    // Update session with the new name
-    req.session.user = {
-      ...req.session.user, name: updatedUser.name,
-    };
-
     res.status(200).json(formatResponse(true, 'Name updated successfully', {
       user: {
         userId: updatedUser._id,
@@ -535,99 +498,77 @@ module.exports.updateName = async (req, res) => {
 // Bookmark controller functions
 module.exports.getBookmarks = async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    const userId = req.user.userId;
     const user = await User.findById(userId).populate('bookmarks');
 
     if (!user) {
-      return res.status(404).json({
-        success: false, message: 'User not found',
-      });
+      return res.status(404).json(formatResponse(false, 'User not found', null));
     }
 
-    res.status(200).json({
-      success: true, bookmarks: user.bookmarks,
-    });
+    return res.status(200).json(formatResponse(true, 'Bookmarks retrieved successfully', {
+      bookmarks: user.bookmarks
+    }));
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
-    res.status(500).json({
-      success: false, message: 'Internal server error',
-    });
+    return res.status(500).json(formatResponse(false, 'Internal server error', null));
   }
 };
 
 module.exports.addBookmark = async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    const userId = req.user.userId;
     const {listingId} = req.params;
 
     // Check if listing exists
     const listing = await Listing.findById(listingId);
     if (!listing) {
-      return res.status(404).json({
-        success: false, message: 'Listing not found',
-      });
+      return res.status(404).json(formatResponse(false, 'Listing not found', null));
     }
 
     // Add bookmark if not already added
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false, message: 'User not found',
-      });
+      return res.status(404).json(formatResponse(false, 'User not found', null));
     }
 
     // Check if already bookmarked
     if (user.bookmarks.includes(listingId)) {
-      return res.status(400).json({
-        success: false, message: 'Listing already bookmarked',
-      });
+      return res.status(400).json(formatResponse(false, 'Listing already bookmarked', null));
     }
 
     // Add to bookmarks
     user.bookmarks.push(listingId);
     await user.save();
 
-    res.status(200).json({
-      success: true, message: 'Bookmark added successfully',
-    });
+    return res.status(200).json(formatResponse(true, 'Bookmark added successfully', null));
   } catch (error) {
     console.error('Error adding bookmark:', error);
-    res.status(500).json({
-      success: false, message: 'Internal server error',
-    });
+    return res.status(500).json(formatResponse(false, 'Internal server error', null));
   }
 };
 
 module.exports.removeBookmark = async (req, res) => {
   try {
-    const userId = req.session.user.userId;
+    const userId = req.user.userId;
     const {listingId} = req.params;
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false, message: 'User not found',
-      });
+      return res.status(404).json(formatResponse(false, 'User not found', null));
     }
 
     // Check if bookmark exists
     if (!user.bookmarks.includes(listingId)) {
-      return res.status(400).json({
-        success: false, message: 'Bookmark not found',
-      });
+      return res.status(400).json(formatResponse(false, 'Bookmark not found', null));
     }
 
     // Remove from bookmarks
     user.bookmarks = user.bookmarks.filter(id => id.toString() !== listingId);
     await user.save();
 
-    res.status(200).json({
-      success: true, message: 'Bookmark removed successfully',
-    });
+    return res.status(200).json(formatResponse(true, 'Bookmark removed successfully', null));
   } catch (error) {
     console.error('Error removing bookmark:', error);
-    res.status(500).json({
-      success: false, message: 'Internal server error',
-    });
+    return res.status(500).json(formatResponse(false, 'Internal server error', null));
   }
 };
