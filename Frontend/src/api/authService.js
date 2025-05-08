@@ -1,17 +1,23 @@
 import axiosInstance from './axiosInstance';
-import { setToken, setUserData, clearAuthData, isLoggedIn } from './tokenUtils';
+import {
+  getUserData,
+  isLoggedIn,
+  setToken,
+  setUserData,
+} from '../utils/tokenUtils.js';
 
 /**
  * Login user
- * @param {string} email 
- * @param {string} password 
+ * @param {string} email
+ * @param {string} password
  * @returns {Promise} Response data
  */
 export const login = async (email, password) => {
   try {
-    const response = await axiosInstance.post('/login', { email, password });
+    const response = await axiosInstance.post('/login', {email, password});
     if (response.data.success) {
       setToken(response.data.data.token);
+      setUserData(response.data.data.user);
     }
     return response.data;
   } catch (error) {
@@ -21,7 +27,7 @@ export const login = async (email, password) => {
 
 /**
  * Register a new user
- * @param {Object} userData 
+ * @param {Object} userData
  * @returns {Promise} Response data
  */
 export const register = async (userData) => {
@@ -44,7 +50,7 @@ export const logout = async () => {
   try {
     await axiosInstance.post('/logout');
     localStorage.removeItem('token');
-    return { success: true };
+    return {success: true};
   } catch (error) {
     throw error.response?.data || error;
   }
@@ -55,62 +61,59 @@ export const logout = async () => {
  * @returns {Promise} Response data
  */
 export const checkAuth = async () => {
-  if (!isLoggedIn()) {
-    return { success: false };
-  }
-  
-  try {
-    const response = await axiosInstance.get('/islogin');
-    return response.data;
-  } catch (error) {
-    // If unauthorized, clear auth data
-    if (error.response?.status === 401) {
-      clearAuthData();
-    }
-    throw error.response?.data || { message: 'Network error' };
+  if (isLoggedIn()) {
+    return {
+      success: true, data: {
+        user: getUserData(),
+      },
+    };
+  } else {
+    return {success: false};
   }
 };
 
 /**
  * Verify OTP
- * @param {string} email 
- * @param {string} otp 
+ * @param {string} email
+ * @param {string} otp
  * @returns {Promise} Response data
  */
 export const verifyOTP = async (email, otp) => {
   try {
-    const response = await axiosInstance.post('/otp/verify', { email, otp });
+    const response = await axiosInstance.post('/otp/verify', {email, otp});
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: 'Network error' };
+    throw error.response?.data || {message: 'Network error'};
   }
 };
 
 /**
  * Forgot password request
- * @param {string} email 
+ * @param {string} email
  * @returns {Promise} Response data
  */
 export const forgotPassword = async (email) => {
   try {
-    const response = await axiosInstance.post('/forgot-password', { email });
+    const response = await axiosInstance.post('/forgot-password', {email});
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: 'Network error' };
+    throw error.response?.data || {message: 'Network error'};
   }
 };
 
 /**
  * Reset password with token
- * @param {string} token 
- * @param {string} password 
+ * @param {string} token
+ * @param {string} password
  * @returns {Promise} Response data
  */
 export const resetPassword = async (token, password) => {
   try {
-    const response = await axiosInstance.post('/reset-password', { token, password });
+    const response = await axiosInstance.post('/reset-password',
+        {token, password},
+    );
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: 'Network error' };
+    throw error.response?.data || {message: 'Network error'};
   }
 };

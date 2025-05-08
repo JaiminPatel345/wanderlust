@@ -26,9 +26,9 @@ const Bookmarks = () => {
   const loadBookmarks = async () => {
     try {
       setIsLoading(true);
-      const bookmarks = await fetchBookmarks();
-      setBookmarks(bookmarks);
-      setFilteredBookmarks(bookmarks);
+      const response = await fetchBookmarks();
+      setBookmarks(response.data.bookmarks);
+      setFilteredBookmarks(response.data.bookmarks);
     } catch (error) {
       showErrorMessage('Failed to fetch bookmarks');
     } finally {

@@ -177,8 +177,6 @@ const Listings = () => {
     filterListings,
     allListings,
     filterListingsOnTag,
-    searchResults,
-    searchListingsBackend,
   } = useListingStore();
   const {selectedTags, tagClick} = useTagStore();
   const [showWithTax, setShowWithTax] = useState(false);
@@ -207,13 +205,11 @@ const Listings = () => {
         await checkCurrUser();
       }
       await getAllListings(setLoading);
-      // If user is logged in, fetch their bookmarks to know which listings are bookmarked
       if (currUser) {
         try {
-          console.log('Fetching bookmarks in Listings component...');
           const response = await fetchBookmarks();
-          if (response.success && response.bookmarks) {
-            setBookmarkedListings(response.bookmarks.map(bookmark => bookmark._id));
+          if (response.success && response.data.bookmarks) {
+            setBookmarkedListings(response.data.bookmarks.map(bookmark => bookmark._id));
           }
         } catch (error) {
           console.error('Error fetching bookmarks:', error);

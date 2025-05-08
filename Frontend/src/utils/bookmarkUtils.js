@@ -7,7 +7,7 @@ import axiosInstance from '../api/axiosInstance';
 export const fetchBookmarks = async () => {
   try {
     const response = await axiosInstance.get('/bookmarks');
-    return response.data.data.bookmarks;
+    return response.data;
   } catch (error) {
     throw new Error('Failed to fetch bookmarks');
   }
@@ -23,7 +23,7 @@ export const isListingBookmarked = async (listingId) => {
     const response = await fetchBookmarks();
     if (!response.success) return false;
 
-    return response.bookmarks.some(bookmark => bookmark._id === listingId);
+    return response.data.bookmarks.some(bookmark => bookmark._id === listingId);
   } catch (error) {
     console.error('Error checking bookmark status:', error);
     return false;
@@ -71,16 +71,17 @@ export const toggleBookmark = async (listingId, isCurrentlyBookmarked) => {
     if (isCurrentlyBookmarked) {
       response = await removeBookmark(listingId);
       return {
-        success: response.success,
-        isBookmarked: !response.success ? isCurrentlyBookmarked : false,
-        message: response.message,
+        success: response.data.success,
+        isBookmarked: !response.data.success ? isCurrentlyBookmarked : false,
+        message: response.data.message,
       };
     } else {
       response = await addBookmark(listingId);
       return {
-        success: response.success,
-        isBookmarked: response.success ? true : isCurrentlyBookmarked,
-        message: response.message,
+        success: response.data.success,
+        isBookmarked: response.data.success ? true : isCurrentlyBookmarked,
+        message: response.data.message,
+        
       };
     }
   } catch (error) {

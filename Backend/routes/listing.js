@@ -30,11 +30,6 @@ router
         verifyToken,
         isListingOwner,
         asyncWrap(listingController.destroyListing)
-    ) // Delete route
-
-// Temporary route for booking
-router.get("/:id/book", (req, res) => {
-    res.json({ message: "Very soon build book facility" })
-})
+    ) 
 
 module.exports = router

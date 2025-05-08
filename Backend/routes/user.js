@@ -11,7 +11,7 @@ router.route("/login").post(rateLimiters.login, asyncWrap(userController.login))
 
 router.route("/logout").post(asyncWrap(userController.logout))
 
-router.route("/islogin").get(asyncWrap(userController.isLogin))
+// router.route("/islogin").get(asyncWrap(userController.isLogin))
 
 // Password reset routes
 router.route("/forgot-password").post(rateLimiters.passwordReset, asyncWrap(userController.forgotPassword))

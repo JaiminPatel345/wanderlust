@@ -1,204 +1,198 @@
-import { create } from 'zustand';
+import {create} from 'zustand';
 import {
+  checkAuth,
   login as apiLogin,
   logout as apiLogout,
   register as apiRegister,
   verifyOTP as apiVerifyOTP,
-  checkAuth,
 } from '../api/authService';
 import {
+  changePassword as apiChangePassword,
   updateUserName,
   updateUserProfile,
-  changePassword as apiChangePassword,
 } from '../api/userService';
-import { isLoggedIn, getUserData, clearAuthData } from '../api/tokenUtils';
+import {clearAuthData, getUserData, isLoggedIn} from '../utils/tokenUtils.js';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const useUserStore = create((set) => ({
   currUser: null,
   loading: true,
-  
+
   // Check if user is logged in
   checkCurrUser: async () => {
     try {
-      set({ loading: true });
-      
+      set({loading: true});
+
       // First check if we have a token and user data in local storage
       if (isLoggedIn()) {
         const userData = getUserData();
         if (userData) {
-          set({ currUser: userData, loading: false });
-          
-          // Verify with backend in background
-          try {
-            const response = await checkAuth();
-            if (response.success) {
-              set({ currUser: response.data.user });
-            } else {
-              // If backend check fails, clear auth data
-              clearAuthData();
-              set({ currUser: null });
-            }
-          } catch (error) {
-            console.error('Error verifying auth with backend:', error);
-          }
-          
+          set({currUser: userData, loading: false});
+
           return true;
         }
+      }else{
+        return false;
       }
-      
+
       // If no local data or it's invalid, try backend
       const response = await checkAuth();
-      
+
       if (response.success) {
-        set({ currUser: response.data.user, loading: false });
+        set({currUser: response.data.user, loading: false});
         return true;
       } else {
-        set({ currUser: null, loading: false });
+        set({currUser: null, loading: false});
         return false;
       }
     } catch (error) {
       console.error('Error checking current user:', error);
-      set({ currUser: null, loading: false });
+      set({currUser: null, loading: false});
       return false;
     }
   },
-  
+
   // Login user
   login: async (email, password) => {
     try {
-      set({ loading: true });
-      
+      set({loading: true});
+
       const response = await apiLogin(email, password);
-      
+
       if (response.success) {
-        set({ currUser: response.data.user, loading: false });
-        return { success: true };
+        set({currUser: response.data.user, loading: false});
+        return {success: true};
       } else {
-        set({ loading: false });
+        set({loading: false});
         // Check if email verification is required
         if (response.data && response.data.requireVerification) {
-          return { 
-            success: false, 
+          return {
+            success: false,
             requireVerification: true,
-            error: response.message || 'Please verify your email' 
+            error: response.message || 'Please verify your email',
           };
         }
-        return { success: false, error: response.message || 'Login failed' };
+        return {success: false, error: response.message || 'Login failed'};
       }
     } catch (error) {
       console.error('Login error:', error);
-      set({ loading: false });
-      return { success: false, error: error.message || 'Network error occurred' };
+      set({loading: false});
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
-  
+
   // Logout user
   logout: async () => {
     try {
-      set({ loading: true });
-      
+      set({loading: true});
+
       await apiLogout();
-      
-      set({ currUser: null, loading: false });
-      return { success: true };
+
+      set({currUser: null, loading: false});
+      return {success: true};
     } catch (error) {
       console.error('Logout error:', error);
-      set({ loading: false });
+      set({loading: false});
       clearAuthData(); // Still clear local data even if API fails
-      return { success: false, error: error.message || 'Network error occurred' };
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
-  
+
   // Update user name
   updateName: async (name) => {
     try {
       const response = await updateUserName(name);
-      
+
       if (response.success) {
         set((state) => ({
-          currUser: { ...state.currUser, name },
+          currUser: {...state.currUser, name},
         }));
-        return { success: true };
+        return {success: true};
       } else {
-        return { success: false, error: response.message || 'Update failed' };
+        return {success: false, error: response.message || 'Update failed'};
       }
     } catch (error) {
       console.error('Update name error:', error);
-      return { success: false, error: error.message || 'Network error occurred' };
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
-  
+
   // Update user photo
   updatePhoto: async (photoUrl) => {
     try {
-      const response = await updateUserProfile({ profilePhoto: photoUrl });
-      
+      const response = await updateUserProfile({profilePhoto: photoUrl});
+
       if (response.success) {
         set((state) => ({
-          currUser: { ...state.currUser, profilePhoto: photoUrl },
+          currUser: {...state.currUser, profilePhoto: photoUrl},
         }));
-        return { success: true };
+        return {success: true};
       } else {
-        return { success: false, error: response.message || 'Update failed' };
+        return {success: false, error: response.message || 'Update failed'};
       }
     } catch (error) {
       console.error('Update photo error:', error);
-      return { success: false, error: error.message || 'Network error occurred' };
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
-  
+
   // Register new user
   register: async (userData) => {
     try {
-      set({ loading: true });
-      
+      set({loading: true});
+
       const response = await apiRegister(userData);
-      
+
       if (response.success) {
         // Only set current user if no verification is required
         if (!response.data.requireVerification) {
-          set({ currUser: response.data.user, loading: false });
+          set({currUser: response.data.user, loading: false});
         } else {
-          set({ loading: false });
+          set({loading: false});
         }
-        return { 
+        return {
           success: true,
-          requireVerification: response.data.requireVerification
+          requireVerification: response.data.requireVerification,
         };
       } else {
-        set({ loading: false });
-        return { success: false, error: response.message || 'Registration failed' };
+        set({loading: false});
+        return {
+          success: false,
+          error: response.message || 'Registration failed',
+        };
       }
     } catch (error) {
       console.error('Registration error:', error);
-      set({ loading: false });
-      return { success: false, error: error.message || 'Network error occurred' };
+      set({loading: false});
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
 
   // Verify OTP
   verifyOTP: async (email, otp) => {
     try {
-      set({ loading: true });
-      
+      set({loading: true});
+
       const response = await apiVerifyOTP(email, otp);
-      
+
       if (response.success) {
-        set({ currUser: response.data.user, loading: false });
-        return { 
+        set({currUser: response.data.user, loading: false});
+        return {
           success: true,
-          isNewUser: response.data.isNewUser
+          isNewUser: response.data.isNewUser,
         };
       } else {
-        set({ loading: false });
-        return { success: false, error: response.message || 'Verification failed' };
+        set({loading: false});
+        return {
+          success: false,
+          error: response.message || 'Verification failed',
+        };
       }
     } catch (error) {
       console.error('OTP verification error:', error);
-      set({ loading: false });
-      return { success: false, error: error.message || 'Network error occurred' };
+      set({loading: false});
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
 
@@ -206,15 +200,18 @@ const useUserStore = create((set) => ({
   changePassword: async (currentPassword, newPassword) => {
     try {
       const response = await apiChangePassword(currentPassword, newPassword);
-      
+
       if (response.success) {
-        return { success: true, message: response.message };
+        return {success: true, message: response.message};
       } else {
-        return { success: false, error: response.message || 'Failed to change password' };
+        return {
+          success: false,
+          error: response.message || 'Failed to change password',
+        };
       }
     } catch (error) {
       console.error('Change password error:', error);
-      return { success: false, error: error.message || 'Network error occurred' };
+      return {success: false, error: error.message || 'Network error occurred'};
     }
   },
 }));
