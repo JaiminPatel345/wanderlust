@@ -37,7 +37,7 @@ export const createListing = async (listingData) => {
     const response = await axiosInstance.post('/listings', listingData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: 'Network error' };
+    throw error.response?.data || { message: 'Unknown error' };
   }
 };
 

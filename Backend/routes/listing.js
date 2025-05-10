@@ -1,35 +1,31 @@
-const express = require("express")
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
 const {
-    isLoggedIn,
-    verifyToken,
-    isListingOwner,
-    validateListing,
-} = require("../utilities/middleware.js")
-const asyncWrap = require("../utilities/wrapAsync.js")
-const listingController = require("../controllers/listing.js")
-const multer = require("multer")
-const { storage } = require("../utilities/cloudConfig.js")
-const upload = multer({ storage })
+  verifyToken,
+  isListingOwner,
+} = require('../utilities/middleware.js');
+const asyncWrap = require('../utilities/wrapAsync.js');
+const listingController = require('../controllers/listing.js');
 
 // Search route
-router.get("/search", asyncWrap(listingController.searchListings))
+router.get('/search', asyncWrap(listingController.searchListings));
 
 // Route for all listings
-router
-    .route("/")
+router.route('/')
     .get(asyncWrap(listingController.index)) // All listings
-    .post(verifyToken, asyncWrap(listingController.createListing)) // Add listing
+    .post(verifyToken, asyncWrap(listingController.createListing)); // Add listing
 
 // Routes for a specific listing
-router
-    .route("/:id")
-    .get(asyncWrap(listingController.singleListing)) // Show route
-    .put(verifyToken, isListingOwner, asyncWrap(listingController.updateListing)) // Update route
+router.route('/:id').
+    get(asyncWrap(listingController.singleListing)) // Show route
+    .put(verifyToken,
+        isListingOwner,
+        asyncWrap(listingController.updateListing),
+    ) // Update route
     .delete(
         verifyToken,
         isListingOwner,
-        asyncWrap(listingController.destroyListing)
-    ) 
+        asyncWrap(listingController.destroyListing),
+    );
 
-module.exports = router
+module.exports = router;

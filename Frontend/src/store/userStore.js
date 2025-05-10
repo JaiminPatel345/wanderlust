@@ -17,7 +17,7 @@ const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 const useUserStore = create((set) => ({
   currUser: null,
-  loading: true,
+  loading: false,
 
   // Check if user is logged in
   checkCurrUser: async () => {
@@ -29,10 +29,10 @@ const useUserStore = create((set) => ({
         const userData = getUserData();
         if (userData) {
           set({currUser: userData, loading: false});
-
           return true;
         }
-      }else{
+      } else {
+        set({loading: false});
         return false;
       }
 
@@ -88,6 +88,7 @@ const useUserStore = create((set) => ({
       set({loading: true});
 
       await apiLogout();
+      clearAuthData();
 
       set({currUser: null, loading: false});
       return {success: true};

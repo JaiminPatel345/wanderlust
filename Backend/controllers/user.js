@@ -141,7 +141,7 @@ module.exports.login = async (req, res) => {
     return res.status(403).json(formatResponse(false,
         'Email not verified. A new verification code has been sent.',
         {
-          requireVerification: true, 
+          requireVerification: true,
           email: user.email,
         },
     ));
@@ -183,7 +183,7 @@ module.exports.isLogin = (req, res) => {
         email: req.user.email,
         name: req.user.name,
         profilePhoto: req.user.profilePhoto || '',
-      }
+      },
     }));
   }
 
@@ -205,28 +205,28 @@ module.exports.forgotPassword = async (req, res) => {
     if (!user) {
       // We don't want to reveal which emails are in the database
       return res.status(200).json(formatResponse(true,
-          'If an account exists with this email, you will receive a password reset link.',
+          'Send ! see your spam folder also',
           null,
       ));
     }
 
     // Generate reset token
-    const resetToken = generatePasswordResetToken();
+    const {resetToken, token} = generatePasswordResetToken(email);
 
     // Save reset token to Redis
-    const tokenSaved = await saveResetToken(email, resetToken);
+    const tokenSaved = await saveResetToken(email, token);
     if (!tokenSaved) {
       throw new AppError('Failed to generate reset token', 500);
     }
 
     // Send reset email
-    const mailSent = await sendResetEmail(email, resetToken, user.name);
+    const mailSent = await sendResetEmail(email, user.name, resetToken);
     if (!mailSent.success) {
       throw new AppError(`Failed to send reset email: ${mailSent.error}`, 500);
     }
 
     res.status(200).json(formatResponse(true,
-        'If an account exists with this email, you will receive a password reset link.',
+        'Send ! see your spam folder also',
         null,
     ));
   } catch (error) {
@@ -250,35 +250,32 @@ module.exports.resetPassword = async (req, res) => {
         400,
     );
   }
-
   try {
     // Decrypt and validate the token
     const decoded = decryptResetToken(token);
 
-    if (!decoded || !decoded.userId || !decoded.token) {
+    if (!decoded || !decoded.email || !decoded.token) {
       throw new AppError('Invalid or expired reset token', 400);
     }
 
     // Verify token in Redis
-    const isValidToken = await verifyResetToken(decoded.userId, decoded.token);
+    const isValidToken = await verifyResetToken(decoded.email, decoded.token);
 
     if (!isValidToken) {
       throw new AppError('Invalid or expired reset token', 400);
     }
 
-    // Find user by ID
-    const user = await User.findById(decoded.userId);
+    const newPassword = await hashPassword(password);
 
-    if (!user) {
+    const DbUser = await User.findOneAndUpdate({email: decoded.email},
+        {
+          password: newPassword,
+        },
+    );
+
+    if (!DbUser) {
       throw new AppError('User not found', 404);
     }
-
-    // Hash the new password
-    const hashedPassword = await hashPassword(password);
-
-    // Update user's password
-    user.password = hashedPassword;
-    await user.save();
 
     return res.status(200).json(formatResponse(true,
         'Password has been reset successfully',
@@ -502,15 +499,24 @@ module.exports.getBookmarks = async (req, res) => {
     const user = await User.findById(userId).populate('bookmarks');
 
     if (!user) {
-      return res.status(404).json(formatResponse(false, 'User not found', null));
+      return res.status(404).json(formatResponse(false,
+          'User not found',
+          null,
+      ));
     }
 
-    return res.status(200).json(formatResponse(true, 'Bookmarks retrieved successfully', {
-      bookmarks: user.bookmarks
-    }));
+    return res.status(200).json(formatResponse(true,
+        'Bookmarks retrieved successfully',
+        {
+          bookmarks: user.bookmarks,
+        },
+    ));
   } catch (error) {
     console.error('Error fetching bookmarks:', error);
-    return res.status(500).json(formatResponse(false, 'Internal server error', null));
+    return res.status(500).json(formatResponse(false,
+        'Internal server error',
+        null,
+    ));
   }
 };
 
@@ -522,28 +528,43 @@ module.exports.addBookmark = async (req, res) => {
     // Check if listing exists
     const listing = await Listing.findById(listingId);
     if (!listing) {
-      return res.status(404).json(formatResponse(false, 'Listing not found', null));
+      return res.status(404).json(formatResponse(false,
+          'Listing not found',
+          null,
+      ));
     }
 
     // Add bookmark if not already added
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json(formatResponse(false, 'User not found', null));
+      return res.status(404).json(formatResponse(false,
+          'User not found',
+          null,
+      ));
     }
 
     // Check if already bookmarked
     if (user.bookmarks.includes(listingId)) {
-      return res.status(400).json(formatResponse(false, 'Listing already bookmarked', null));
+      return res.status(400).json(formatResponse(false,
+          'Listing already bookmarked',
+          null,
+      ));
     }
 
     // Add to bookmarks
     user.bookmarks.push(listingId);
     await user.save();
 
-    return res.status(200).json(formatResponse(true, 'Bookmark added successfully', null));
+    return res.status(200).json(formatResponse(true,
+        'Bookmark added successfully',
+        null,
+    ));
   } catch (error) {
     console.error('Error adding bookmark:', error);
-    return res.status(500).json(formatResponse(false, 'Internal server error', null));
+    return res.status(500).json(formatResponse(false,
+        'Internal server error',
+        null,
+    ));
   }
 };
 
@@ -554,21 +575,33 @@ module.exports.removeBookmark = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json(formatResponse(false, 'User not found', null));
+      return res.status(404).json(formatResponse(false,
+          'User not found',
+          null,
+      ));
     }
 
     // Check if bookmark exists
     if (!user.bookmarks.includes(listingId)) {
-      return res.status(400).json(formatResponse(false, 'Bookmark not found', null));
+      return res.status(400).json(formatResponse(false,
+          'Bookmark not found',
+          null,
+      ));
     }
 
     // Remove from bookmarks
     user.bookmarks = user.bookmarks.filter(id => id.toString() !== listingId);
     await user.save();
 
-    return res.status(200).json(formatResponse(true, 'Bookmark removed successfully', null));
+    return res.status(200).json(formatResponse(true,
+        'Bookmark removed successfully',
+        null,
+    ));
   } catch (error) {
     console.error('Error removing bookmark:', error);
-    return res.status(500).json(formatResponse(false, 'Internal server error', null));
+    return res.status(500).json(formatResponse(false,
+        'Internal server error',
+        null,
+    ));
   }
 };

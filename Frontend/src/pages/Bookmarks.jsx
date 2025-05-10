@@ -21,6 +21,7 @@ const Bookmarks = () => {
       navigate('/login');
     }
   }, [currUser, navigate]);
+  
 
   // Fetch bookmarks
   const loadBookmarks = async () => {

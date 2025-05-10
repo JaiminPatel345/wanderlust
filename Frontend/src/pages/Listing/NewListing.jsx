@@ -10,6 +10,7 @@ import {
 } from '../../utils/cloudinaryUtils';
 import {IconPhoto, IconTrash} from '@tabler/icons-react';
 import TagSelector from '../../components/ui/TagSelector';
+import {createListing} from '../../api/index.js';
 
 const NewListing = () => {
   const navigate = useNavigate();
@@ -80,7 +81,7 @@ const NewListing = () => {
   const handleTagsChange = (newTags) => {
     setFormData(prevData => ({
       ...prevData,
-      tags: newTags
+      tags: newTags,
     }));
   };
 
@@ -133,23 +134,11 @@ const NewListing = () => {
 
   const sendData = async (data) => {
     try {
-      const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/listings`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-            credentials: 'include',
-          },
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create listing');
+      const response = await createListing(data);
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create listing');
       }
-      return response.json();
+      return response.data;
     } catch (error) {
       console.error('Error creating listing:', error);
       throw error;
@@ -162,7 +151,7 @@ const NewListing = () => {
 
     // Validate the image file
     const validation = validateImageFile(file);
-    if (!validation.valid) {
+    if (!validation) {
       showErrorMessage(validation.message);
       return;
     }
@@ -439,7 +428,7 @@ const NewListing = () => {
             </div>
 
             {/* Tags */}
-            <TagSelector 
+            <TagSelector
                 selectedTags={formData.tags}
                 onTagsChange={handleTagsChange}
             />

@@ -249,6 +249,13 @@ const Listings = () => {
     }
   }, [filterListings, currentPage]);
 
+  //remove bookmarks when user logout
+  useEffect(() => {
+    if (!currUser) {
+      setBookmarkedListings([]);
+    }
+  }, [currUser]);
+
   const handleTagClick = async (tag) => {
     setIsSearchResults(false); // Reset search results state
     await tagClick(tag);

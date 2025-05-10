@@ -49,7 +49,6 @@ export const register = async (userData) => {
 export const logout = async () => {
   try {
     await axiosInstance.post('/logout');
-    localStorage.removeItem('token');
     return {success: true};
   } catch (error) {
     throw error.response?.data || error;

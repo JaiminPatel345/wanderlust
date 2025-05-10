@@ -16,7 +16,7 @@ router.route("/logout").post(asyncWrap(userController.logout))
 // Password reset routes
 router.route("/forgot-password").post(rateLimiters.passwordReset, asyncWrap(userController.forgotPassword))
 
-router.route("/reset-password").post(rateLimiters.passwordReset, asyncWrap(userController.resetPassword))
+router.route("/reset-password").post(asyncWrap(userController.resetPassword))
 
 // Change password (requires authentication)
 router.route("/change-password").post(verifyToken, rateLimiters.passwordChange, asyncWrap(userController.changePassword))

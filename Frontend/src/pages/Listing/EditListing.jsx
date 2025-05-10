@@ -129,7 +129,7 @@ const EditListing = () => {
         if (!file) return
 
         const validation = validateImageFile(file)
-        if (!validation.valid) {
+        if (!validation) {
             showErrorMessage(validation.message)
             return
         }

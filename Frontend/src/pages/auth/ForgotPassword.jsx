@@ -28,7 +28,7 @@ const ForgotPassword = () => {
       );
       
       setEmailSent(true);
-      showSuccessMessage("If your email exists in our system, you will receive a password reset link shortly");
+      showSuccessMessage(response.data.message ||"If your email exists in our system, you will receive a password reset link shortly");
     } catch (error) {
       console.error("Forgot password error:", error);
       showErrorMessage(
