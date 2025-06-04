@@ -183,6 +183,12 @@ const VerifyOTP = () => {
                         We&apos;ve sent a 6-digit verification code to<br />
                         <span className="font-medium text-gray-800">{email}</span>
                     </p>
+                    <p className="text-blue-600 text-sm text-center mb-6 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Please check your spam folder if you don't see the email
+                    </p>
 
                     <form onSubmit={handleSubmit}>
                         <div className="flex justify-center gap-2 mb-6">
