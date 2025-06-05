@@ -84,9 +84,17 @@ const useNotificationStore = create((set, get) => ({
                 await get().markAsRead(notification._id, true);
             }
             
-            // Handle navigation based on notification type
+            // Handle navigation based on notification type and scroll to specific section
             if (notification.relatedListing) {
-                window.location.href = `/listings/${notification.relatedListing._id}`;
+                const navigate = window.routerNavigate; // This will be set in App.jsx
+                
+                // Navigate to the listing page
+                navigate(`/listings/${notification.relatedListing._id}`, {
+                    state: {
+                        scrollTo: notification.type === 'REVIEW' ? 'reviews' : null,
+                        highlight: notification.type === 'REVIEW' ? notification.relatedReview : null
+                    }
+                });
             }
         } catch (error) {
             console.error('Error handling notification click:', error);

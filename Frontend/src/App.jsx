@@ -21,11 +21,13 @@ import FlashMessageDisplay from "./components/common/flashMessageDisplay.jsx"
 import { Toaster } from "react-hot-toast"
 import NotFound from "./pages/NotFound"
 import Bookmarks from "./pages/Bookmarks"
+import NavigationHandler from "./components/NavigationHandler"
 
 const Layout = () => {
     return (
         <div className="flex flex-col min-h-screen overflow-x-hidden">
             <FlashMessageDisplay />
+            <NavigationHandler />
             <MyNavbar />
             <div className="container mx-auto flex-grow mb-12">
                 <Outlet />

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { IconBell, IconCheck, IconDots } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { IconBell, IconCheck } from '@tabler/icons-react';
 import useNotificationStore from '../../../store/notificationStore';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -48,7 +47,7 @@ const NotificationDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [showAll, setShowAll] = useState(false);
     const dropdownRef = useRef(null);
-    const navigate = useNavigate();
+    
     const { 
         notifications, 
         unreadCount, 

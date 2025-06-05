@@ -15,14 +15,17 @@ export const initializeSocket = async () => {
             return null;
         }
 
-        socket = io(import.meta.env.VITE_API_URL, {
+        const socketUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+        
+        socket = io(socketUrl, {
             auth: {
                 token
             },
-            transports: ['websocket'],
+            transports: ['websocket', 'polling'],
             reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            timeout: 10000
         });
 
         socket.on('connect', () => {
@@ -31,13 +34,16 @@ export const initializeSocket = async () => {
 
         socket.on('connect_error', (error) => {
             console.error('Socket connection error:', error);
-            disconnectSocket();
+            // Only disconnect if it's an authentication error
+            if (error.message === 'Authentication error') {
+                disconnectSocket();
+            }
         });
 
         socket.on('disconnect', (reason) => {
             console.debug('Socket disconnected:', reason);
-            if (reason === 'io server disconnect') {
-                // Server disconnected us, try to reconnect
+            if (reason === 'io server disconnect' || reason === 'transport close') {
+                // Server disconnected us or transport closed, try to reconnect
                 socket.connect();
             }
         });
@@ -47,11 +53,16 @@ export const initializeSocket = async () => {
             await new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => {
                     reject(new Error('Socket connection timeout'));
-                }, 5000);
+                }, 10000); // Increased timeout to 10 seconds
 
                 socket.once('connect', () => {
                     clearTimeout(timeout);
                     resolve();
+                });
+
+                socket.once('connect_error', (error) => {
+                    clearTimeout(timeout);
+                    reject(error);
                 });
             });
         }
@@ -59,6 +70,7 @@ export const initializeSocket = async () => {
         return socket;
     } catch (error) {
         console.error('Error initializing socket:', error);
+        disconnectSocket(); // Clean up on error
         return null;
     }
 };
