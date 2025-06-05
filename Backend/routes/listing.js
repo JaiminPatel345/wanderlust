@@ -11,8 +11,7 @@ const listingController = require('../controllers/listing.js');
 router.get('/search', asyncWrap(listingController.searchListings));
 
 // Route for all listings
-router.route('/')
-    .get(asyncWrap(listingController.index)) // All listings
+router.route('/').get(asyncWrap(listingController.index)) // All listings
     .post(verifyToken, asyncWrap(listingController.createListing)); // Add listing
 
 // Routes for a specific listing

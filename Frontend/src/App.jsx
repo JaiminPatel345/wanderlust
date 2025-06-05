@@ -15,6 +15,7 @@ import ProfileSetup from "./pages/auth/ProfileSetup"
 import ForgotPassword from "./pages/auth/ForgotPassword"
 import ResetPassword from "./pages/auth/ResetPassword"
 import { Listings, EditListing, NewListing, OneListing } from "./pages/Listing/"
+import Dashboard from "./components/Dashboard/Dashboard"
 import { FlashMessageProvider } from "./utils/flashMessageContext"
 import FlashMessageDisplay from "./components/common/flashMessageDisplay.jsx"
 import { Toaster } from "react-hot-toast"
@@ -49,6 +50,7 @@ const router = createBrowserRouter(
             <Route path="/listings/:id" element={<OneListing />} />
             <Route path="/listings/:id/edit" element={<EditListing />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
         </Route>
     )

@@ -1,16 +1,26 @@
-import Cookies from "js-cookie"
+// Get authentication token
+export const getToken = () => {
+    return localStorage.getItem("token");
+};
 
-const checkUserSession = () => {
+// Check user session
+export const checkUserSession = () => {
     try {
-        if (Cookies.get("user")) {
-            const user = JSON.parse(Cookies.get("user"))
-
-            return user
+        if (localStorage.getItem("user")) {
+            return JSON.parse(localStorage.getItem("user"))
         }
+        return null
     } catch (e) {
         return null
     }
-
 }
 
-export default checkUserSession
+// Set authentication token
+export const setToken = (token) => {
+    localStorage.setItem("token", token);
+};
+
+// Remove authentication token
+export const removeToken = () => {
+    localStorage.removeItem("token");
+};

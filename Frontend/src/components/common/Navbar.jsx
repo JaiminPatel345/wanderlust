@@ -7,6 +7,7 @@ import UpdateNameModal from '../ui/user/UpdateNameModal.jsx';
 import UpdatePhotoModal from '../ui/user/UpdatePhotoModal.jsx';
 import ChangePasswordModal from '../ui/user/ChangePasswordModal.jsx';
 import SearchDropdown from '../ui/navbar/SearchDropdown.jsx';
+import NotificationDropdown from '../ui/navbar/NotificationDropdown.jsx';
 import {shouldShowSearchBar} from '../../utils/navbarUtils';
 import NavLink from '../ui/navbar/NavLink.jsx';
 import NavButton from '../ui/navbar/NavButton.jsx';
@@ -22,6 +23,7 @@ import {
   IconPlus,
   IconUserCircle,
   IconX,
+  IconChartBar,
 } from '@tabler/icons-react';
 
 const Navigation = () => {
@@ -182,6 +184,18 @@ const Navigation = () => {
           <IconBookmarks size={20}/>
           Bookmarks
         </NavLink>
+
+        <NavLink to="/dashboard"
+                 className="flex items-center gap-2 hover:text-rose-600">
+          <IconChartBar size={20}/>
+          Dashboard
+        </NavLink>
+
+        {currUser && (
+            <div className="md:ml-2">
+                <NotificationDropdown />
+            </div>
+        )}
       </div>
   );
 

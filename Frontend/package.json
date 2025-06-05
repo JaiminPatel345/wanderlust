@@ -23,6 +23,7 @@
         "@material-tailwind/react": "^2.1.10",
         "@rive-app/react-canvas": "^4.16.5",
         "@tabler/icons-react": "^3.26.0",
+        "@tremor/react": "^3.18.7",
         "axios": "^1.7.7",
         "cloudinary": "^2.5.1",
         "crypto-js": "^4.2.0",
@@ -39,6 +40,8 @@
         "react-icons-kit": "^2.0.0",
         "react-router-dom": "^7.5.3",
         "react-spinners": "^0.14.1",
+        "recharts": "^2.15.3",
+        "socket.io-client": "^4.8.1",
         "vue-sweetalert2": "^5.0.11",
         "zustand": "^5.0.2"
     },

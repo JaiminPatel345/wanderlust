@@ -5,6 +5,7 @@ import {
   setToken,
   setUserData,
 } from '../utils/tokenUtils.js';
+import useNotificationStore from '../store/notificationStore';
 
 /**
  * Login user
@@ -18,6 +19,10 @@ export const login = async (email, password) => {
     if (response.data.success) {
       setToken(response.data.data.token);
       setUserData(response.data.data.user);
+      
+      // Initialize notifications after successful login
+      const initializeNotifications = useNotificationStore.getState().initializeNotifications;
+      await initializeNotifications(true);
     }
     return response.data;
   } catch (error) {

@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const app = express();
+const http = require('http');
+const server = http.createServer(app);
 const {formatResponse} = require('./utilities/errorHandler');
+const { initializeSocket } = require('./utilities/socket');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -15,7 +18,12 @@ const listingsRoutes = require('./routes/listing.js');
 const reviewsRoutes = require('./routes/review.js');
 const usersRoutes = require('./routes/user.js');
 const otpRoutes = require('./routes/otp.js');
+const analyticsRoutes = require('./routes/analytics.js');
+const notificationsRoutes = require('./routes/notifications.js');
 const port = process.env.PORT || 3000;
+
+// Initialize Socket.IO
+initializeSocket(server);
 
 // Database connection
 main().
@@ -91,6 +99,8 @@ app.get('/', (req, res) => {
 app.use('/listings/:id/reviews', reviewsRoutes);
 app.use('/listings', listingsRoutes);
 app.use('/otp', otpRoutes);
+app.use('/analytics', analyticsRoutes);
+app.use('/notifications', notificationsRoutes);
 app.use('/', usersRoutes);
 
 // 404 handler for routes that don't exist
@@ -106,4 +116,4 @@ app.use((err, req, res) => {
 });
 
 // Start server
-app.listen(port, () => console.log(`Listening on port ${port}`));
+server.listen(port, () => console.log(`Listening on port ${port}`));

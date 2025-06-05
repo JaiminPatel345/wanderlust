@@ -3,6 +3,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import useUserStore from '../../store/userStore';
 import {FlashMessageContext} from '../../utils/flashMessageContext';
+import axiosInstance from '../../api/axiosInstance';
 import {
   IconBookmark,
   IconBookmarkFilled,
@@ -48,24 +49,25 @@ const ListingDetail = () => {
       if (!currUser) await checkCurrUser();
 
       try {
-        const response = await fetch(
-            `${process.env.VITE_API_BASE_URL}/listings/${id}`,
-        );
-        const data = await response.json();
+        const response = await axiosInstance.get(`/listings/${id}`);
+        const data = response.data;
 
         setListing(data);
         setReviews(data.reviews);
 
         if (currUser) {
           try {
+            // Track view using axiosInstance
+            await axiosInstance.post(`/analytics/listing/${id}/view`);
+
             const bookmarkStatus = await isListingBookmarked(id);
             setIsBookmarked(bookmarkStatus);
           } catch (error) {
-            console.error('Error checking bookmark status:', error);
+            console.error('Error tracking view or checking bookmark:', error);
           }
         }
       } catch (error) {
-        showErrorMessage(error.message || 'Failed to load listing');
+        showErrorMessage(error.response?.data?.message || 'Failed to load listing');
       } finally {
         setIsLoading(false);
       }
