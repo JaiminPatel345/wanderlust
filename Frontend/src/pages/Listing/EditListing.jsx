@@ -28,10 +28,15 @@ const EditListing = () => {
         title: listing?.title || "",
         description: listing?.description || "",
         price: listing?.price || 0,
+        pricePerDay: listing?.pricePerDay || 0,
+        nightOnlyPrice: listing?.nightOnlyPrice || 0,
         country: listing?.country || "",
         location: listing?.location || "",
         tags: listing?.tags || [],
     })
+
+    const [nightOnly, setNightOnly] = useState(listing?.nightOnlyPrice ? true : false);
+    const [childPricing, setChildPricing] = useState(listing?.childPricing || []);
 
     // Set initial image preview from listing
     useEffect(() => {
@@ -73,6 +78,30 @@ const EditListing = () => {
         }))
     }
 
+    const handleChildAgeChange = (index, type, value) => {
+        setChildPricing((prevData) => {
+            const newData = [...prevData];
+            newData[index].ageRange[type] = parseInt(value);
+            return newData;
+        });
+    };
+
+    const handleChildPriceChange = (index, value) => {
+        setChildPricing((prevData) => {
+            const newData = [...prevData];
+            newData[index].pricePerDay = parseInt(value);
+            return newData;
+        });
+    };
+
+    const addChildPricing = () => {
+        setChildPricing((prevData) => [...prevData, { ageRange: { min: 0, max: 0 }, pricePerDay: 0 }]);
+    };
+
+    const removeChildPricing = (index) => {
+        setChildPricing((prevData) => prevData.filter((child, i) => i !== index));
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault()
         if (!formData.title || !formData.description || !formData.price || 
@@ -100,6 +129,8 @@ const EditListing = () => {
             price: finalPrice,
             tagsArray: formData.tags,
             image: imageFile,
+            nightOnlyPrice: nightOnly ? formData.nightOnlyPrice : null,
+            childPricing: childPricing,
         }
 
         sendData(data)
@@ -270,6 +301,21 @@ const EditListing = () => {
                     {/* Price & Currency & Country */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Price Per Day
+                            </label>
+                            <input
+                                type="number"
+                                name="pricePerDay"
+                                id="pricePerDay"
+                                value={formData.pricePerDay}
+                                required
+                                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div>
                             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                                 Price
                             </label>
@@ -289,15 +335,81 @@ const EditListing = () => {
                                 <option value="INR">INR (₹)</option>
                             </select>
                         </div>
+                    </div>
 
-                        <div>
-                            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-                                Country
-                            </label>
-                            <input type="text" name="country" id="country" placeholder="India" value={formData.country}
-                                required className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-                                onChange={handleChange}/>
+                    <div className="flex items-center mt-4">
+                        <input
+                            id="night-only"
+                            type="checkbox"
+                            checked={nightOnly}
+                            onChange={() => setNightOnly(!nightOnly)}
+                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="night-only" className="ml-2 block text-sm text-gray-900">
+                            Offer special night-only price
+                        </label>
+                    </div>
+
+                    {nightOnly && (
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700">Night Only Price</label>
+                            <input
+                                type="number"
+                                name="nightOnlyPrice"
+                                value={formData.nightOnlyPrice}
+                                onChange={handleChange}
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            />
                         </div>
+                    )}
+
+                    <div className="mt-6">
+                        <h3 className="text-lg font-medium text-gray-900">Child Pricing</h3>
+                        {childPricing.map((child, index) => (
+                            <div key={index} className="flex space-x-4 mt-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Min Age</label>
+                                    <input
+                                        type="number"
+                                        value={child.ageRange.min}
+                                        onChange={(e) => handleChildAgeChange(index, 'min', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Max Age</label>
+                                    <input
+                                        type="number"
+                                        value={child.ageRange.max}
+                                        onChange={(e) => handleChildAgeChange(index, 'max', e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Price Per Day</label>
+                                    <input
+                                        type="number"
+                                        value={child.pricePerDay}
+                                        onChange={(e) => handleChildPriceChange(index, e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeChildPricing(index)}
+                                    className="mt-6 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={addChildPricing}
+                            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                        >
+                            Add Child Pricing
+                        </button>
                     </div>
 
                     {/* Location */}

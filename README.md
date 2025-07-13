@@ -25,8 +25,8 @@
 - yarn
 
 **Deployment**  :
-- [Vercel](https://wanderlust-ten.vercel.app/) (Frontend)
-- [Azure](https://wanderlust-a9bffqcnaucneeat.eastus-01.azurewebsites.net/) (Backend)
+- [Vercel](https://wanderlust.jaimin-detroja.tech/) (Frontend)
+- [Azure]() (Backend)
 - [MongoDB Atlas]() (Database)
 
 **CI/CD tool** :
@@ -51,8 +51,6 @@ yarn dev
 ```.env
 VITE_API_BASE_URL=http://localhost:3000
 
-CLOUDINARY_URL=
-
 SECRET_KEY=ILoveCoding--ThisIsDemo
 ```
 
@@ -61,14 +59,27 @@ SECRET_KEY=ILoveCoding--ThisIsDemo
 
 ### Make you your .env file has those things
 
-```.env
+```bash
+REACT_APP_API_URL=http://localhost:5173
+
 CLOUD_NAME=
 CLOUD_API_KEY=
 CLOUD_API_SECRET=
-MONGO_URL=mongodb://localhost:27017/wanderlust 
+
+MONGO_URL=mongodb://localhost:27017/wanderlust
+ 
 REDIS_URL="redis-cli -h redis15.localnet.org -p 6390"
 REDIS_PASS=
+
 SECRET=AnyThingYouWant
+JWT_SECRET=AnyThingYouWant2
+RESET_PASSWORD_SECRET=AnyThingYouWant3
+
+NODEMAIL_EMAIL=your-email@ok.com
+NODEMAIL_PASS=your-app-password #go to google setting you will get from there 
+
+IS_SAVE_COOKIES=true
+SAME_SITE="None" # you can change
 ```
 
 ### Running the Project

@@ -26,6 +26,7 @@ module.exports.sendOTP = async (req, res) => {
 
   // Generate OTP
   const otp = generateOTP();
+  console.log(`Sending otp for ${email} to ${otp}`);
 
   // Save OTP to Redis
   const otpSaved = await saveOTP(email, otp);

@@ -408,7 +408,14 @@ const Listings = () => {
           displayCurrency={displayCurrency}
           isBookmarked={bookmarkedListings.includes(listing._id)}
           onToggleBookmark={handleToggleBookmark}
-      />))}
+      >
+        <div className="flex items-center mt-2">
+          <span className="text-yellow-500 mr-1">★</span>
+          <span className="text-gray-700">
+            {listing.rating ? listing.rating.toFixed(1) : 'New'}
+          </span>
+        </div>
+      </ListingCard>))}
     </div>
 
     {/* Display number of listings and pagination */}
