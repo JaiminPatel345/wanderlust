@@ -60,11 +60,6 @@ module.exports.verifyToken = (req, res, next) => {
 module.exports.isLoggedIn = module.exports.verifyToken;
 
 module.exports.isListingOwner = (req, res, next) => {
-    // First check if admin user
-    if (req.user?.userId === "66a343a50ff99cdefc1a4657") {
-        next();
-        return;
-    }
     
     const { id } = req.params;
     Listing.findById(id)

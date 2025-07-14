@@ -81,21 +81,21 @@ const Bookmarks = () => {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Bookmarks</h1>
       
       {/* Search bar */}
-      <div className="mb-8 max-w-md">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search your bookmarks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
-          />
-          <IconSearch
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={20}
-          />
-        </div>
-      </div>
+      {/*<div className="mb-8 max-w-md">*/}
+      {/*  <div className="relative">*/}
+      {/*    <input*/}
+      {/*      type="text"*/}
+      {/*      placeholder="Search your bookmarks..."*/}
+      {/*      value={searchQuery}*/}
+      {/*      onChange={(e) => setSearchQuery(e.target.value)}*/}
+      {/*      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"*/}
+      {/*    />*/}
+      {/*    <IconSearch*/}
+      {/*      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"*/}
+      {/*      size={20}*/}
+      {/*    />*/}
+      {/*  </div>*/}
+      {/*</div>*/}
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">

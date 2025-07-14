@@ -6,9 +6,27 @@ import { FlashMessageContext } from "../../utils/flashMessageContext"
 import useUserStore from "../../store/userStore"
 import { Link } from "react-router-dom"
 import { getCloudinarySignature, uploadToCloudinary, validateImageFile } from "../../utils/cloudinaryUtils"
-import axiosInstance from "../../api/axiosInstance"
-import { IconPhoto, IconTrash, IconEdit } from "@tabler/icons-react"
 import TagSelector from "../../components/ui/TagSelector"
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import "leaflet/dist/leaflet.css"
+import L from "leaflet"
+import MapController from "../../components/listing/MapController"
+import MapClickHandler from "../../components/listing/MapClickHandler"
+import { getCurrentPosition, getLocationDetails, getLocationSuggestions } from '../../utils/locationUtils';
+import { ClipLoader } from 'react-spinners';
+import LocationSearch from '../../components/listing/LocationSearch';
+import ImageUpload from '../../components/listing/ImageUpload';
+import PriceInput from '../../components/listing/PriceInput';
+import ChildPricing from '../../components/listing/ChildPricing';
+import {updateListing} from '../../api'
+
+// Fix for default marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const EditListing = () => {
     const navigate = useNavigate()
@@ -23,20 +41,27 @@ const EditListing = () => {
     const listing = state
     const [exchangeRate] = useState(83.5)
     const [selectedCurrency, setSelectedCurrency] = useState("USD")
-
+    const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState({
         title: listing?.title || "",
         description: listing?.description || "",
-        price: listing?.price || 0,
         pricePerDay: listing?.pricePerDay || 0,
         nightOnlyPrice: listing?.nightOnlyPrice || 0,
-        country: listing?.country || "",
-        location: listing?.location || "",
         tags: listing?.tags || [],
     })
-
-    const [nightOnly, setNightOnly] = useState(listing?.nightOnlyPrice ? true : false);
+    
+    const [nightOnly, setNightOnly] = useState(!!listing?.nightOnlyPrice);
     const [childPricing, setChildPricing] = useState(listing?.childPricing || []);
+    const [position, setPosition] = useState(listing?.coordinates ? [listing.coordinates.lat, listing.coordinates.lng] : [18.5204, 73.8567]);
+    const [address, setAddress] = useState({ city: listing?.location || '', country: listing?.country || '', fullAddress: listing?.location || '' });
+    const [isClient, setIsClient] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isGettingLocation, setIsGettingLocation] = useState(false);
+    const mapRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
 
     // Set initial image preview from listing
     useEffect(() => {
@@ -46,6 +71,20 @@ const EditListing = () => {
         }
     }, [listing])
 
+    // Set initial position and address from listing
+    useEffect(() => {
+        setIsClient(true);
+        if (listing?.coordinates) {
+            setPosition([listing.coordinates.lat, listing.coordinates.lng]);
+            setAddress({
+                city: listing.location,
+                country: listing.country,
+                fullAddress: listing.location
+            });
+            setSearchQuery(`${listing.location}, ${listing.country}`);
+        }
+    }, [listing]);
+
     const handleChange = (e) => {
         const { name, value } = e.target
         
@@ -53,13 +92,13 @@ const EditListing = () => {
             if (value === "INR" && selectedCurrency === "USD") {
                 setFormData((prevData) => ({
                     ...prevData,
-                    price: Math.round(prevData.price * exchangeRate)
+                    pricePerDay: Math.round(prevData.pricePerDay * exchangeRate)
                 }))
                 setSelectedCurrency(value)
             } else if (value === "USD" && selectedCurrency === "INR") {
                 setFormData((prevData) => ({
                     ...prevData,
-                    price: Math.round(prevData.price / exchangeRate)
+                    pricePerDay: Math.round(prevData.pricePerDay / exchangeRate)
                 }))
                 setSelectedCurrency(value)
             }
@@ -81,7 +120,7 @@ const EditListing = () => {
     const handleChildAgeChange = (index, type, value) => {
         setChildPricing((prevData) => {
             const newData = [...prevData];
-            newData[index].ageRange[type] = parseInt(value);
+            newData[index].ageRange[type] = value;
             return newData;
         });
     };
@@ -89,69 +128,132 @@ const EditListing = () => {
     const handleChildPriceChange = (index, value) => {
         setChildPricing((prevData) => {
             const newData = [...prevData];
-            newData[index].pricePerDay = parseInt(value);
+            newData[index].pricePerDay = value;
             return newData;
         });
     };
 
     const addChildPricing = () => {
-        setChildPricing((prevData) => [...prevData, { ageRange: { min: 0, max: 0 }, pricePerDay: 0 }]);
+        setChildPricing((prevData) => [...prevData, { ageRange: { min: '', max: '' }, pricePerDay: '' }]);
     };
 
     const removeChildPricing = (index) => {
         setChildPricing((prevData) => prevData.filter((child, i) => i !== index));
     };
 
+    const hasAgeRangeError = (child) => {
+        if (!child.ageRange.min || !child.ageRange.max) return false;
+
+        // Check if min > max
+        if (parseInt(child.ageRange.min) > parseInt(child.ageRange.max)) {
+            return true;
+        }
+
+        // Check if age is >= 18
+        if (parseInt(child.ageRange.min) >= 18 || parseInt(child.ageRange.max) >= 18) {
+            return true;
+        }
+
+        // Check for overlaps with other ranges
+        const currentMin = parseInt(child.ageRange.min);
+        const currentMax = parseInt(child.ageRange.max);
+
+        return childPricing.some(otherChild => {
+            if (otherChild === child || !otherChild.ageRange.min || !otherChild.ageRange.max) return false;
+
+            const otherMin = parseInt(otherChild.ageRange.min);
+            const otherMax = parseInt(otherChild.ageRange.max);
+
+            return (currentMin >= otherMin && currentMin <= otherMax) ||
+                   (currentMax >= otherMin && currentMax <= otherMax) ||
+                   (currentMin <= otherMin && currentMax >= otherMax);
+        });
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault()
-        if (!formData.title || !formData.description || !formData.price || 
-            !formData.country || !formData.location) {
+        if (!formData.title || !formData.description || !formData.pricePerDay || 
+            !address.fullAddress || !address.country) {
+            setFormError("Please fill in all required fields")
             showErrorMessage("Please fill in all required fields")
             window.scrollTo(0, 0)
             return
         }
 
         if (!imageFile) {
+            setFormError("Please upload an image")
             showErrorMessage("Please upload an image")
             window.scrollTo(0, 0)
             return
         }
 
+        // Validate child pricing
+        const hasInvalidChildPricing = childPricing.some(child =>
+            hasAgeRangeError(child) 
+        );
+
+        if (hasInvalidChildPricing) {
+            console.log(childPricing);
+            setFormError('Please correct the child pricing information. Ensure there are no overlapping age ranges, ages are under 18, and all fields are filled.');
+            showErrorMessage('Please correct the child pricing information. Ensure there are no overlapping age ranges, ages are under 18, and all fields are filled.');
+            window.scrollTo(0, document.body.scrollHeight);
+            return;
+        }
+
         setSubmitLoader(true)
 
-        let finalPrice = formData.price;
+        let finalPrice = formData.pricePerDay;
         if (selectedCurrency === "INR") {
-            finalPrice = Math.round(formData.price / exchangeRate);
+            finalPrice = Math.round(formData.pricePerDay / exchangeRate);
         }
 
-        const data = {
-            ...formData,
-            price: finalPrice,
-            tagsArray: formData.tags,
-            image: imageFile,
-            nightOnlyPrice: nightOnly ? formData.nightOnlyPrice : null,
-            childPricing: childPricing,
+        let formDataToSend = {
+            title: formData.title,
+            description: formData.description,
+            location: address.fullAddress,
+            country: address.country,
+            coordinates: JSON.stringify({ lat: position[0], lng: position[1] }),
+            pricePerDay: formData.pricePerDay,
+            currency: selectedCurrency,
+            nightOnlyPrice: nightOnly ? formData.nightOnlyPrice : '',
+            tags: JSON.stringify(formData.tags)
+        };
+
+        formDataToSend['childPricing'] = JSON.stringify(
+            childPricing.map(cp => ({
+                ageRange: {
+                    min: parseInt(cp.ageRange.min),
+                    max: parseInt(cp.ageRange.max)
+                },
+                pricePerDay: parseFloat(cp.pricePerDay)
+            })).filter(cp => !isNaN(cp.ageRange.min) && !isNaN(cp.ageRange.max) && !isNaN(cp.pricePerDay))
+        )
+
+        // Append image only if it's different from the existing image
+        if (imageFile && imageFile !== listing?.image?.url) {
+            formDataToSend["image"] = imageFile;
         }
 
-        sendData(data)
+        sendData(formDataToSend)
             .then(() => {
                 showSuccessMessage("Listing updated successfully!")
                 navigate(`/listings/${listing._id}`)
             })
             .catch((e) => {
-                showErrorMessage(e.message || "Failed to update listing")
+                const errorMessage = e.message || "Failed to update listing";
+                setFormError(errorMessage);
+                showErrorMessage(errorMessage);
             })
             .finally(() => {
                 setSubmitLoader(false)
             })
     }
 
-    const sendData = async (data) => {
+    const sendData = async (formDataToSend) => {
         try {
-            const response = await axiosInstance.put(`/listings/${listing._id}`, data)
-            return response.data
+            await updateListing(listing._id, formDataToSend);
         } catch (error) {
-            throw new Error(error.response?.data?.message || error.message || "Unknown error")
+            throw error;
         }
     }
 
@@ -202,6 +304,102 @@ const EditListing = () => {
         }
     }
 
+    const handleGetCurrentLocation = async () => {
+        try {
+            setIsGettingLocation(true);
+            const { latitude, longitude } = await getCurrentPosition();
+            const newPosition = [latitude, longitude];
+            setPosition(newPosition);
+
+            const newAddress = await getLocationDetails(latitude, longitude);
+            setAddress(newAddress);
+
+            const displayAddress = `${newAddress.fullAddress.split(',')[0]}, ${newAddress.city}, ${newAddress.country}`;
+            setSearchQuery(displayAddress);
+            showSuccessMessage('Current location detected successfully!');
+        } catch (error) {
+            showErrorMessage(error.message);
+        } finally {
+            setIsGettingLocation(false);
+        }
+    };
+
+    const handleMapClick = async (e) => {
+        const { lat, lng } = e.latlng;
+        const newPosition = [lat, lng];
+        setPosition(newPosition);
+        setIsSearching(true);
+
+        try {
+            const newAddress = await getLocationDetails(lat, lng);
+            setAddress(newAddress);
+            setSearchQuery(newAddress.fullAddress);
+        } catch (error) {
+            showErrorMessage(error.message);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+        setShowSuggestions(true);
+
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        searchTimeoutRef.current = setTimeout(() => {
+            if (value.trim().length >= 3) {
+                fetchSuggestions(value);
+            } else {
+                setSuggestions([]);
+                setIsSearching(false);
+            }
+        }, 300);
+    };
+
+    const fetchSuggestions = async (query) => {
+        if (!query.trim()) return;
+
+        setIsSearching(true);
+        try {
+            const results = await getLocationSuggestions(query);
+            setSuggestions(results);
+        } catch (error) {
+            showErrorMessage(error.message);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSelectSuggestion = async (suggestion) => {
+        const lat = parseFloat(suggestion.lat);
+        const lng = parseFloat(suggestion.lon);
+        const newPosition = [lat, lng];
+
+        setPosition(newPosition);
+
+        try {
+            const newAddress = await getLocationDetails(lat, lng);
+            setAddress(newAddress);
+            setSearchQuery(suggestion.formatted_address);
+            setSuggestions([]);
+            setShowSuggestions(false);
+            showSuccessMessage('Location selected successfully!');
+        } catch (error) {
+            showErrorMessage(error.message);
+        }
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim().length >= 3) {
+            fetchSuggestions(searchQuery);
+        }
+    };
+
     if (!currUser) {
         return (
             <div className="flex justify-center items-center mt-16">
@@ -225,214 +423,113 @@ const EditListing = () => {
         <div className="flex justify-center items-center min-h-screen py-8">
             <div className="w-full max-w-2xl bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold mb-6 text-red-500">Edit Listing</h2>
+                
+                {formError && (
+                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+                        {formError}
+                    </div>
+                )}
 
                 <form id="new-listing-form" onSubmit={handleSubmit} className="space-y-6">
                     {/* Image Upload Section */}
-                    <div className="mb-8">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Listing Image
-                        </label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                            {!imagePreview ? (
-                                <div onClick={() => fileInputRef.current?.click()}
-                                    className="flex flex-col items-center justify-center h-48 cursor-pointer hover:bg-gray-50 transition-colors rounded-md">
-                                    <IconPhoto size={48} className="text-gray-400 mb-2"/>
-                                    <p className="text-sm text-gray-500 mb-1">Click to upload an image</p>
-                                    <p className="text-xs text-gray-400">JPG, PNG or GIF (max. 5MB)</p>
-                                    {imageLoader && (
-                                        <div className="mt-4">
-                                            <PulseLoader size={8} color="#f43f5e"/>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="relative group">
-                                    <img src={imagePreview} alt="Listing preview" className="max-h-64 mx-auto rounded-md"/>
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-colors"
-                                            title="Change image"
-                                        >
-                                            <IconEdit size={20} className="text-gray-700"/>
-                                        </button>
+                    <ImageUpload 
+                        imagePreview={imagePreview} 
+                        imageLoader={imageLoader} 
+                        fileInputRef={fileInputRef} 
+                        handleImageUpload={handleImageUpload} 
+                        removeImage={removeImage} 
+                    />
+                    
+                    {/* Title and Description */}
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div className="md:col-span-3">
+                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter a title" required />
+                        </div>
+                        <div className="md:col-span-3">
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows="3" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter a description" required></textarea>
+                        </div>
+                    </div>
+                    
+                    {/* Pricing Section */}
+                    <PriceInput 
+                        selectedCurrency={selectedCurrency}
+                        exchangeRate={exchangeRate}
+                        formData={formData}
+                        handleChange={handleChange}
+                        nightOnly={nightOnly}
+                        setNightOnly={setNightOnly}
+                        setFormData={setFormData}
+                    />
+                    
+                    {/* Child Pricing Section */}
+                    <ChildPricing
+                        childPricing={childPricing}
+                        handleChildAgeChange={handleChildAgeChange}
+                        handleChildPriceChange={handleChildPriceChange}
+                        addChildPricing={addChildPricing}
+                        removeChildPricing={removeChildPricing}
+                        selectedCurrency={selectedCurrency}
+                    />
+                    
+                    {/* Location Section */}
+                    {isClient && (
+                        <div className="mb-8">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <LocationSearch 
+                                searchQuery={searchQuery} 
+                                setSearchQuery={setSearchQuery} 
+                                handleSearchChange={handleSearchChange} 
+                                handleSearchSubmit={handleSearchSubmit} 
+                                suggestions={suggestions} 
+                                showSuggestions={showSuggestions} 
+                                setShowSuggestions={setShowSuggestions} 
+                                handleSelectSuggestion={handleSelectSuggestion} 
+                                isSearching={isSearching} 
+                                handleGetCurrentLocation={handleGetCurrentLocation} 
+                                isGettingLocation={isGettingLocation} 
+                            />
+                            
+                            <div className="mt-4 relative" style={{ height: '300px', borderRadius: '0.375rem', overflow: 'hidden' }}>
+                                {isSearching && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-md">
+                                        <ClipLoader color="#ffffff" size={50} />
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={removeImage}
-                                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
-                                        title="Remove image"
-                                    >
-                                        <IconTrash size={16} className="text-red-500"/>
-                                    </button>
-                                    {imageLoader && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
-                                            <PulseLoader size={10} color="#ffffff"/>
-                                        </div>
-                                    )}
-                                </div>
+                                )}
+                                <MapContainer center={position} zoom={10} style={{ height: '100%', width: '100%' }} ref={mapRef}>
+                                    <TileLayer
+                                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    />
+                                    <Marker position={position}>
+                                        <Popup>You selected this location</Popup>
+                                    </Marker>
+                                    <MapClickHandler onMapClick={handleMapClick} />
+                                    <MapController position={position} />
+                                </MapContainer>
+                            </div>
+                            {address.fullAddress && (
+                                <p className="mt-2 text-sm text-gray-500">Selected Location: {address.fullAddress}</p>
                             )}
-                            <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                                onChange={handleImageUpload} disabled={imageLoader}/>
-                        </div>
-                    </div>
-
-                    {/* Title */}
-                    <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                            Title
-                        </label>
-                        <input type="text" id="title" name="title" placeholder="Add a catchy title"
-                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-                            value={formData.title} onChange={handleChange} required/>
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
-                        </label>
-                        <textarea name="description" id="description" placeholder="Give a brief description about the listing"
-                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500 min-h-[100px]"
-                            value={formData.description} onChange={handleChange} required></textarea>
-                    </div>
-
-                    {/* Price & Currency & Country */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Price Per Day
-                            </label>
-                            <input
-                                type="number"
-                                name="pricePerDay"
-                                id="pricePerDay"
-                                value={formData.pricePerDay}
-                                required
-                                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                                Price
-                            </label>
-                            <input type="number" name="price" id="price" value={formData.price} required
-                                className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-                                onChange={handleChange}/>
-                        </div>
-
-                        <div>
-                            <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                                Currency
-                            </label>
-                            <select name="currency" id="currency" value={selectedCurrency}
-                                className="w-full p-3 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-                                onChange={handleChange}>
-                                <option value="USD">USD ($)</option>
-                                <option value="INR">INR (₹)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center mt-4">
-                        <input
-                            id="night-only"
-                            type="checkbox"
-                            checked={nightOnly}
-                            onChange={() => setNightOnly(!nightOnly)}
-                            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                        />
-                        <label htmlFor="night-only" className="ml-2 block text-sm text-gray-900">
-                            Offer special night-only price
-                        </label>
-                    </div>
-
-                    {nightOnly && (
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700">Night Only Price</label>
-                            <input
-                                type="number"
-                                name="nightOnlyPrice"
-                                value={formData.nightOnlyPrice}
-                                onChange={handleChange}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            />
                         </div>
                     )}
-
-                    <div className="mt-6">
-                        <h3 className="text-lg font-medium text-gray-900">Child Pricing</h3>
-                        {childPricing.map((child, index) => (
-                            <div key={index} className="flex space-x-4 mt-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Min Age</label>
-                                    <input
-                                        type="number"
-                                        value={child.ageRange.min}
-                                        onChange={(e) => handleChildAgeChange(index, 'min', e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Max Age</label>
-                                    <input
-                                        type="number"
-                                        value={child.ageRange.max}
-                                        onChange={(e) => handleChildAgeChange(index, 'max', e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Price Per Day</label>
-                                    <input
-                                        type="number"
-                                        value={child.pricePerDay}
-                                        onChange={(e) => handleChildPriceChange(index, e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeChildPricing(index)}
-                                    className="mt-6 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-                                >
-                                    Remove
-                                </button>
-                            </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={addChildPricing}
-                            className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                        >
-                            Add Child Pricing
-                        </button>
+                    
+                    {/* Tags Section */}
+                    <div className="mb-8">
+                        <TagSelector selectedTags={formData.tags} onTagsChange={handleTagsChange} />
                     </div>
-
-                    {/* Location */}
-                    <div>
-                        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                            Location
-                        </label>
-                        <input type="text" name="location" id="location" value={formData.location}
-                            placeholder="Vadodara, Gujarat" required
-                            className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-rose-500 focus:border-rose-500"
-                            onChange={handleChange}/>
+                    
+                    {/* Submit Button */}
+                    <div className="flex justify-end">
+                        {submitLoader ? (
+                            <button type="submit" className="px-4 py-2 bg-rose-500 text-white rounded-md opacity-70 cursor-not-allowed" disabled>
+                                <BeatLoader color="white" size={8} />
+                            </button>
+                        ) : (
+                            <button type="submit" className="px-4 py-2 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition-colors">Update Listing</button>
+                        )}
                     </div>
-
-                    {/* Tags */}
-                    <TagSelector 
-                        selectedTags={formData.tags}
-                        onTagsChange={handleTagsChange}
-                    />
-
-                    <button type="submit"
-                        className="w-full bg-rose-500 text-white py-3 rounded-md hover:bg-rose-600 transition-colors">
-                        {submitLoader ? <BeatLoader size={10}/> : "Update Listing"}
-                    </button>
                 </form>
             </div>
         </div>

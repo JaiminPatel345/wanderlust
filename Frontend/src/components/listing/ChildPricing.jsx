@@ -16,7 +16,8 @@ const ChildPricing = ({
 
   const hasAgeOverlap = (currentIndex) => {
     const current = childPricing[currentIndex];
-    if (!current || !current.ageRange.min || !current.ageRange.max) return false;
+
+    if (!current || (!current.ageRange.min && current.ageRange.min !== 0) || !current.ageRange.max) return false;
 
     return childPricing.some((child, index) => {
       if (index === currentIndex || !child.ageRange.min || !child.ageRange.max) return false;
@@ -45,6 +46,10 @@ const ChildPricing = ({
       return 'Max age must be greater than or equal to min age';
     }
     
+    if (parseInt(min) >= 18 || parseInt(max) >= 18) {
+      return 'Child age must be under 18';
+    }
+    
     if (hasAgeOverlap(index)) {
       return 'Age range overlaps with another price range';
     }
@@ -71,7 +76,7 @@ const ChildPricing = ({
                   max="17"
                   value={child.ageRange.min}
                   onChange={(e) => handleChildAgeChange(index, 'min', e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border  rounded-md shadow-sm "
+                  className={`mt-1 block w-full px-3 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm `}
                 />
               </div>
               <div>

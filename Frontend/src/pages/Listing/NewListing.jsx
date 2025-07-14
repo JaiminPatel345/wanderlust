@@ -63,6 +63,7 @@ const NewListing = () => {
   const searchTimeoutRef = useRef(null);
   const mapRef = useRef(null);
 
+
   // Handle getting current location
   const handleGetCurrentLocation = async () => {
     try {
@@ -206,22 +207,22 @@ const NewListing = () => {
 
   const hasAgeRangeError = (child) => {
     if (!child.ageRange.min || !child.ageRange.max) return false;
-    
+
     // Check if min > max
     if (parseInt(child.ageRange.min) > parseInt(child.ageRange.max)) {
       return true;
     }
-    
+
     // Check for overlaps with other ranges
     const currentMin = parseInt(child.ageRange.min);
     const currentMax = parseInt(child.ageRange.max);
-    
+
     return childPricing.some(otherChild => {
       if (otherChild === child || !otherChild.ageRange.min || !otherChild.ageRange.max) return false;
-      
+
       const otherMin = parseInt(otherChild.ageRange.min);
       const otherMax = parseInt(otherChild.ageRange.max);
-      
+
       return (currentMin >= otherMin && currentMin <= otherMax) ||
              (currentMax >= otherMin && currentMax <= otherMax) ||
              (currentMin <= otherMin && currentMax >= otherMax);
@@ -242,8 +243,8 @@ const NewListing = () => {
     }
 
     // Validate child pricing
-    const hasInvalidChildPricing = childPricing.some(child => 
-      hasAgeRangeError(child) || 
+    const hasInvalidChildPricing = childPricing.some(child =>
+      hasAgeRangeError(child) ||
       (child.ageRange.min && !child.pricePerDay) ||
       (child.ageRange.max && !child.pricePerDay)
     );
@@ -560,13 +561,12 @@ const NewListing = () => {
                   center={position}
                   zoom={13}
                   style={{ height: '100%', width: '100%' }}
-                  key={`${position[0]}-${position[1]}`}
                 >
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
-                  <MapController center={position} zoom={13} />
+                  <MapController position={position} zoom={13} />
                   <MapClickHandler onMapClick={handleMapClick} />
                   <Marker position={position}>
                     <Popup>

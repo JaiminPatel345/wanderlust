@@ -365,8 +365,14 @@ const ListingDetail = () => {
       return;
     }
 
-    // TO DO: Implement booking logic
-    showSuccessMessage('Booking functionality coming soon!');
+    // TODO: Implement booking logic
+    showSuccessMessage('Done');
+
+    //reset
+    setCheckInDate(null)
+    setCheckOutDate(null)
+    setAdults(null)
+    setChildren([])
   };
 
   if (isLoading || !listing) {
@@ -414,7 +420,7 @@ const ListingDetail = () => {
                     <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
                     <div className="flex items-center gap-1 text-gray-600">
                       <IconMapPin className="w-4 h-4"/>
-                      <span>{listing.location}, {listing.country}</span>
+                      <span>{listing.location.split(',')[0]}, {listing.country}</span>
                     </div>
                   </div>
                 </div>

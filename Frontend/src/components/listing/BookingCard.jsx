@@ -65,7 +65,7 @@ const BookingCard = ({
                 minDate={new Date()}
                 placeholderText="Add date"
                 dateFormat="MMM d, yyyy"
-                className="w-full p-4 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 cursor-pointer hover:border-gray-400"
+                className="w-full p-4 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer hover:border-gray-400"
                 wrapperClassName="w-full"
                 popperClassName="z-50"
               />
@@ -86,7 +86,7 @@ const BookingCard = ({
                 minDate={checkInDate ? new Date(checkInDate.getTime() + 24 * 60 * 60 * 1000) : new Date()}
                 placeholderText="Add date"
                 dateFormat="MMM d, yyyy"
-                className="w-full p-4 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 cursor-pointer hover:border-gray-400"
+                className="w-full p-4 border border-gray-300 rounded-xl text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 cursor-pointer hover:border-gray-400"
                 wrapperClassName="w-full"
                 popperClassName="z-50"
               />
@@ -241,10 +241,10 @@ const BookingCard = ({
         {totalPrice > 0 ? 'Reserve' : 'Check availability'}
       </button>
 
-      {/* Booking Note */}
-      <div className="mt-4 text-center">
-        <p className="text-sm text-gray-600">{`You won't be charged yet`}</p>
-      </div>
+      {/*/!* Booking Note *!/*/}
+      {/*<div className="mt-4 text-center">*/}
+      {/*  <p className="text-sm text-gray-600">{`You won't be charged yet`}</p>*/}
+      {/*</div>*/}
 
       {/* Price Breakdown */}
       {checkInDate && checkOutDate && (
@@ -253,10 +253,10 @@ const BookingCard = ({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">
-                ${listing.pricePerDay} × {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights × {adults} adults
+                ${ (Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) ) === 1 ? listing.nightOnlyPrice : listing.pricePerDay} × {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) } nights × {adults} adults
               </span>
               <span className="text-gray-900">
-                ${listing.pricePerDay * Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) * adults}
+                ${((Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) ) === 1 ? listing.nightOnlyPrice : listing.pricePerDay) * Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) * adults}
               </span>
             </div>
 

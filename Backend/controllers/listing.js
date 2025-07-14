@@ -47,7 +47,7 @@ module.exports.searchListings = (req, res) => {
 // Show a specific listing
 module.exports.singleListing = async (req, res) => {
   const { id } = req.params;
-  
+
   try {
     const listing = await Listing.findById(id)
       .populate({
@@ -134,9 +134,9 @@ module.exports.createListing = async (req, res) => {
                     max: parseInt(cp.ageRange?.max, 10)
                 },
                 pricePerDay: parseFloat(cp.pricePerDay)
-            })).filter(cp => 
-                !isNaN(cp.ageRange.min) && 
-                !isNaN(cp.ageRange.max) && 
+            })).filter(cp =>
+                !isNaN(cp.ageRange.min) &&
+                !isNaN(cp.ageRange.max) &&
                 !isNaN(cp.pricePerDay) &&
                 cp.ageRange.min >= 0 &&
                 cp.ageRange.max <= 17 &&
@@ -178,14 +178,14 @@ module.exports.createListing = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating listing:', error);
-        
+
         // Handle validation errors
         if (error.name === 'ValidationError') {
             const errors = Object.values(error.errors).map(err => ({
                 field: err.path,
                 message: err.message
             }));
-            
+
             return res.status(400).json({
                 success: false,
                 message: 'Validation failed',
@@ -213,48 +213,46 @@ module.exports.createListing = async (req, res) => {
 
 // Update a listing
 module.exports.updateListing = async (req, res) => {
-  const {
-    id,
-  } = req.params;
-  const {
-    title,
-    description,
-    pricePerDay,
-    location,
-    country,
-    tagsArray,
-    nightOnlyPrice,
-    childPricing
-  } = req.body;
+    try {
+        const listingId = req.params.id;
+        const userId = req.user.userId;
 
-  const image = {
-    url: req.body.image,
-    filename: 'listingimage',
-  };
+        // Find the listing by ID and ensure it belongs to the user
+        const listing = await Listing.findOne({ _id: listingId, owner: userId });
 
-  const updatedListing = await Listing.findByIdAndUpdate(
-    id,
-    {
-      title,
-      description,
-      image,
-      pricePerDay,
-      location,
-      country,
-      tags: tagsArray,
-      nightOnlyPrice,
-      childPricing
-    },
-    { new: true }
-  );
+        if (!listing) {
+            return res.status(404).json({ error: 'Listing not found or you do not have permission to edit it' });
+        }
+      console.log("Listing : ", listing);
+      console.log("body", req.body);
 
-  if (!updatedListing) {
-    return res.status(404).json({
-      message: 'Listing not found',
-    });
-  }
+        // Update listing fields
+        const updates = {
+            title: req.body.title,
+            description: req.body.description,
+            location: req.body.location,
+            country: req.body.country,
+            coordinates: req.body.coordinates ? JSON.parse(req.body.coordinates) : listing.coordinates,
+            pricePerDay: req.body.pricePerDay,
+            currency: req.body.currency || 'USD',
+            nightOnlyPrice: req.body.nightOnlyPrice || 0,
+            childPricing: req.body.childPricing ? JSON.parse(req.body.childPricing) : listing.childPricing,
+            tags: req.body.tags ? JSON.parse(req.body.tags) : listing.tags
+        };
 
-  res.json(formatResponse(true, "Successfully Updated", updatedListing));
+        // Handle image update if provided
+        if (req.body.image) {
+            updates.image = { url: req.body.image };
+        }
+
+        const updatedListing = await Listing.findByIdAndUpdate(listingId, updates, { new: true });
+        console.log("------------------");
+        console.log(updatedListing);
+        res.status(200).json(updatedListing);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to update listing' });
+    }
 };
 
 // Delete a listing

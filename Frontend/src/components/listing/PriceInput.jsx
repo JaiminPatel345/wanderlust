@@ -124,7 +124,7 @@ const PriceInput = ({
                 />
               </div>
               <p className="mt-1 text-xs text-gray-500">
-                Price for bookings that don't include overnight stay
+                {`Price for bookings that don't include overnight stay`}
               </p>
             </div>
           </div>
