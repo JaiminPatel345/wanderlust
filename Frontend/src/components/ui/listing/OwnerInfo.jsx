@@ -31,7 +31,7 @@ const OwnerInfo = ({ owner, listingTitle, canModifyListing }) => {
                 {!canModifyListing && (
                     <a
                         href={`mailto:${owner.email}?subject=Inquiry about ${listingTitle}`}
-                        className="flex items-center gap-2 px-4 py-1.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 text-sm"
+                        className="flex items-center gap-2 px-4 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
                     >
                         <IconMail size={18} />
                         Contact Host

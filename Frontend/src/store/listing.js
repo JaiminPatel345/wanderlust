@@ -21,7 +21,7 @@ const useListingStore = create((set, get) => ({
         }
 
         const tempListings = state.allListings.filter((listing) =>
-            selectedTags.every((tag) => listing.tags.includes(tag))
+            listing?.tags && selectedTags.every((tag) => listing.tags.includes(tag))
         )
 
         set({ filterListings: tempListings })
@@ -49,12 +49,16 @@ const useListingStore = create((set, get) => ({
         const searchTermLower = searchTerm.toLowerCase()
 
         const tempListings = currentState.filterListings.filter(
-            (listing) =>
-                listing.title.toLowerCase().includes(searchTermLower) ||
-                listing.price.toString().includes(searchTerm) ||
-                listing.location.toLowerCase().includes(searchTermLower) ||
-                listing.country.toLowerCase().includes(searchTermLower) ||
-                listing.tags.some(tag => tag.toLowerCase().includes(searchTermLower))
+            (listing) => {
+                if (!listing) return false;
+                return (
+                    (listing.title?.toLowerCase() || '').includes(searchTermLower) ||
+                    (listing.pricePerDay?.toString() || '').includes(searchTerm) ||
+                    (listing.location?.toLowerCase() || '').includes(searchTermLower) ||
+                    (listing.country?.toLowerCase() || '').includes(searchTermLower) ||
+                    (listing.tags?.some(tag => tag?.toLowerCase().includes(searchTermLower)) || false)
+                );
+            }
         )
 
         set({ filterListings: tempListings })

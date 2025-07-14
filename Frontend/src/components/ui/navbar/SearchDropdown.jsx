@@ -6,6 +6,7 @@ import {
   IconMapPin,
   IconCurrencyRupee,
   IconCurrencyDollar,
+  IconStar,
 } from '@tabler/icons-react';
 import useListingStore from '../../../store/listing.js';
 import { ScaleLoader } from 'react-spinners';
@@ -78,7 +79,7 @@ const SearchDropdown = ({ searchQuery, onClose }) => {
           </div>
         ) : searchResults.length > 0 ? (
           <div className="max-h-96 overflow-y-auto">
-            {searchResults.map(listing => (
+            {searchResults.map((listing, index) => (
               <div 
                 key={listing._id}
                 className="p-3 hover:bg-gray-50 border-b cursor-pointer transition-colors"
@@ -100,8 +101,12 @@ const SearchDropdown = ({ searchQuery, onClose }) => {
                     </div>
                     <div className="flex items-center text-sm text-gray-700 mt-1">
                       <IconCurrencyDollar size={16} className="mr-1" />
-                      <span>{listing.price.toLocaleString('en-IN')}</span>
+                      <span>{listing.pricePerDay ? `₹${listing.pricePerDay.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : 'Price not set'}</span>
                     </div>
+                    {/*<div className="flex items-center text-sm text-gray-700 mt-1">*/}
+                    {/*  <IconStar size={16} className="mr-1" />*/}
+                    {/*  <span>{listing.reviews && listing.reviews.length > 0 ? `${(listing.reviews.reduce((sum, review) => sum + review.rating, 0) / listing.reviews.length).toFixed(1)} (${listing.reviews.length} reviews)` : 'No ratings'}</span>*/}
+                    {/*</div>*/}
                   </div>
                 </div>
               </div>

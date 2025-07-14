@@ -22,6 +22,11 @@ const PriceDisplay = ({
   showWithTax = false,
   displayCurrency = 'USD',
 }) => {
+  // Handle null/undefined price
+  if (price === null || price === undefined) {
+    return <span className="text-gray-500">Price not available</span>;
+  }
+
   // Calculate price with tax if needed
   const priceWithTax = showWithTax ? (price + price * TAX_RATE) : price;
 
@@ -156,7 +161,7 @@ const ListingCard = ({
             <h5 className="text-xl font-semibold mb-2">{listing.title}</h5>
             <div className="space-y-3">
               <PriceDisplay
-                  price={listing.price}
+                  price={listing.pricePerDay || 0}
                   showWithTax={showWithTax}
                   displayCurrency={displayCurrency}
               />
@@ -204,13 +209,25 @@ ListingCard.propTypes = {
   listing: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
+    pricePerDay: PropTypes.number,
     location: PropTypes.string.isRequired,
     country: PropTypes.string,
     image: PropTypes.shape({
-      url: PropTypes.string.isRequired,
-    }).isRequired,
+      url: PropTypes.string,
+      filename: PropTypes.string,
+    }),
     tags: PropTypes.arrayOf(PropTypes.string),
+    childPricing: PropTypes.arrayOf(PropTypes.shape({
+      ageRange: PropTypes.shape({
+        min: PropTypes.number,
+        max: PropTypes.number
+      }),
+      price: PropTypes.number
+    })),
+    coordinates: PropTypes.shape({
+      lat: PropTypes.number,
+      lng: PropTypes.number
+    })
   }).isRequired,
   showWithTax: PropTypes.bool,
   displayCurrency: PropTypes.string,
