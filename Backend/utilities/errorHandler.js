@@ -76,7 +76,7 @@ const handleRedisError = (err) => {
  * @param {object} res - Express response object
  */
 const handleError = (err, res) => {
-  console.error('ERROR 💥', err);
+  console.error('ERROR ', err);
 
   // Already an AppError, just send response
   if (err instanceof AppError) {

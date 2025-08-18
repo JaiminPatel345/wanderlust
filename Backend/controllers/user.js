@@ -156,6 +156,7 @@ module.exports.login = async (req, res) => {
     email: user.email,
     name: user.name,
     profilePhoto: user.profilePhoto || '',
+    expDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), //7 days
   };
 
   return res.status(200).json(formatResponse(true,

@@ -44,8 +44,17 @@ export const setUserData = (userData) => {
  * @returns {Object|null} The stored user data or null if not found
  */
 export const getUserData = () => {
-  const data = localStorage.getItem(USER_KEY);
-  return data ? JSON.parse(data) : null;
+  let data = localStorage.getItem(USER_KEY);
+  if (!data) {
+    return null;
+  }
+  data = JSON.parse(data);
+  if(data.expDate && new Date(data.expDate) < new Date()) {
+    // If the user data has expired, remove it
+    removeUserData();
+    return null;
+  }
+  return data;
 };
 
 /**
