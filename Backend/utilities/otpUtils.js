@@ -25,6 +25,17 @@ const saveOTP = async (email, otp) => {
   }
 };
 
+// Check if OTP exists for email
+const hasExistingOTP = async (email) => {
+  try {
+    const storedOTP = await tokenUtils.getToken(OTP_PREFIX, email);
+    return !!storedOTP; // Return true if OTP exists, false otherwise
+  } catch (error) {
+    console.error('Error checking existing OTP:', error);
+    return false;
+  }
+};
+
 // Verify OTP from Redis
 const verifyOTP = async (email, otp) => {
   try {
@@ -98,6 +109,7 @@ const sendOTPEmail = async (email, otp, name = '') => {
 module.exports = {
   generateOTP,
   saveOTP,
+  hasExistingOTP,
   verifyOTP,
   sendOTPEmail,
 }; 

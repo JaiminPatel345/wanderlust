@@ -5,7 +5,7 @@ const {
   isValidPasswordFormat,
 } = require('../utilities/passwordUtils.js');
 const {
-  generateOTP, saveOTP, sendOTPEmail,
+  generateOTP, saveOTP, hasExistingOTP, sendOTPEmail,
 } = require('../utilities/otpUtils.js');
 const {AppError, formatResponse} = require('../utilities/errorHandler.js');
 const {generateSignature} = require('../utilities/cloudinaryUtils.js');
@@ -31,7 +31,70 @@ module.exports.signup = async (req, res) => {
   // Check if user already exists
   const existingUser = await User.findOne({email});
   if (existingUser) {
-    throw new AppError('Email already in use', 409);
+    // If user exists and email is verified, then email is already in use
+    if (existingUser.isValidatedEmail) {
+      throw new AppError('Email already in use', 409);
+    }
+    
+    // If user exists but email is not verified, check if OTP is already pending
+    const hasOTP = await hasExistingOTP(email);
+    if (hasOTP) {
+      // Generate JWT token for existing user
+      const token = generateToken(existingUser);
+
+      // Create user data
+      const data = {
+        userId: existingUser._id,
+        email: existingUser.email,
+        name: existingUser.name,
+        isValidatedEmail: existingUser.isValidatedEmail,
+      };
+
+      return res.status(200).json(formatResponse(true,
+          'A verification code is already sent to your email. Please check your inbox or wait for it to expire before requesting a new one.',
+          {
+            user: data,
+            requireVerification: true,
+            token,
+          },
+      ));
+    }
+    
+    // If no pending OTP, send new OTP to existing user
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Save OTP to Redis
+    const otpSaved = await saveOTP(email, otp);
+    if (!otpSaved) {
+      throw new AppError('Failed to generate verification code', 500);
+    }
+
+    // Send OTP via email
+    const mailSent = await sendOTPEmail(email, otp, existingUser.name);
+    if (!mailSent.success) {
+      throw new AppError(`Failed to send verification email: ${mailSent.error}`, 500);
+    }
+
+    // Generate JWT token for existing user
+    const token = generateToken(existingUser);
+
+    // Create user data
+    const data = {
+      userId: existingUser._id,
+      email: existingUser.email,
+      name: existingUser.name,
+      isValidatedEmail: existingUser.isValidatedEmail,
+    };
+
+    return res.status(200).json(formatResponse(true,
+        'Verification code sent to your email. Please verify to complete registration.',
+        {
+          user: data,
+          requireVerification: true,
+          token,
+        },
+    ));
   }
 
   // Validate password format
